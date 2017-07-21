@@ -41,16 +41,16 @@ library(CountClust)
 ```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
 ###--- Live Cells
 ##- LN - no reads information
-LiveCells_LN_UMI <- read.table('TFH146/live cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
-LiveCells_LN_UMI_summary <- read.table('TFH146/live cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI <- read.table('../data/TFH146/live cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary <- read.table('../data/TFH146/live cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
 
 #- First filtering - remove cells with less than 10 genes
 LiveCells_LN_UMI <- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES > 10)]]
 LiveCells_LN_UMI_summary <- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
 
 ##- PBMC - no reads information
-LiveCells_PBMC_UMI <- read.table('TFH146/live cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
-LiveCells_PBMC_UMI_summary <- read.table('TFH146/live cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI <- read.table('../data/TFH146/live cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary <- read.table('../data/TFH146/live cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
 #- First filtering - remove cells with less than 10 genes
 LiveCells_PBMC_UMI <- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES > 10)]]
 LiveCells_PBMC_UMI_summary <- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
@@ -115,7 +115,7 @@ PlotCountClust <- function(topic_clus, fac){
 We fit CountClust model for $K=4$.
 
 ```{r}
-topic_clus_list <- get(load("TFH146/CountClust_Models_filtered.rda"))
+topic_clus_list <- get(load("../data/TFH146/CountClust_Models_filtered.rda"))
 PlotCountClust(topic_clus_list[[4]], LiveCells_fac)
 ```
 
@@ -143,12 +143,16 @@ out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("name", "
 cbind.data.frame(out$name)
 ```
 
+We find markers like interleukin related genes showing up as top driving genes.
+
 ### top genes - Cluster 2, K = 4
 
 ```{r}
 out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("name", "summary"), species="human");
 cbind.data.frame(out$name)
 ```
+
+We find NK cell related genes among the top genes in this cluster.
 
 ### top genes - Cluster 3, K = 4
 
@@ -159,11 +163,13 @@ cbind.data.frame(out$name)
 
 ### top genes - Cluster 4, K = 4
 
-```{r}
+```{r fig.width = 7}
 out <- mygene::queryMany(imp_genes[1:50,4],  scopes="symbol", fields=c("name", "summary"), species="human");
 #cbind.data.frame(out$name)
 cbind.data.frame(out$name)
 ```
+
+We find lymph related and B cell marker genes among the top driving genes for this cluster.
 
 ## Expression patterns of top driving genes 
 
