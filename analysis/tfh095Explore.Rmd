@@ -1,0 +1,292 @@
+---
+title: "Pantaleo exploratory analysis - TFH095"
+author: "Kushal K Dey"
+date: "7/19/2017"
+output:
+  BiocStyle::html_document:
+    toc: true
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+library(maptpx)
+library(CountClust)
+```
+
+# Data Loading & Description  
+
+Briefly, paired PBMCs (Peripheral blood mononuclear cells) and LN (Lymph Node) from patients were stained and sorted for TFH (T Follicular Helper) and Live cells. There are three HIV+ CP off treatment and three HIV- patients.  
+
+
+Per patient, per sample, two Seq-Well arrays were processed. *NB: each patient has the following processed array conditions: LN TFH, LN Live, PBMC TFH, & PBMC Live.*  
+
+Here - we have four arrays from one HIV- CP patient.  
+
+<center>**Obj: Re-perform the analysis // Look at the data.**</center>
+
+Live cells
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Live Cells
+##- LN - no reads information
+LiveCells_LN_UMI <- read.table('TFH095/LN/reads.TFH095_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary <- read.table('TFH095/LN/reads.TFH095_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+
+#- First filtering - remove cells with less than 10 genes
+LiveCells_LN_UMI <- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES > 10)]]
+LiveCells_LN_UMI_summary <- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
+
+##- PBMC - no reads information
+LiveCells_PBMC_UMI <- read.table('TFH095/PBMC/reads.TFH095_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary <- read.table('TFH095/PBMC/reads.TFH095_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_PBMC_UMI <- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES > 10)]]
+LiveCells_PBMC_UMI_summary <- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
+
+```
+
+# Live Cells
+
+## Raw Count
+
+Let's look at the distribution of UMIs and nb. of detected genes in both LN and PBMC samples for Live Cells.  
+
+*NB: We do not have information about read distribution.*  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+##-- LN
+data_ggplot <- LiveCells_LN_UMI_summary
+colnames(data_ggplot) <- c('nb_Genes', 'nb_UMI')
+plot1 <- ggplot(data = data_ggplot) + geom_point(aes(x = nb_UMI, y = nb_Genes), alpha = 0.2) + labs(x = 'Total UMIs', y = 'Total Genes', title = 'Nb of UMIs v. Total Genes - LN sample')
+
+##-- PBMC
+data_ggplot <- LiveCells_PBMC_UMI_summary
+colnames(data_ggplot) <- c('nb_Genes', 'nb_UMI')
+plot2 <- ggplot(data = data_ggplot) + geom_point(aes(x = nb_UMI, y = nb_Genes), alpha = 0.2) + labs(x = 'Total UMIs', y = 'Total Genes', title = 'Nb of UMIs v. Total Genes - PBMC sample')
+
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+##-- LN and PBMC
+data_ggplot <- rbind(LiveCells_LN_UMI_summary, LiveCells_PBMC_UMI_summary)
+data_ggplot$Condition <- c(rep('LN', dim(LiveCells_LN_UMI_summary)[1]), rep('PBMC', dim(LiveCells_PBMC_UMI_summary)[1]))
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = NUM_GENES, color = Condition)) + geom_violin(aes(x = Condition, y = NUM_GENES, color = Condition)) + labs(x = '', y = 'Nb. of genes') + guides(color = 'none')
+plot2 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = NUM_TRANSCRIPTS, color = Condition)) + geom_violin(aes(x = Condition, y = NUM_TRANSCRIPTS, color = Condition)) + labs(x = '', y = 'Nb. of UMIs') + guides(color = 'none')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+```
+
+Close nb. of UMIs and detected genes are observed in bith LN and PBMC samples from Live Cells.  
+## QC and Filtering
+
+The next step is then to perform quality control and filtering (remove cells with few reads/UMIs or genes, etc.).  
+
+The threshold that Sam used was **750 UMIs** and **400 genes** (see *Slides for Pantaleo 053017.ppt* file - HIV+ patient). So, let's use the same here, and also remove genes with less than one UMI count.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+###--- Filtering two datasets
+#- Nb. of UMIs
+plot1 <- ggplot(data = LiveCells_LN_UMI_summary) + geom_histogram(aes(NUM_TRANSCRIPTS), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total UMIs', y = 'Count', title = 'LN sample') + geom_vline(xintercept = 750, color = 'red')
+plot2 <- ggplot(data = LiveCells_PBMC_UMI_summary) + geom_histogram(aes(NUM_TRANSCRIPTS), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total UMIs', y = 'Count', title = 'PBMC sample') + geom_vline(xintercept = 750, color = 'red')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+
+#- Nb. of genes
+plot1 <- ggplot(data = LiveCells_LN_UMI_summary) + geom_histogram(aes(NUM_GENES), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total Genes', y = 'Count', title = 'LN sample') + geom_vline(xintercept = 400, color = 'red')
+plot2 <- ggplot(data = LiveCells_PBMC_UMI_summary) + geom_histogram(aes(NUM_GENES), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total Genes', y = 'Count', title = 'PBMC sample') + geom_vline(xintercept = 400, color = 'red')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+```
+
+
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Filtering datasets and merging
+#- LN
+identical(colnames(LiveCells_LN_UMI), rownames(LiveCells_LN_UMI_summary)) # TRUE
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI[, which(LiveCells_LN_UMI_summary$NUM_GENES >= 400 & LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI_filtered[which(apply(LiveCells_LN_UMI_filtered, 1, sum) != 0), ]
+#- PBMC
+identical(colnames(LiveCells_PBMC_UMI), rownames(LiveCells_PBMC_UMI_summary)) # TRUE
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI[, which(LiveCells_PBMC_UMI_summary$NUM_GENES >= 400 & LiveCells_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI_filtered[which(apply(LiveCells_PBMC_UMI_filtered, 1, sum) != 0), ] 
+#- Merging
+LiveCells_UMI <- rbind.fill(as.data.frame(t(LiveCells_LN_UMI_filtered)), as.data.frame(t(LiveCells_PBMC_UMI_filtered)))
+rownames(LiveCells_UMI) <- c(paste(colnames(LiveCells_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(LiveCells_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(LiveCells_UMI) # 1210 cells and 19,183 genes
+length(unique(c(rownames(LiveCells_LN_UMI_filtered), rownames(LiveCells_PBMC_UMI_filtered)))) # 19,183 genes
+LiveCells_UMI[is.na(LiveCells_UMI)] <- 0 # NAs - replace NA by 0
+LiveCells_UMI <- as.data.frame(t(LiveCells_UMI))
+```
+
+
+```{r}
+LiveCells_fac <- c(rep("Live_LN", dim(LiveCells_LN_UMI_filtered)[2]),
+                   rep("Live_PBMC", dim(LiveCells_PBMC_UMI_filtered)[2]))
+```
+
+Apply CountClust on the Live cells.
+
+```{r}
+counts <- t(LiveCells_UMI)
+```
+
+```{r}
+idx <- which(!is.na(match(substring(colnames(counts), 1, 2), c("RP", "MT", "RN"))))
+counts2 <- counts[, -idx]
+```
+
+```{r echo=FALSE, eval = FALSE}
+topic_clus_list <- list()
+for(k in 2:6){
+  topic_clus_list[[k]] <- maptpx::topics(counts2, K=k, tol = 10)
+}
+save(topic_clus_list, file = "TFH095/CountClust_Models_filtered_Live.rda")
+```
+
+```{r echo=FALSE, eval=TRUE}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = RColorBrewer::brewer.pal(8, "Accent"),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+
+```{r echo=TRUE, eval=TRUE}
+topic_clus_list <- get(load("TFH095/CountClust_Models_filtered_Live.rda"))
+PlotCountClust(topic_clus_list[[2]], LiveCells_fac)
+PlotCountClust(topic_clus_list[[3]], LiveCells_fac)
+PlotCountClust(topic_clus_list[[4]], LiveCells_fac)
+PlotCountClust(topic_clus_list[[5]],  LiveCells_fac)
+PlotCountClust(topic_clus_list[[6]],  LiveCells_fac)
+```
+
+```{r}
+indices <- ExtractTopFeatures(topic_clus_list[[4]]$theta, top_features = 100, method = "poisson", options = "max")
+```
+
+```{r}
+imp_genes <- apply(indices, 1, function(x) return(colnames(counts2)[x]))
+for(m in 1:dim(imp_genes)[2]){
+  write.table(imp_genes[,m], file = paste0("TFH095/gene_names_", m, ".txt"), quote = FALSE, row.names = FALSE, col.names = FALSE)
+}
+```
+
+
+### top genes - Cluster 1, K = 4
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+### top genes - Cluster 2, K = 4
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+### top genes - Cluster 3, K = 4
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,3],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+### top genes - Cluster 4, K = 4
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,4],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+## Expression profile validation
+
+We validate the expression profile of some of the genes that were picked up by the clustering method. We first perform a hard assignment of each single cell to the cluster with the highest grade of membership. We also pool in the metadata on whether that cell is from the Lymph node or it is PBMC.
+
+```{r}
+topic_clus_list <- get(load("TFH095/CountClust_Models_filtered_Live.rda"))
+indices <- ExtractTopFeatures(topic_clus_list[[4]]$theta, top_features = 100, method = "poisson", options = "max")
+fac1 <- apply(topic_clus_list[[4]]$omega, 1, function(x) return(which.max(x)))
+conditions <- paste0(LiveCells_fac, "|", paste0("Clus-", fac1))
+```
+
+### First cluster genes, K = 4
+
+```{r}
+data_ggplot <- as.data.frame(counts2[, indices[1,c(1, 2, 8, 9)]])
+colnames(data_ggplot) <- c("Expr1", "Expr2", "Expr3", "Expr4")
+data_ggplot$Condition <- conditions 
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr1, color = Condition)) + geom_violin(aes(x = Condition, y = Expr1, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[1,1]))
+plot2 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr2, color = Condition)) + geom_violin(aes(x = Condition, y = Expr2, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[2,1]))
+plot3 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr3, color = Condition)) + geom_violin(aes(x = Condition, y = Expr3, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[8,1]))
+plot4 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr4, color = Condition)) + geom_violin(aes(x = Condition, y = Expr4, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[9,1]))
+plot_grid(plot1, plot2, plot3, plot4, ncol = 2, align = 'h')
+```
+
+### Second cluster genes, K = 4
+
+```{r}
+data_ggplot <- as.data.frame(counts2[, indices[2,c(1, 3, 5, 6)]])
+colnames(data_ggplot) <- c("Expr1", "Expr2", "Expr3", "Expr4")
+data_ggplot$Condition <- conditions 
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr1, color = Condition)) + geom_violin(aes(x = Condition, y = Expr1, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[1,2]))
+plot2 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr2, color = Condition)) + geom_violin(aes(x = Condition, y = Expr2, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[3,2]))
+plot3 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr3, color = Condition)) + geom_violin(aes(x = Condition, y = Expr3, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[5,2]))
+plot4 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr4, color = Condition)) + geom_violin(aes(x = Condition, y = Expr4, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[6,2]))
+plot_grid(plot1, plot2, plot3, plot4, ncol = 2, align = 'h')
+```
+
+### Third cluster genes, K = 4
+
+```{r}
+data_ggplot <- as.data.frame(counts2[, indices[3,c(1, 5, 6, 8)]])
+colnames(data_ggplot) <- c("Expr1", "Expr2", "Expr3", "Expr4")
+data_ggplot$Condition <- conditions 
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr1, color = Condition)) + geom_violin(aes(x = Condition, y = Expr1, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[1,3]))
+plot2 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr2, color = Condition)) + geom_violin(aes(x = Condition, y = Expr2, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[5,3]))
+plot3 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr3, color = Condition)) + geom_violin(aes(x = Condition, y = Expr3, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[6,3]))
+plot4 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr4, color = Condition)) + geom_violin(aes(x = Condition, y = Expr4, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[8,3]))
+plot_grid(plot1, plot2, plot3, plot4, ncol = 2, align = 'h')
+```
+
+
+
+### Fourth cluster genes, K = 4
+
+```{r}
+data_ggplot <- as.data.frame(counts2[, indices[4,c(1, 2, 3, 5)]])
+colnames(data_ggplot) <- c("Expr1", "Expr2", "Expr3", "Expr4")
+data_ggplot$Condition <- conditions 
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr1, color = Condition)) + geom_violin(aes(x = Condition, y = Expr1, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[1,4]))
+plot2 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr2, color = Condition)) + geom_violin(aes(x = Condition, y = Expr2, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[2,4]))
+plot3 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr3, color = Condition)) + geom_violin(aes(x = Condition, y = Expr3, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[3,4]))
+plot4 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr4, color = Condition)) + geom_violin(aes(x = Condition, y = Expr4, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=3)) + theme(axis.text.y = element_text(size=3)) + ggtitle(paste0(imp_genes[5,4]))
+plot_grid(plot1, plot2, plot3, plot4, ncol = 2, align = 'h')
+```

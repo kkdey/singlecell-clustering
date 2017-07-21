@@ -1,15 +1,17 @@
 ---
-title: "Home"
+title: "singlecell-clustering"
 output:
   html_document:
     toc: false
 ---
 
-The goal of this new template is to simplify the setup and maintenance of a research website.
-Specifically,
+We apply CountClust Grade of Membership (GoM) model for clustering the single cell data from lymph 
+node (LN) and peripheral blood mononuclear cells (PBMC) of three HIV- and one HIV+ patients.
 
-*  Easier to build and extend the website using the new tools in the [rmarkdown][] package and [latest RStudio release][rstudio]
-*  Easier to deploy the website with Git and GitHub by only using one branch
+An example of countclust fit on single cell data from one patient (TFH146) on just the Live cells.
 
-[rmarkdown]: http://rmarkdown.rstudio.com/rmarkdown_websites.htm
-[rstudio]: https://www.rstudio.com/products/rstudio/download/preview/
+[Example application of CountClust](ex_countclust.html)
+[CountClust on TFH146 scRNA-seq data](test_script.html)
+[CountClust on TFH041 scRNA-seq data](tfh041Explore.html)
+[CountClust on TFH095 scRNA-seq data](tfh095Explore.html)
+[CountClust on MP046 scRNA-seq data](mp046Explore.html)

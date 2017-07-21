@@ -1,0 +1,9 @@
+---
+title: "Pathway analysis of B cell, T cell, NK cell"
+author: "Kushal K Dey"
+date: "7/20/2017"
+output: html_document
+---
+
+In this script, we perform a pre-ranked GSEA of the clustering output from the Grade of Membership model fit on the Live cells and the TFH cells (Lymph node + PBMC). 
+

@@ -1,0 +1,835 @@
+---
+title: "Pantaleo - Exploratory Analysis - TFH146"
+author: "Valentin Voillet"
+output:
+  BiocStyle::html_document:
+    toc: true
+---
+
+*File creation: June, 19th 2017*  
+*Update: June, 19th 2017*  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+setwd('/Users/valentinvoillet/Documents/02_Scripts/Pantaleo/02_Scripts/June_2017/')
+load('script_061917_ExploratoryStudy_TFH146.RData')
+# save.image('script_061917_ExploratoryStudy_TFH146.RData')
+```
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+```
+
+# Data Loading & Description  
+
+Briefly, paired PBMCs (Peripheral blood mononuclear cells) and LN (Lymph Node) from patients were stained and sorted for TFH (T Follicular Helper) and Live cells. There are three HIV+ CP off treatment and three HIV- patients.  
+
+Per patient, per sample, two Seq-Well arrays were processed. *NB: each patient has the following processed array conditions: LN TFH, LN Live, PBMC TFH, & PBMC Live.*  
+
+Here - we have four arrays from one HIV- CP patient.  
+
+<center>**Obj: Re-perform the analysis // Look at the data.**</center>
+
+```{r echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Live Cells
+##- LN - no reads information
+LiveCells_LN_UMI <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/Live Cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/Live Cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_LN_UMI <- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES > 10)]]
+LiveCells_LN_UMI_summary <- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
+
+##- PBMC - no reads information
+LiveCells_PBMC_UMI <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/Live Cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/Live Cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_PBMC_UMI <- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES > 10)]]
+LiveCells_PBMC_UMI_summary <- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
+
+
+
+###--- TFH Cells
+##- LN
+TFH_LN_UMI <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_LN_reads <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_LN_UMI_summary <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_LN_reads_summary <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_LN_UMI <- TFH_LN_UMI[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_reads <- TFH_LN_reads[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_UMI_summary <- TFH_LN_UMI_summary[colnames(TFH_LN_UMI), ]
+TFH_LN_reads_summary <- TFH_LN_reads_summary[colnames(TFH_LN_reads), ]
+
+##- PBMC
+TFH_PBMC_UMI <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_PBMC_reads <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_PBMC_UMI_summary <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_PBMC_reads_summary <- read.table('~/Documents/02_Scripts/Pantaleo/01_Misc/Data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_PBMC_UMI <- TFH_PBMC_UMI[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_reads <- TFH_PBMC_reads[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_UMI_summary <- TFH_PBMC_UMI_summary[colnames(TFH_PBMC_UMI), ]
+TFH_PBMC_reads_summary <- TFH_PBMC_reads_summary[colnames(TFH_PBMC_reads), ]
+```
+
+
+
+
+# Live Cells
+
+## Raw Count
+
+Let's look at the distribution of UMIs and nb. of detected genes in both LN and PBMC samples for Live Cells.  
+
+*NB: We do not have information about read distribution.*  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+##-- LN
+data_ggplot <- LiveCells_LN_UMI_summary
+colnames(data_ggplot) <- c('nb_Genes', 'nb_UMI')
+plot1 <- ggplot(data = data_ggplot) + geom_point(aes(x = nb_UMI, y = nb_Genes), alpha = 0.2) + labs(x = 'Total UMIs', y = 'Total Genes', title = 'Nb of UMIs v. Total Genes - LN sample')
+
+##-- PBMC
+data_ggplot <- LiveCells_PBMC_UMI_summary
+colnames(data_ggplot) <- c('nb_Genes', 'nb_UMI')
+plot2 <- ggplot(data = data_ggplot) + geom_point(aes(x = nb_UMI, y = nb_Genes), alpha = 0.2) + labs(x = 'Total UMIs', y = 'Total Genes', title = 'Nb of UMIs v. Total Genes - PBMC sample')
+
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+```
+
+It seems to exhibit a quite proportional capture efficient here, whereas current platforms (DropSeq, etc.) usually exhibit low and highly variable capture efficiency.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+##-- LN and PBMC
+data_ggplot <- rbind(LiveCells_LN_UMI_summary, LiveCells_PBMC_UMI_summary)
+data_ggplot$Condition <- c(rep('LN', dim(LiveCells_LN_UMI_summary)[1]), rep('PBMC', dim(LiveCells_PBMC_UMI_summary)[1]))
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = NUM_GENES, color = Condition)) + geom_violin(aes(x = Condition, y = NUM_GENES, color = Condition)) + labs(x = '', y = 'Nb. of genes') + guides(color = 'none')
+plot2 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = NUM_TRANSCRIPTS, color = Condition)) + geom_violin(aes(x = Condition, y = NUM_TRANSCRIPTS, color = Condition)) + labs(x = '', y = 'Nb. of UMIs') + guides(color = 'none')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+```
+
+Close nb. of UMIs and detected genes are observed in bith LN and PBMC samples from Live Cells.  
+
+## QC and Filtering
+
+The next step is then to perform quality control and filtering (remove cells with few reads/UMIs or genes, etc.).  
+
+The threshold that Sam used was **750 UMIs** and **400 genes** (see *Slides for Pantaleo 053017.ppt* file - HIV+ patient). So, let's use the same here, and also remove genes with less than one UMI count.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+###--- Filtering two datasets
+#- Nb. of UMIs
+plot1 <- ggplot(data = LiveCells_LN_UMI_summary) + geom_histogram(aes(NUM_TRANSCRIPTS), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total UMIs', y = 'Count', title = 'LN sample') + geom_vline(xintercept = 750, color = 'red')
+plot2 <- ggplot(data = LiveCells_PBMC_UMI_summary) + geom_histogram(aes(NUM_TRANSCRIPTS), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total UMIs', y = 'Count', title = 'PBMC sample') + geom_vline(xintercept = 750, color = 'red')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+
+#- Nb. of genes
+plot1 <- ggplot(data = LiveCells_LN_UMI_summary) + geom_histogram(aes(NUM_GENES), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total Genes', y = 'Count', title = 'LN sample') + geom_vline(xintercept = 400, color = 'red')
+plot2 <- ggplot(data = LiveCells_PBMC_UMI_summary) + geom_histogram(aes(NUM_GENES), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total Genes', y = 'Count', title = 'PBMC sample') + geom_vline(xintercept = 400, color = 'red')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+```
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Filtering datasets and merging
+#- LN
+identical(colnames(LiveCells_LN_UMI), rownames(LiveCells_LN_UMI_summary)) # TRUE
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI[, which(LiveCells_LN_UMI_summary$NUM_GENES >= 400 & LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 417 cells
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI_filtered[which(apply(LiveCells_LN_UMI_filtered, 1, sum) != 0), ] # 14,946 genes and 417 cells
+#- PBMC
+identical(colnames(LiveCells_PBMC_UMI), rownames(LiveCells_PBMC_UMI_summary)) # TRUE
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI[, which(LiveCells_PBMC_UMI_summary$NUM_GENES >= 400 & LiveCells_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 409 cells
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI_filtered[which(apply(LiveCells_PBMC_UMI_filtered, 1, sum) != 0), ] # 12,391 genes and 409 cells
+#- Merging
+LiveCells_UMI <- rbind.fill(as.data.frame(t(LiveCells_LN_UMI_filtered)), as.data.frame(t(LiveCells_PBMC_UMI_filtered)))
+rownames(LiveCells_UMI) <- c(paste(colnames(LiveCells_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(LiveCells_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(LiveCells_UMI) # 826 cells and 16,230 genes
+length(unique(c(rownames(LiveCells_LN_UMI_filtered), rownames(LiveCells_PBMC_UMI_filtered)))) # 16,230 genes
+LiveCells_UMI[is.na(LiveCells_UMI)] <- 0 # NAs - replace NA by 0
+LiveCells_UMI <- as.data.frame(t(LiveCells_UMI))
+```
+
+After filtering, we have:  
+
+* __14,946 genes__ and __417 cells__ - LN sample  
+
+* __12,391 genes__ and __409 cells__ - PBMC sample  
+
+After merging those two datasets together, we have:  
+
+* __826 cells__ and __16,230 genes__  
+
+One thing is obvious here - we do have less cells and genes in this Live Cells HIV- sample than in HIV+.  
+
+## Normalization  
+
+As in Gierahn et al. (2017), for each cell, we performed library-size normalization. UMI-collapsed gene expression values for each cell barcode were scaled by the total number of transcripts and multiplied by 10,000. Scaled expression data were then natural-log transformed before analysis using Seurat. *NB: Scaling and log2-transformation actually done with Seurat.*  
+
+```{r echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Normalization
+#- Seurat object - log2-transformation & library-size normalization - done on Rhino - why? issue with R 3.4.0
+seuratObj <- new('seurat', raw.data = LiveCells_UMI)
+seuratObj <- Setup(seuratObj, min.cells = 0, min.genes = 0, project = 'Pantaleo', total.expr = 10000) # no need to filter - already done
+#- Output
+saveRDS(seuratObj, file = 'Output_061917/LiveCells_global.rds')
+seuratObj_LiveCells_global <- readRDS('Output_061917/LiveCells_global.rds') # 826 cells & 16,230 genes
+```
+
+## Seurat Analysis  
+
+Seurat analysis using the normalized dataset. It includes the removing of unwanted sources of variation, PCA, clustering and tSNE. All analyses are done as in Gierhan et al. (2017).  
+
+The single cell dataset likely contains *uninteresting* sources of variation. This could include not only technical noise, but batch effects, or even biological sources of variation (cell cycle stage). As suggested in Buettner et al. (2015), regressing these signals out of the analysis can improve downstream dimensionality reduction and clustering. Seurat implements a basic version of this by constructing linear models to predict gene expression based on user-defined variables. Seurat stores the z-scored residuals of these models in the scale.data slot, and they are used for dimensionality reduction and clustering. We typically regress out cell-cell variation in gene expression driven by batch (if applicable), cell alignment rate (as provided by Drop-seq tools for Drop-seq data), the number of detected molecules and mitochondrial gene expression. For cycling cells, we can also learn a cell-cycle score (as in Macosko et al. (2015)) and Regress this out as well - from Gierhan et al. (2017).  
+Here, we simply regress on the number of detected molecules per cell as well as the percentage mitochondrial gene content.  
+
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Regress out unwanted sources of variation
+mito.genes <- grep("^MT-", rownames(seuratObj_LiveCells_global@data), value = TRUE)
+percent.mito <- colSums(as.matrix(expm1(seuratObj_LiveCells_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_LiveCells_global@data)))
+seuratObj_LiveCells_global <- AddMetaData(seuratObj_LiveCells_global, percent.mito, 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'nGene')
+#- remove unwanted sources of variation
+seuratObj_LiveCells_global <- RegressOut(seuratObj_LiveCells_global, latent.vars = c('nUMI', 'percent.mito')) # remove effect of CDR (high correlation between nGene and nUMI - 0.96) and mitochondrial
+```
+
+After, Seurat calculates highly variable genes and focuses on these for downstream analysis.  
+
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Detection of variable genes across the single cells
+seuratObj_LiveCells_global <- MeanVarPlot(seuratObj_LiveCells_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.1, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_LiveCells_global@var.genes) # 1,911 highly variable genes
+```
+
+We identified 1,911 variable genes with log-mean expression values greater than 0.1 and dispersion (variance/mean) greater than 0.5.  
+
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- PCA
+#- PCA performed on the scaled data and using only highly variable genes - with correction
+seuratObj_LiveCells_global <- PCA(seuratObj_LiveCells_global, pc.genes = seuratObj_LiveCells_global@var.genes)
+seuratObj_LiveCells_global <- ProjectPCA(seuratObj_LiveCells_global)
+```
+
+We can identify markers that are strongly correlated with cellular heterogeneity - see below.    
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- PCA
+VizPCA(seuratObj_LiveCells_global, 1:2)
+```
+
+We performed 1,000 iterations of the t-SNE algorithm using a perplexity value of 50 and the first top 6 principal components. Those first top 6 PCs were chosen according to the JackStraw analysis implemented in Seurat - see below.
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=5, fig.height=5}
+###--- JackStraw
+# seuratObj_LiveCells_global <- JackStraw(seuratObj_LiveCells_global, num.replicate = 100, do.print = TRUE)
+# JackStrawPlot(seuratObj_LiveCells_global, PCs = 1:20)
+PCElbowPlot(seuratObj_LiveCells_global)
+```
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- tSNE
+seuratObj_LiveCells_global <- RunTSNE(seuratObj_LiveCells_global, dims.use = 1:6, perplexity = 50)
+```
+
+Let's look at the tSNE plots now - perplexity of 50 and 1,000 iterations.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=12, fig.height=9}
+###--- tSNE
+labels <- unlist(str_split(rownames(seuratObj_LiveCells_global@tsne.rot), '_'))[seq(2, length(unlist(str_split(rownames(seuratObj_LiveCells_global@tsne.rot), '_'))), 2)]
+nUMI <- seuratObj_LiveCells_global@data.info$nUMI
+nGene <- seuratObj_LiveCells_global@data.info$nGene
+
+data_ggplot <- data.frame(labels = labels,
+                          nUMI = nUMI,
+                          nGene = nGene,
+                          tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nUMI), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2') + scale_color_gradient2('# mapped UMI', low = 'royalblue', high = 'red', mid = 'grey80', midpoint = 2000)
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nGene), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2') + scale_color_gradient2('# detected genes', low = 'royalblue', high = 'red', mid = 'grey80', midpoint = 1000)
+
+plot_grid(plot1, plot2, plot3, ncol = 2, align = 'v')
+```
+
+We do see a differences between LN and PBMC samples from Live Cells. As explained in the email, we also observe a small cluster composed of B cells, but only B cells from LN sample.  
+
+Let's look at different markers now.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=15, fig.height=22}
+###--- ggplot
+data_ggplot <- data.frame(tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2],
+                          MS4A1 = seuratObj_LiveCells_global@data['MS4A1', ],
+                          CD3D = seuratObj_LiveCells_global@data['CD3D', ],
+                          TRAC = seuratObj_LiveCells_global@data['TRAC', ],
+                          IL7R = seuratObj_LiveCells_global@data['IL7R', ],
+                          CD8A = seuratObj_LiveCells_global@data['CD8A', ],
+                          NKG7 = seuratObj_LiveCells_global@data['NKG7', ],
+                          CD14 = seuratObj_LiveCells_global@data['CD14', ])
+limits <- c(0, 1.5)
+data_ggplot$MS4A1[data_ggplot$MS4A1 < limits[1]] <- limits[1]
+data_ggplot$MS4A1[data_ggplot$MS4A1 > limits[2]] <- limits[2]
+data_ggplot$CD3D[data_ggplot$CD3D < limits[1]] <- limits[1]
+data_ggplot$CD3D[data_ggplot$CD3D > limits[2]] <- limits[2]
+data_ggplot$TRAC[data_ggplot$TRAC < limits[1]] <- limits[1]
+data_ggplot$TRAC[data_ggplot$TRAC > limits[2]] <- limits[2]
+data_ggplot$IL7R[data_ggplot$IL7R < limits[1]] <- limits[1]
+data_ggplot$IL7R[data_ggplot$IL7R > limits[2]] <- limits[2]
+data_ggplot$CD8A[data_ggplot$CD8A < limits[1]] <- limits[1]
+data_ggplot$CD8A[data_ggplot$CD8A > limits[2]] <- limits[2]
+data_ggplot$NKG7[data_ggplot$NKG7 < limits[1]] <- limits[1]
+data_ggplot$NKG7[data_ggplot$NKG7 > limits[2]] <- limits[2]
+data_ggplot$CD14[data_ggplot$CD14 < limits[1]] <- limits[1]
+data_ggplot$CD14[data_ggplot$CD14 > limits[2]] <- limits[2]
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = MS4A1), size = 0.5) + scale_colour_gradient(low = "grey", high = "red", name = "MS4A1 (CD20) - B cells")
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CD3D), size = 0.5) + scale_colour_gradient(low = "grey", high = "red", name = "CD3D - T cells")
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = TRAC), size = 0.5) + scale_colour_gradient(low = "grey", high = "red", name = "TRAC - T cells")
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = IL7R), size = 0.5) + scale_colour_gradient(low = "grey", high = "red", name = "IL7R - CD4+ T cells")
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CD8A), size = 0.5) + scale_colour_gradient(low = "grey", high = "red", name = "CD8A - CD8+ T cells")
+plot6 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = NKG7), size = 0.5) + scale_colour_gradient(low = "grey", high = "red", name = "NKG7 - NK cells")
+plot7 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CD14), size = 0.5) + scale_colour_gradient(low = "grey", high = "red", name = "CD14 - Monocytes")
+
+plot_grid(plot1, plot2, 
+          plot3, plot4,
+          plot5, plot6,
+          plot7, ncol = 2, align = 'v')
+```
+
+We do observe B cells, T cells and NK cells. As suggested by Sam, B cells only expressed in LN sample. Q. Is it really a issue here?  
+
+Let's look at the clustering proposed by Seurat.  
+Cell classification and clustering were performed using a graph-based clustering method implemented in Seurat (FindClusters R function - share nearest neighbor (SNN) modularity optimization based clustering algorithm). Briefly, it calculates k-nearest neighbors and constructs the SNN graph. Then, it optimises the modularity function to determine the best clusters. Six distinct clusters of cells (instead of nine in .ppt file - it depends on the parameters used) were identified using the top 6 PCs with a neighbourhood size of 30 and resolution of 0.60.  
+
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Clustering
+seuratObj_LiveCells_global <- FindClusters(seuratObj_LiveCells_global, pc.use = 1:6, resolution = 0.60, print.output = 0, k.param = 30, save.SNN = FALSE)
+```
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=5, fig.height=5}
+###--- Clustering
+labels <- seuratObj_LiveCells_global@ident
+
+data_ggplot <- data.frame(labels = labels,
+                          tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2])
+
+ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15),
+                                     legend.position = "none") + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '')
+```
+
+We do see four clusters: B cells, NK cells and two clusters of T cells (from LN or from PBMC). We cannot go deeper here.   
+
+
+
+
+# TFH Cells
+
+Follicular helper T (Tfh) cells are a distinct subset of CD4+ helper T (Th) cells that regulate the development of antigen-specific B cell immunity.  
+
+Here - look at the two TFH arrays (from PBMC and LN) - sorted PD-1+ CXCR5+ and ICOS+.
+
+## Raw Count
+
+Let's look at the distribution of UMIs, reads and nb. of detected genes in both LN and PBMC samples for Live Cells.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+##-- LN
+data_ggplot <- cbind(TFH_LN_reads_summary, TFH_LN_UMI_summary[rownames(TFH_LN_reads_summary), ])
+colnames(data_ggplot) <- c('nb_Genes', 'nb_reads', 'nb_Genes2', 'nb_UMI')
+plot1 <- ggplot(data = data_ggplot) + geom_point(aes(x = log2(nb_UMI), y = log2(nb_reads)), alpha = 0.2) + labs(x = 'log2(UMIs)', y = 'Log2(Reads)', title = 'Amplification Rate - LN sample')
+plot2 <- ggplot(data = data_ggplot) + geom_point(aes(x = nb_UMI, y = nb_Genes), alpha = 0.2) + labs(x = 'Total UMIs', y = 'Total Genes', title = 'Nb of UMIs v. Total Genes - LN sample')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+
+##-- PBMC
+data_ggplot <- cbind(TFH_PBMC_reads_summary, TFH_PBMC_UMI_summary[rownames(TFH_PBMC_reads_summary), ])
+colnames(data_ggplot) <- c('nb_Genes', 'nb_reads', 'nb_Genes2', 'nb_UMI')
+plot1 <- ggplot(data = data_ggplot) + geom_point(aes(x = log2(nb_UMI), y = log2(nb_reads)), alpha = 0.2) + labs(x = 'log2(UMIs)', y = 'Log2(Reads)', title = 'Amplification Rate - PBMC sample')
+plot2 <- ggplot(data = data_ggplot) + geom_point(aes(x = nb_UMI, y = nb_Genes), alpha = 0.2) + labs(x = 'Total UMIs', y = 'Total Genes', title = 'Nb of UMIs v. Total Genes - PBMC sample')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+```
+
+High correlation between nb. of reads and nb. of UMIs observed - there is not such a big amplification biais (*One outlier in LN sample*). It also exhibits a proportional capture efficient here, whereas current platforms (DropSeq, etc.) usually exhibit low and highly variable capture efficiency.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+##-- LN and PBMC
+data_ggplot <- rbind(TFH_LN_reads_summary, TFH_PBMC_reads_summary)
+data_ggplot$Condition <- c(rep('LN', dim(TFH_LN_reads_summary)[1]), rep('PBMC', dim(TFH_PBMC_reads_summary)[1]))
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = NUM_TRANSCRIPTS, color = Condition)) + geom_violin(aes(x = Condition, y = NUM_TRANSCRIPTS, color = Condition)) + labs(x = '', y = 'Nb. of reads') + guides(color = 'none')
+plot2 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = NUM_GENES, color = Condition)) + geom_violin(aes(x = Condition, y = NUM_GENES, color = Condition)) + labs(x = '', y = 'Nb. of genes') + guides(color = 'none')
+data_ggplot <- rbind(TFH_LN_UMI_summary, TFH_PBMC_UMI_summary)
+data_ggplot$Condition <- c(rep('LN', dim(TFH_LN_UMI_summary)[1]), rep('PBMC', dim(TFH_PBMC_UMI_summary)[1]))
+plot3 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = NUM_TRANSCRIPTS, color = Condition)) + geom_violin(aes(x = Condition, y = NUM_TRANSCRIPTS, color = Condition)) + labs(x = '', y = 'Nb. of UMIs') + guides(color = 'none')
+plot_grid(plot1, plot2, plot3, ncol = 3, labels = c('A', 'B', 'C'), align = 'v')
+```
+
+Close nb. of UMIs and detected genes are observed in bith LN and PBMC samples from Live Cells. Some cells with high number of reads are also present (in PBMC sample).  
+
+## QC and Filtering
+
+The next step is then to perform quality control and filtering (remove cells with few reads/UMIs or genes, etc.).  
+
+The threshold that Sam used was **750 UMIs** and **400 genes**. So, let's use the same here, and also remove genes with less than one UMI count.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+###--- Filtering two datasets
+#- Nb. of UMIs
+plot1 <- ggplot(data = TFH_LN_UMI_summary) + geom_histogram(aes(NUM_TRANSCRIPTS), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total UMIs', y = 'Count', title = 'LN sample') + geom_vline(xintercept = 750, color = 'red')
+plot2 <- ggplot(data = TFH_PBMC_UMI_summary) + geom_histogram(aes(NUM_TRANSCRIPTS), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total UMIs', y = 'Count', title = 'PBMC sample') + geom_vline(xintercept = 750, color = 'red')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+
+#- Nb. of genes
+plot1 <- ggplot(data = TFH_LN_UMI_summary) + geom_histogram(aes(NUM_GENES), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total Genes', y = 'Count', title = 'LN sample') + geom_vline(xintercept = 400, color = 'red')
+plot2 <- ggplot(data = TFH_PBMC_UMI_summary) + geom_histogram(aes(NUM_GENES), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total Genes', y = 'Count', title = 'PBMC sample') + geom_vline(xintercept = 400, color = 'red')
+plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
+```
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Filtering datasets and merging
+#- LN
+identical(colnames(TFH_LN_UMI), rownames(TFH_LN_UMI_summary)) # TRUE
+TFH_LN_UMI_filtered <- TFH_LN_UMI[, which(TFH_LN_UMI_summary$NUM_GENES >= 400 & TFH_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 344 cells
+TFH_LN_UMI_filtered <- TFH_LN_UMI_filtered[which(apply(TFH_LN_UMI_filtered, 1, sum) != 0), ] # 14,856 genes and 344 cells
+#- PBMC
+identical(colnames(TFH_PBMC_UMI), rownames(TFH_PBMC_UMI_summary)) # TRUE
+TFH_PBMC_UMI_filtered <- TFH_PBMC_UMI[, which(TFH_PBMC_UMI_summary$NUM_GENES >= 400 & TFH_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 361 cells
+TFH_PBMC_UMI_filtered <- TFH_PBMC_UMI_filtered[which(apply(TFH_PBMC_UMI_filtered, 1, sum) != 0), ] # 14,657 genes and 361 cells
+#- Merging
+TFH_UMI <- rbind.fill(as.data.frame(t(TFH_LN_UMI_filtered)), as.data.frame(t(TFH_PBMC_UMI_filtered)))
+rownames(TFH_UMI) <- c(paste(colnames(TFH_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(TFH_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(TFH_UMI) # 705 cells and 17,772 genes
+length(unique(c(rownames(TFH_LN_UMI_filtered), rownames(TFH_PBMC_UMI_filtered)))) # 19,384 genes
+TFH_UMI[is.na(TFH_UMI)] <- 0 # NAs - replace NA by 0
+TFH_UMI <- as.data.frame(t(TFH_UMI))
+```
+
+After filtering, we have:  
+
+* __14,856 genes__ and __344 cells__ - LN sample  
+
+* __14,657 genes__ and __361 cells__ - PNMB sample  
+
+After merging those two datasets together, we have:  
+
+* __705 cells__ and __17,772 genes__  
+
+Less cells than with HIV+ patient.  
+
+## Normalization  
+
+As in Gierahn et al. (2017), for each cell, we performed library-size normalization. UMI-collapsed gene expression values for each cell barcode were scaled by the total number of transcripts and multiplied by 10,000. Scaled expression data were then natural-log transformed before analysis using Seurat. *NB: Scaling and log2-transformation actually done with Seurat.*  
+
+```{r echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Normalization
+#- Seurat object - log2-transformation & library-size normalization - done on Rhino - why? issue with R 3.4.0
+seuratObj <- new('seurat', raw.data = TFH_UMI)
+seuratObj <- Setup(seuratObj, min.cells = 0, min.genes = 0, project = 'Pantaleo', total.expr = 10000) # no need to filter - already done
+#- Output
+saveRDS(seuratObj, file = 'Output_061917/TFH_global.rds')
+seuratObj_TFH_global <- readRDS('Output_061917/TFH_global.rds') # 705 cells & 17,772 genes
+```
+
+## Seurat Analysis  
+
+Seurat analysis using the normalized dataset. It includes the removing of unwanted sources of variation, PCA, clustering and tSNE. All analyses are done as in Gierhan et al. (2017).  
+
+The single cell dataset likely contains *uninteresting* sources of variation. This could include not only technical noise, but batch effects, or even biological sources of variation (cell cycle stage). As suggested in Buettner et al. (2015), regressing these signals out of the analysis can improve downstream dimensionality reduction and clustering. Seurat implements a basic version of this by constructing linear models to predict gene expression based on user-defined variables. Seurat stores the z-scored residuals of these models in the scale.data slot, and they are used for dimensionality reduction and clustering. We typically regress out cell-cell variation in gene expression driven by batch (if applicable), cell alignment rate (as provided by Drop-seq tools for Drop-seq data), the number of detected molecules and mitochondrial gene expression. For cycling cells, we can also learn a cell-cycle score (as in Macosko et al. (2015)) and Regress this out as well - from Gierhan et al. (2017).  
+Here, we simply regress on the number of detected molecules per cell as well as the percentage mitochondrial gene content.  
+
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Regress out unwanted sources of variation
+mito.genes <- grep("^MT-", rownames(seuratObj_TFH_global@data), value = TRUE)
+percent.mito <- colSums(as.matrix(expm1(seuratObj_TFH_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_TFH_global@data)))
+seuratObj_TFH_global <- AddMetaData(seuratObj_TFH_global, percent.mito, 'percent.mito')
+GenePlot(seuratObj_TFH_global, 'nUMI', 'percent.mito')
+GenePlot(seuratObj_TFH_global, 'nUMI', 'nGene')
+#- remove unwanted sources of variation
+seuratObj_TFH_global <- RegressOut(seuratObj_TFH_global, latent.vars = c('nUMI', 'percent.mito')) # remove effect of CDR (high correlation between nGene and nUMI - 0.97) and mitochondrial
+```
+
+After, Seurat calculates highly variable genes and focuses on these for downstream analysis.  
+
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Detection of variable genes across the single cells
+seuratObj_TFH_global <- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_TFH_global@var.genes) # 1,228 highly variable genes
+```
+
+We identified 1,228 variable genes with log-mean expression values greater than 0.25 and dispersion (variance/mean) greater than 0.5.  
+
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- PCA
+#- PCA performed on the scaled data and using only highly variable genes - with correction
+seuratObj_TFH_global <- PCA(seuratObj_TFH_global, pc.genes = seuratObj_TFH_global@var.genes)
+seuratObj_TFH_global <- ProjectPCA(seuratObj_TFH_global)
+```
+
+We can identify markers that are strongly correlated with cellular heterogeneity - see above.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- PCA
+VizPCA(seuratObj_TFH_global, 1:2)
+```
+
+A lot of results related to RN-like genes (pseudogenes - 7SK Small Nuclear Pseudogene)... Should I remove them? First, let's look at the tSNE plot.     
+
+We performed 1,000 iterations of the t-SNE algorithm using a perplexity value of 50 and the first top 6 principal components. Those first top 10 PCs were chosen according to the JackStraw analysis implemented in Seurat - see below.
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=5, fig.height=5}
+###--- JackStraw
+# seuratObj_TFH_global <- JackStraw(seuratObj_TFH_global, num.replicate = 100, do.print = TRUE)
+# JackStrawPlot(seuratObj_TFH_global, PCs = 1:20)
+PCElbowPlot(seuratObj_TFH_global)
+```
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- tSNE
+seuratObj_TFH_global <- RunTSNE(seuratObj_TFH_global, dims.use = 1:10, perplexity = 50)
+```
+
+Let's look at the tSNE plots now - perplexity of 50 and 1,000 iterations.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=12, fig.height=9}
+###--- tSNE
+labels <- unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), '_'))[seq(2, length(unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), '_'))), 2)]
+nUMI <- seuratObj_TFH_global@data.info$nUMI
+nGene <- seuratObj_TFH_global@data.info$nGene
+
+data_ggplot <- data.frame(labels = labels,
+                          nUMI = nUMI,
+                          nGene = nGene,
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nUMI), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2') + scale_color_gradient2('# mapped UMI', low = 'royalblue', high = 'red', mid = 'grey80', midpoint = 2000)
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nGene), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2') + scale_color_gradient2('# detected genes', low = 'royalblue', high = 'red', mid = 'grey80', midpoint = 1000)
+
+plot_grid(plot1, plot2, plot3, ncol = 2, align = 'v')
+```
+
+We clearly observe a strong effect between LN and PBMC, such as in HIV+.  
+
+Now let's look at several CD4 T cells / TFHs markers.  
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=15, fig.height=16}
+###--- tSNE
+data_ggplot <- data.frame(tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2],
+                          CCR7 = seuratObj_TFH_global@data['CCR7', ], # Memory T cells
+                          CD45RA = seuratObj_TFH_global@data['PTPRC', ], # Memory - if CCR7 is also expressed: central memory T cell / if not effector memory T cells
+                          TIGIT = seuratObj_TFH_global@data['TIGIT', ], # TFH marker
+                          PDCD1 = seuratObj_TFH_global@data['PDCD1', ], # TFH marker
+                          CXCR5 = seuratObj_TFH_global@data['CXCR5', ], # TFH marker
+                          ICOS = seuratObj_TFH_global@data['ICOS', ], # TFH marker
+                          IL2RA = seuratObj_TFH_global@data['IL2RA', ]) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CCR7), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "CCR7 - Memory")
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CD45RA), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "CD45RA - Memory - Effector")
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = TIGIT), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "TIGIT - TFH")
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = PDCD1), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "PDCD1 - TFH")
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = IL2RA), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "IL2RA - Effector")
+plot6 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = IL2RA), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "CXCR5 - TFH")
+plot7 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = ICOS), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "ICOS - TFH")
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, plot6, plot7, ncol = 2, align = 'v')
+```
+
+We clearly observe TFH for LN - it makes sense - good quality here. We also see some TFH like in PBMC.  
+
+Let's look at some specific markers found in the paper Raph sent me (06/09/17). In HIV-1 infected individuals, they demonstrated a significant increase (2-3 fold) in the TFH cells defined by the CXCR3+Tbet+ phenotype and IFN-$γ$/IL21 production along with a significant decrease (2-3 fold) in TFH cells expressing CCR4, CCR6 and producing IL-4. So here, I'd like to see the expression of those specific marker. *NB: Here - only HIV-, but let's give it a try.*    
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=14, fig.height=14}
+###--- tSNE
+data_ggplot <- data.frame(tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2],
+                          CXCR3 = seuratObj_TFH_global@data['CXCR3', ], 
+                          Tbet = seuratObj_TFH_global@data['TBX21', ], 
+                          IFNG = seuratObj_TFH_global@data['IFNG', ], 
+                          IL21 = seuratObj_TFH_global@data['IL21', ],
+                          CCR4 = seuratObj_TFH_global@data['CCR4', ],
+                          CCR6 = seuratObj_TFH_global@data['CCR6', ], 
+                          IL4 = seuratObj_TFH_global@data['IL4', ]) 
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CXCR3), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "CXCR3 - Increase in HIV+")
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Tbet), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "Tbet - Increase in HIV+")
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = IFNG), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "IFNG - Increase in HIV+")
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = IL21), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "IL21 - Increase in HIV+")
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CCR4), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "CCR4 - decrease in HIV+")
+plot6 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CCR6), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "CCR6 - decrease in HIV+")
+plot7 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = IL4), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient(low = "grey", high = "red", name = "IL4 - decrease in HIV+")
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, plot6, plot7, ncol = 2, align = 'v')
+```
+
+## MAST Analysis  
+
+Let's get DEGs between LN and PBMC (TFH cells).  
+
+```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- MAST
+#- MAST object
+pData <- data.frame(cellNames = colnames(seuratObj_TFH_global@data),
+                    Condition = unlist(str_split(colnames(seuratObj_TFH_global@data), '_'))[seq(2, length(unlist(str_split(colnames(seuratObj_TFH_global@data), '_'))), 2)])
+fData <- data.frame(symbol = rownames(seuratObj_TFH_global@data))
+scaTFH <- FromMatrix(as.matrix(seuratObj_TFH_global@data), cData = pData, fData = fData)
+scaTFH <- MAST::primerAverage(scaTFH, geneGroups = 'symbol') # Average expression values for duplicated/redundant genes
+colData(scaTFH)$cngeneson <- scale(colSums(assay(scaTFH) > 0)) # CDR
+rownames(scaTFH) <- rowData(scaTFH)$primerid # change row names
+#- New MAST object - keep gene with freq > 0.05
+scaTFH <- scaTFH[(freq(scaTFH) > 0.05), ] # threshold of the proportion of expression for each gene - 0.05
+scaTFH # 3,884 genes & 705 single-cells
+```
+
+Single-cell gene expression data are known to be zero-inflated and bimodal, which is a feature we observe here as well (see below) - that's why I use MAST instead of limma.
+
+```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7, fig.width=7}
+## Example - 20 genes (subsample)
+set.seed(247)
+tpmSample <- scaTFH[sample(which(freq(scaTFH) > 0.2), 20), ] # sample of 20 genes - example of bimodality
+tpmSample.dataTable <- as(tpmSample, 'data.table') # force scaSample to become a data.table class object - to allow us plotting data with ggplot R package
+ggplot(tpmSample.dataTable, aes(x = value)) + geom_density() + facet_wrap(~ symbol, scale='free_y') + theme_bw()
+```
+
+No adaptative thresholding - values tend to 0 - such as with Kelly's data.  
+
+Let's perform MAST.  
+
+```{r eval=FALSE, echo=TRUE, message=FALSE}
+###--- DE analysis / Hurdle model
+#- zlm model
+colData(scaTFH)$Condition
+zlmCond <- zlm(~ Condition + cngeneson, scaTFH, method = 'bayesglm', ebayes = TRUE,
+               ebayesControl = list(method = "MLE", model = "H1"),
+               hook = deviance_residuals_hook) # Hurdle model with cluster & CDR
+saveRDS(zlmCond, file = 'Output_061917/zlmCond_LNvsPBMC_TFHcells.rds') # save within .rds file
+
+#- Significant results
+hypothesisCluster <- c('ConditionPBMC')
+registerDoMC(2)
+fcHurdle <- foreach(i=1:length(hypothesisCluster)) %dopar%
+{
+  summaryCond.temp <- summary(zlmCond, doLRT=hypothesisCluster[i]) # Make contrast with the selected hypothesis
+  summaryDt.temp <- summaryCond.temp$datatable # Summary (data.table)
+  fcHurdle.temp <- merge(summaryDt.temp[contrast == hypothesisCluster[i] & component == 'H', .(primerid, `Pr(>Chisq)`)], # Hurdle unadjusted p-value
+                         summaryDt.temp[contrast == hypothesisCluster[i] & component == 'logFC', .(primerid, coef, ci.hi, ci.lo)], # log2 FoldChange coefficient
+                         by='primerid')
+  fcHurdle.temp[, FDR := p.adjust(`Pr(>Chisq)`, 'fdr')] # FDR adjusted p-value
+  return(fcHurdle.temp)
+}
+names(fcHurdle) <- hypothesisCluster
+registerDoMC(2)
+fcHurdleSign <- foreach(i=1:length(hypothesisCluster)) %dopar%
+{
+  fcHurdle.temp <- fcHurdle[[i]]
+  fcHurdleSign.temp <- merge(fcHurdle.temp[FDR < 0.05 & abs(coef) > log2(1.5)], # FDR 5% & FoldChange log2(1.5)
+                             as.data.frame(rowData(scaTFH)), 
+                             by='primerid') # keep only singificant results
+  setorder(fcHurdleSign.temp, FDR) # Order according to FDR p-values
+  return(fcHurdleSign.temp)
+}
+names(fcHurdleSign) <- hypothesisCluster 
+dim(fcHurdleSign[[1]]) # 61 DEGs
+
+#- Output
+write.csv(fcHurdleSign[[1]], file = 'Output_061917/DEGs_LNvsPBMC_TFH.csv')
+```
+
+We have **76 DEGs** - FDR 1% and log2FC > log2(1.5).  
+
+```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE, fig.height=20, fig.width=16}
+###--- Heatmap
+dataHeatmap <- exprs(scaTFH)
+dataHeatmap <- t(scale(dataHeatmap[, as.character(fcHurdleSign[[1]]$primerid)]))
+limits <- c(-1, 2)
+dataHeatmap[dataHeatmap < limits[1]] <- limits[1]
+dataHeatmap[dataHeatmap > limits[2]] <- limits[2]
+dataHeatmap <- dataHeatmap[, order(colData(scaTFH)$Condition)]
+
+annotationCol <- data.frame('Condition' = colData(scaTFH)$Condition,
+                            row.names = colnames(dataHeatmap))
+
+# pdf('Heatmap_DEGs_LNvsPBMC_TFH.pdf', height = 12, width = 8)
+plot <- grid.grabExpr(pheatmap(dataHeatmap, annotation_col = annotationCol, cluster_rows = FALSE, cluster_cols = FALSE, show_colnames = FALSE))
+grid.draw(plot)
+# dev.off()
+```
+
+We see that TIGIT, PD1 and MAF (might induced CXCR5 expression and IL21 - BCL6 + MAF cooperates in the induction of CXCR4, PD1 and ICOS - see Kroenke et al (2012) - J Immunol.) are DEs.  
+
+We still observe the RN-like genes (pseudogenes - 7SK Small Nuclear Pseudogene).  
+
+
+
+
