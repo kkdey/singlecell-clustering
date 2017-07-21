@@ -11,7 +11,11 @@ node (LN) and peripheral blood mononuclear cells (PBMC) of three HIV- and one HI
 An example of countclust fit on single cell data from one patient (TFH146) on just the Live cells.
 
 [Example application of CountClust](ex_countclust.html)
+
 [CountClust on TFH146 scRNA-seq data](test_script.html)
+
 [CountClust on TFH041 scRNA-seq data](tfh041Explore.html)
+
 [CountClust on TFH095 scRNA-seq data](tfh095Explore.html)
+
 [CountClust on MP046 scRNA-seq data](mp046Explore.html)
