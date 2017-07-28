@@ -1,0 +1,215 @@
+---
+title: "UMI study of Liver cells of HIV patients"
+author: "Kushal K Dey"
+date: "7/27/2017"
+output: html_document
+---
+
+In this script, we explore the UMI properties of the patients for the Liver cells and the PBMC samples.
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+library(maptpx)
+library(CountClust)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene) 
+library(org.Hs.eg.db)
+```
+
+## Live cells
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Live Cells
+##- LN - no reads information
+LiveCells_LN_UMI <- read.table('../data/TFH041/live cells/LN/reads.TFH041_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary <- read.table('../data/TFH041/live cells/LN/reads.TFH041_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+
+#- First filtering - remove cells with less than 10 genes
+LiveCells_LN_UMI <- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES > 10)]]
+LiveCells_LN_UMI_summary <- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
+
+##- PBMC - no reads information
+LiveCells_PBMC_UMI <- read.table('../data/TFH041/live cells/PBMC/reads.TFH041_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary <- read.table('../data/TFH041/live cells/PBMC/reads.TFH041_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_PBMC_UMI <- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES > 10)]]
+LiveCells_PBMC_UMI_summary <- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
+```
+
+```{r}
+sum(as.numeric(colSums(LiveCells_LN_UMI)) - LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS)
+sum(apply(LiveCells_LN_UMI, 2, function(x) return(length(which(x>0)))) - LiveCells_LN_UMI_summary$NUM_GENES)
+```
+
+## TFH cells (LN + PBMC)
+
+```{r}
+TFH_LN_UMI <- read.table('../data/TFH041/TFH Sorted/LN/reads.TFH041_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+TFH_LN_reads <- read.table('../data/TFH041/TFH Sorted/LN/reads.TFH041_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.txt', header = TRUE, row.names = 1)
+TFH_LN_UMI_summary <- read.table('../data/TFH041/TFH Sorted/LN/reads.TFH041_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_LN_reads_summary <- read.table('../data/TFH041/TFH Sorted/LN/reads.TFH041_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_LN_UMI <- TFH_LN_UMI[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_reads <- TFH_LN_reads[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_UMI_summary <- TFH_LN_UMI_summary[colnames(TFH_LN_UMI), ]
+TFH_LN_reads_summary <- TFH_LN_reads_summary[colnames(TFH_LN_reads), ]
+
+##- PBMC
+TFH_PBMC_UMI <- read.table('../data/TFH041/TFH Sorted/PBMC/reads.TFH041_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+TFH_PBMC_reads <- read.table('../data/TFH041/TFH Sorted/PBMC/reads.TFH041_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.txt', header = TRUE, row.names = 1)
+TFH_PBMC_UMI_summary <- read.table('../data/TFH041/TFH Sorted/PBMC/reads.TFH041_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_PBMC_reads_summary <- read.table('../data/TFH041/TFH Sorted/PBMC/reads.TFH041_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_PBMC_UMI <- TFH_PBMC_UMI[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_reads <- TFH_PBMC_reads[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_UMI_summary <- TFH_PBMC_UMI_summary[colnames(TFH_PBMC_UMI), ]
+TFH_PBMC_reads_summary <- TFH_PBMC_reads_summary[colnames(TFH_PBMC_reads), ]
+```
+
+
+## Gene length Computation
+
+```{r}
+hg19GeneLengths <- function(symbols)
+{
+        exons.db = exonsBy(TxDb.Hsapiens.UCSC.hg19.knownGene, by='gene')    
+        egs    = unlist(mget(symbols[ symbols %in% keys(org.Hs.egSYMBOL2EG) ],org.Hs.egSYMBOL2EG))
+        sapply(egs,function(eg)
+        {
+            exons = exons.db[[eg]]
+            exons = reduce(exons)
+            sum( width(exons) )
+        })
+}
+```
+
+```{r echo=FALSE, eval=FALSE}
+gene_symbols <- rownames(LiveCells_LN_UMI)
+gene_lengths <- array(0, 1000)
+for(l in 1:1000){
+  tryCatch({gene_lengths[l] <- hg19GeneLengths(gene_symbols[l])}, error = function(e){gene_lengths[l] = 0})
+  cat("We are at gene", l, "\n")
+}
+```
+
+```{r echo=FALSE, eval=FALSE}
+save(gene_lengths, file = "../utilities/gene_lengths.rda")
+```
+
+```{r}
+gene_lengths <- get(load("../utilities/gene_lengths.rda"))
+```
+
+## Gene length + UMI expression comparison
+
+```{r}
+index1 <- which(rowSums(LiveCells_LN_UMI)[1:1000] <= 1)
+index2 <- which(gene_lengths[1:1000] == 0)
+index_pooled <- union(index1, index2)
+gene_lengths_tmp <- gene_lengths[1:1000]
+rowSums_tmp <- log(rowSums(LiveCells_LN_UMI)[1:1000]+1)
+
+plot(gene_lengths_tmp[-index_pooled], rowSums_tmp[-index_pooled], pch=20,
+     xlab = "Length of gene",
+     ylab = "number of UMIs")
+
+```
+We also check the gene lengths for some of the genes with very high UMI counts - namely B2M and MALAT1.
+
+```{r}
+ hg19GeneLengths(c("MALAT1", "B2M", "TMSB4X", "TMSB10", "ACTB"))
+```
+
+
+
+```{r}
+index1 <- which(rowSums(TFH_PBMC_UMI)[1:1000] <= 1)
+index2 <- which(gene_lengths[1:1000] == 0)
+index_pooled <- union(index1, index2)
+gene_lengths_tmp <- gene_lengths[1:1000]
+rowSums_tmp <- log(rowSums(TFH_PBMC_UMI)[1:1000]+1)
+
+plot(gene_lengths_tmp[-index_pooled], rowSums_tmp[-index_pooled], pch=20,
+     xlab = "Length of gene",
+     ylab = "number of UMIs")
+```
+
+```{r}
+index1 <- which(rowSums(TFH_PBMC_UMI)[1:1000] <= 1)
+index2 <- which(gene_lengths[1:1000] == 0)
+index_pooled <- union(index1, index2)
+gene_lengths_tmp <- gene_lengths[1:1000]
+tmp_reads <- TFH_PBMC_UMI[1:1000,]
+rowSums_tmp <- apply(tmp_reads, 1, function(x) return(length(which(x>0))))
+
+plot(gene_lengths_tmp[-index_pooled], rowSums_tmp[-index_pooled], pch=20,
+     xlab = "Length of gene",
+     ylab = "Number of samples with UMI expression")
+```
+
+
+```{r}
+index1 <- which(rowSums(TFH_PBMC_reads)[1:1000] <= 1)
+index2 <- which(gene_lengths[1:1000] == 0)
+index_pooled <- union(index1, index2)
+gene_lengths_tmp <- gene_lengths[1:1000]
+rowSums_tmp <- log(rowSums(TFH_PBMC_reads)[1:1000]+1)
+
+plot(gene_lengths_tmp[-index_pooled], rowSums_tmp[-index_pooled], pch=20,
+     xlab = "Length of gene",
+     ylab = "number of UMIs")
+```
+
+```{r}
+index1 <- which(rowSums(TFH_PBMC_reads)[1:1000] <= 1)
+index2 <- which(gene_lengths[1:1000] == 0)
+index_pooled <- union(index1, index2)
+gene_lengths_tmp <- gene_lengths[1:1000]
+tmp_reads <- TFH_PBMC_reads[1:1000,]
+rowSums_tmp <- apply(tmp_reads, 1, function(x) return(length(which(x>0))))
+
+plot(gene_lengths_tmp[-index_pooled], rowSums_tmp[-index_pooled], pch=20,
+     xlab = "Length of gene",
+     ylab = "Number of samples with reads expression")
+```
+
+Now we look at those genes with highest UMI expression
+
+```{r}
+sort(rowSums_tmp, decreasing = TRUE)[1:3]
+```
+
+```{r}
+plot(log(rowSums(TFH_PBMC_UMI)[1:1000]+1), pch=20,
+     xlab = "Length of gene",
+     ylab = "Number of samples with UMI expression")
+```
+
+```{r}
+sort(rowMeans(TFH_PBMC_UMI), decreasing = TRUE)[1:50]
+```
+
+most of these genes are Ribosomal or mitohondrial genes with a lot of UMIs mapped to them.
+We check the gene lengths o these genes.
+
+```{r}
+cols <- names(sort(rowSums(TFH_PBMC_UMI), decreasing = TRUE)[1:50])
+hg19GeneLengths(cols)
+```
+
+MALAT1 is a big gene but the other ribosomal genes are not necessarily very large genes. But they have very high expression suggesting that there is no obvious relationship between the gene length and the number of UMIs
+
+
+
+
+
+

@@ -1,0 +1,353 @@
+---
+title: "Separate CountClust on PBMC and LN cells for TFH cells (TFH146)"
+author: "Kushal K Dey"
+date: "7/27/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+library(maptpx)
+library(CountClust)
+library(ggplot2)
+library(GGally)
+library(GSEABase)
+library(limma)
+library(reshape2)
+library(data.table)
+library(knitr)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(stringr)
+library(NMF)
+library(rsvd)
+library(RColorBrewer)
+library(MAST)
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+TFH_LN_UMI <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_LN_reads <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_LN_UMI_summary <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_LN_reads_summary <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_LN_UMI <- TFH_LN_UMI[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_reads <- TFH_LN_reads[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_UMI_summary <- TFH_LN_UMI_summary[colnames(TFH_LN_UMI), ]
+TFH_LN_reads_summary <- TFH_LN_reads_summary[colnames(TFH_LN_reads), ]
+
+##- PBMC
+TFH_PBMC_UMI <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_PBMC_reads <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_PBMC_UMI_summary <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_PBMC_reads_summary <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_PBMC_UMI <- TFH_PBMC_UMI[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_reads <- TFH_PBMC_reads[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_UMI_summary <- TFH_PBMC_UMI_summary[colnames(TFH_PBMC_UMI), ]
+TFH_PBMC_reads_summary <- TFH_PBMC_reads_summary[colnames(TFH_PBMC_reads), ]
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+identical(colnames(TFH_LN_UMI), rownames(TFH_LN_UMI_summary)) # TRUE
+TFH_LN_UMI_filtered <- TFH_LN_UMI[, which(TFH_LN_UMI_summary$NUM_GENES >= 400 & TFH_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+TFH_LN_UMI_filtered <- TFH_LN_UMI_filtered[which(apply(TFH_LN_UMI_filtered, 1, sum) != 0), ] # 
+identical(colnames(TFH_PBMC_UMI), rownames(TFH_PBMC_UMI_summary)) # TRUE
+TFH_PBMC_UMI_filtered <- TFH_PBMC_UMI[, which(TFH_PBMC_UMI_summary$NUM_GENES >= 400 & TFH_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+TFH_PBMC_UMI_filtered <- TFH_PBMC_UMI_filtered[which(apply(TFH_PBMC_UMI_filtered, 1, sum) != 0), ] 
+TFH_UMI <- rbind.fill(as.data.frame(t(TFH_LN_UMI_filtered)), as.data.frame(t(TFH_PBMC_UMI_filtered)))
+rownames(TFH_UMI) <- c(paste(colnames(TFH_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(TFH_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(TFH_UMI) 
+length(unique(c(rownames(TFH_LN_UMI_filtered), rownames(TFH_PBMC_UMI_filtered)))) 
+TFH_UMI[is.na(TFH_UMI)] <- 0 
+TFH_UMI <- as.data.frame(t(TFH_UMI))
+```
+
+```{r echo=FALSE, eval=TRUE}
+TFH_fac <- c(rep("TFH_LN", dim(TFH_LN_UMI_filtered)[2]),
+             rep("TFH_PBMC", dim(TFH_PBMC_UMI_filtered)[2]))
+length(TFH_fac)
+```
+
+```{r echo=FALSE, eval=TRUE}
+counts <- t(TFH_UMI)
+idx <- which(!is.na(match(substring(colnames(counts), 1, 2), c("RP", "MT", "RN"))))
+counts2 <- counts[, -idx]
+```
+
+```{r}
+counts2LN <- counts2[which(TFH_fac == "TFH_LN"),]
+counts2PBMC <- counts2[which(TFH_fac == "TFH_PBMC"),]
+```
+
+
+# CountClust on LN cells (TFH)
+
+```{r}
+idx3 <- match(c("MALAT1", "B2M", "TMSB4X", "TMSB10"), colnames(counts2LN))
+counts3LN <- counts2LN[,-idx3]
+counts3PBMC <- counts2PBMC[,-idx3]
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus_list <- list()
+for(k in 2:4){
+  topic_clus_list[[k]] <- maptpx::topics(counts3LN, K=k, tol = 10)
+}
+save(topic_clus_list, file = "../output/TFH146/LN_TFH/model2.rda")
+```
+
+```{r echo=FALSE, eval=TRUE}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = RColorBrewer::brewer.pal(8, "Accent"),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+
+```{r}
+topic_clus_list <- get(load("../output/TFH146/LN_TFH/model2.rda"))
+PlotCountClust(topic_clus_list[[2]], factor(TFH_fac[which(TFH_fac == "TFH_LN")]))
+PlotCountClust(topic_clus_list[[3]], factor(TFH_fac[which(TFH_fac == "TFH_LN")]))
+PlotCountClust(topic_clus_list[[4]], TFH_fac[which(TFH_fac == "TFH_LN")])
+```
+
+With and without MALAT1 and B2M, the big expressed genes, the results look pretty similar. We extract the top driving genes for the three three clusters case.
+
+## Annotating Top genes (K=3)
+
+```{r}
+indices <- ExtractTopFeatures(topic_clus_list[[3]]$theta, top_features = 100, method = "poisson", options = "max")
+imp_genes <- apply(indices, 1, function(x) return(colnames(counts2)[x]))
+```
+
+### cluster 1 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+### cluster 2 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+### cluster 3 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,3],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+## GSEA 
+
+We perform gene set enrichment analysis on the theta matrices, reprsenting the three clusters, obtained from fitting CountClust on the TFH + LN cells.
+
+```{r}
+theta <- topic_clus_list[[3]]$theta
+theta2 <- t(apply(theta, 1, function(x) return((x - mean(x))/sd(x))))
+```
+
+We extract gene names in pathways from the MAST package 
+
+```{r}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+
+# CountClust on PBMC cells (TFH)
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus_list <- list()
+for(k in 2:4){
+  topic_clus_list[[k]] <- maptpx::topics(counts3PBMC, K=k, tol = 10)
+}
+save(topic_clus_list, file = "../output/TFH146/PBMC_TFH/model2.rda")
+```
+
+
+```{r}
+topic_clus_list <- get(load("../output/TFH146/PBMC_TFH/model2.rda"))
+PlotCountClust(topic_clus_list[[2]], factor(TFH_fac[which(TFH_fac == "TFH_PBMC")]))
+PlotCountClust(topic_clus_list[[3]], factor(TFH_fac[which(TFH_fac == "TFH_PBMC")]))
+PlotCountClust(topic_clus_list[[4]], TFH_fac[which(TFH_fac == "TFH_PBMC")])
+```
+
+
+## Annotating Top genes (K=3)
+
+```{r}
+indices <- ExtractTopFeatures(topic_clus_list[[3]]$theta, top_features = 100, method = "poisson", options = "max")
+imp_genes <- apply(indices, 1, function(x) return(colnames(counts2)[x]))
+```
+
+### cluster 1 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+### cluster 2 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+### cluster 3 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,3],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+## GSEA 
+
+We perform gene set enrichment analysis on the theta matrices, reprsenting the three clusters, obtained from fitting CountClust on the TFH + LN cells.
+
+```{r}
+theta <- topic_clus_list[[3]]$theta
+theta2 <- t(apply(theta, 1, function(x) return((x - mean(x))/sd(x))))
+```
+
+We extract gene names in pathways from the MAST package 
+
+```{r}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+
+
+

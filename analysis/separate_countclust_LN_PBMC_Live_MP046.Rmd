@@ -1,0 +1,240 @@
+---
+title: "Separate CountClust on PBMC and LN cells for Live Cells (MP046)"
+author: "Kushal K Dey"
+date: "7/27/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+library(maptpx)
+library(CountClust)
+library(ggplot2)
+library(GGally)
+library(GSEABase)
+library(limma)
+library(reshape2)
+library(data.table)
+library(knitr)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(stringr)
+library(NMF)
+library(rsvd)
+library(RColorBrewer)
+library(MAST)
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Live Cells
+##- LN - no reads information
+LiveCells_LN_UMI <- read.table('../data/MP046/live cells/LN/reads.MP093_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary <- read.table('../data/MP046/live cells/LN/reads.MP093_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+
+#- First filtering - remove cells with less than 10 genes
+LiveCells_LN_UMI <- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES > 10)]]
+LiveCells_LN_UMI_summary <- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
+
+##- PBMC - no reads information
+LiveCells_PBMC_UMI <- read.table('../data/MP046/live cells/PBMC/reads.MP093_PMBC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary <- read.table('../data/MP046/live cells/PBMC/reads.MP093_PMBC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_PBMC_UMI <- LiveCells_PBMC_UMI[ rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES > 10)],]
+LiveCells_PBMC_UMI_summary <- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
+
+```
+
+
+
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Filtering datasets and merging
+#- LN
+identical(colnames(LiveCells_LN_UMI), rownames(LiveCells_LN_UMI_summary)) # TRUE
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI[, which(LiveCells_LN_UMI_summary$NUM_GENES >= 400 & LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI_filtered[which(apply(LiveCells_LN_UMI_filtered, 1, sum) != 0), ]
+#- PBMC
+identical(colnames(LiveCells_PBMC_UMI), rownames(LiveCells_PBMC_UMI_summary)) # TRUE
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI[, which(LiveCells_PBMC_UMI_summary$NUM_GENES >= 400 & LiveCells_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI_filtered[which(apply(LiveCells_PBMC_UMI_filtered, 1, sum) != 0), ] 
+#- Merging
+LiveCells_UMI <- rbind.fill(as.data.frame(t(LiveCells_LN_UMI_filtered)), as.data.frame(t(LiveCells_PBMC_UMI_filtered)))
+rownames(LiveCells_UMI) <- c(paste(colnames(LiveCells_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(LiveCells_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(LiveCells_UMI) # 1210 cells and 19,183 genes
+length(unique(c(rownames(LiveCells_LN_UMI_filtered), rownames(LiveCells_PBMC_UMI_filtered)))) # 19,183 genes
+LiveCells_UMI[is.na(LiveCells_UMI)] <- 0 # NAs - replace NA by 0
+LiveCells_UMI <- as.data.frame(t(LiveCells_UMI))
+```
+
+```{r echo=FALSE, eval=TRUE}
+LiveCells_fac <- c(rep("Live_LN", dim(LiveCells_LN_UMI_filtered)[2]),
+                   rep("Live_PBMC", dim(LiveCells_PBMC_UMI_filtered)[2]))
+```
+
+```{r echo=FALSE, eval=TRUE}
+counts <- t(LiveCells_UMI)
+idx <- which(!is.na(match(substring(colnames(counts), 1, 2), c("RP", "MT", "RN"))))
+counts2 <- counts[, -idx]
+```
+
+```{r}
+counts2LN <- counts2[which(LiveCells_fac == "Live_LN"),]
+counts2PBMC <- counts2[which(LiveCells_fac == "Live_PBMC"),]
+```
+
+
+# CountClust on LN cells (Live)
+
+```{r}
+idx3 <- match(c("MALAT1", "B2M", "TMSB4X", "TMSB10"), colnames(counts2LN))
+counts3LN <- counts2LN[,-idx3]
+counts3PBMC <- counts2PBMC[,-idx3]
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus_list <- list()
+for(k in 2:4){
+  topic_clus_list[[k]] <- maptpx::topics(counts3LN, K=k, tol = 10)
+}
+save(topic_clus_list, file = "../output/MP046/LN_Live/model2.rda")
+```
+
+```{r echo=FALSE, eval=TRUE}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = RColorBrewer::brewer.pal(8, "Accent"),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+
+```{r}
+topic_clus_list <- get(load("../output/MP046/LN_Live/model2.rda"))
+PlotCountClust(topic_clus_list[[2]], factor(LiveCells_fac[which(LiveCells_fac == "Live_LN")]))
+PlotCountClust(topic_clus_list[[3]], factor(LiveCells_fac[which(LiveCells_fac == "Live_LN")]))
+PlotCountClust(topic_clus_list[[4]], LiveCells_fac[which(LiveCells_fac == "Live_LN")])
+```
+
+With and without MALAT1 and B2M, the big expressed genes, the results look pretty similar. We extract the top driving genes for the three three clusters case.
+
+## Annotating Top genes (K=3)
+
+```{r}
+indices <- ExtractTopFeatures(topic_clus_list[[3]]$theta, top_features = 100, method = "poisson", options = "max")
+imp_genes <- apply(indices, 1, function(x) return(colnames(counts2)[x]))
+```
+
+### cluster 1 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+### cluster 2 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+### cluster 3 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,3],  scopes="symbol", fields=c("name", "summary"), species="human");
+cbind.data.frame(out$name)
+```
+
+## GSEA 
+
+We perform gene set enrichment analysis on the theta matrices, reprsenting the three clusters, obtained from fitting CountClust on the Live + LN cells.
+
+```{r}
+theta <- topic_clus_list[[3]]$theta
+theta2 <- t(apply(theta, 1, function(x) return((x - mean(x))/sd(x))))
+```
+
+We extract gene names in pathways from the MAST package 
+
+```{r}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+

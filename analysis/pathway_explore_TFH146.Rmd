@@ -1,0 +1,725 @@
+---
+title: "Pathway analysis of the CountClust clusters - TFH146"
+author: "Kushal K Dey"
+date: "7/21/2017"
+output: html_document
+---
+
+In this script, we perform pre-ranked GSEA to test if the clusters obtained from CountClust are indeed driven by pathways related to B cell, T cells or NK cells.
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(fgsea)
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+library(maptpx)
+library(CountClust)
+```
+
+## Pathway extraction (B cell, T cell, NK cell)
+
+```{r}
+pathways <- read.delim("../utilities/CPDB_pathways_genes.tab")
+```
+
+```{r}
+Tcell_pathway_indices <- grep(" T cell", pathways$pathway)
+Bcell_pathway_indices <- grep(" B cell", pathways$pathway)
+NKcell_pathway_indices <- grep(" nk cell", pathways$pathway)
+```
+
+```{r}
+Tcell_pathways <- pathways[Tcell_pathway_indices,]
+Bcell_pathways <- pathways[Bcell_pathway_indices,]
+NKcell_pathways <- pathways[NKcell_pathway_indices,]
+```
+
+```{r}
+imp_pathway_list <- rbind(Tcell_pathways, Bcell_pathways, NKcell_pathways)
+imp_genes_list <- list()
+for(l in 1:dim(imp_pathway_list)[1]){
+  imp_genes_list[[l]] <- strsplit(as.character(imp_pathway_list[l,4]), "[,]")[[1]]
+}
+```
+
+Converting the ensemble IDs to gene names 
+
+```{r}
+library(biomaRt)
+ensembl = useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+gene_names <- list()
+for(l in 1:length(imp_genes_list)){
+  gene_names[[l]] <- getBM(attributes=c('hgnc_symbol'),filters = 'ensembl_gene_id', values = imp_genes_list[[l]], mart = ensembl)[,1]
+}
+```
+
+The pathway name of interest
+
+```{r}
+imp_pathway_list$pathway
+```
+
+
+## Whitening 
+
+First we look at cases where we whiten the theta matrix from the CountClust output to adjust for the mean and standard deviation of each feature across the clusters.
+
+## Live cell GoM - [LN+PBMC] (K=4)
+
+The topic model fit
+
+```{r}
+topic_clus_list <- get(load("../data/TFH146/CountClust_Models_filtered.rda"))
+omega <- topic_clus_list[[4]]$omega
+theta <- topic_clus_list[[4]]$theta
+```
+
+An example of matching the genes from the pathways to that from the data.
+
+```{r}
+match(gene_names[[4]], rownames(theta))
+```
+
+We apply whitening of the theta matrix for each sample
+
+```{r}
+theta2 <- t(apply(theta, 1, function(x) return((x - mean(x))/sd(x))))
+```
+
+We use pre-ranked GSEA using the genes from these pathways to check for significance.
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+The significant pathways here are the second and third - both of which are associated with 
+CD8+ T cells.
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+The significant pathway here seems to be the last one - which is related to NK cells. T cell ones 
+are also significant but not as strongly.
+
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+All the T cell pathways (1 to 7) seem to be significant (not very strong though) as well as the 
+last list related to the NK cells and cytotoxicity.
+
+### Fourth cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,4])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+
+Here also we see that the T cell lists turn out be more significant as in most cases. But this may be due to our pathways chosen for B cells not being representative enough.
+
+
+It seems one of the things that influenced the GSEA is the absence of too many genes in the gene lists corresponding to the B cells that we chose here, and the size of the T cell represented pathways were way bigger in size.
+
+
+## TFH GoM - [LN+PBMC] (K=4)
+
+The topic model fit
+
+```{r}
+topic_clus_list <- get(load("../data/TFH146/CountClust_Models_filtered_TFH.rda"))
+omega <- topic_clus_list[[4]]$omega
+theta <- topic_clus_list[[4]]$theta
+```
+
+```{r}
+theta2 <- t(apply(theta, 1, function(x) return((x - mean(x))/sd(x))))
+```
+
+An example of matching the genes from the pathways to that from the data.
+
+We use pre-ranked GSEA using the genes from these pathways to check for significance.
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+CD8+ T cells and the NK cell pathway at the end show significant enrichment.
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+CD8+ T cell pathway shows stronger enrichment along with the final NK cell pathway. 
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+CD8+ T cells seem to show stronger enrichment along with the final NK cell genes.
+
+### Fourth cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,4])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+This seems to have high enrichment in CD8+ T cells as well as CD4 T cell signaling and the final NK cell signaling.
+
+## Pooled data GoM - [LN+PBMC] (K=4)
+
+The topic model fit
+
+```{r}
+topic_clus_list <- get(load("../data/TFH146/CountClust_Models_filtered_pooled.rda"))
+omega <- topic_clus_list[[4]]$omega
+theta <- topic_clus_list[[4]]$theta
+```
+
+```{r}
+theta2 <- t(apply(theta, 1, function(x) return((x - mean(x))/sd(x))))
+```
+
+
+An example of matching the genes from the pathways to that from the data.
+
+We use pre-ranked GSEA using the genes from these pathways to check for significance.
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+The significant pathways here are the second and third - both of which are associated with 
+CD8+ T cells.
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+the final NK cell pathway shows stronger enrichment.
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+CD8+ T cell and the final pathway due to NK cells show stronger enrichment. 
+
+### Fourth cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,4])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+None of the results are very significant compared to others. T cell lists are in general significant, but none of the lists comparatively stand out from the others.
+
+
+
+## Non - Whitening 
+
+Next we look at cases where we do not whiten the theta matrix from the CountClust output.
+
+## Live cell GoM - [LN+PBMC] (K=4)
+
+The topic model fit
+
+```{r}
+topic_clus_list <- get(load("../data/TFH146/CountClust_Models_filtered.rda"))
+omega <- topic_clus_list[[4]]$omega
+theta <- topic_clus_list[[4]]$theta
+```
+
+An example of matching the genes from the pathways to that from the data.
+
+```{r}
+match(gene_names[[4]], rownames(theta))
+```
+
+
+```{r}
+theta2 <- theta
+```
+
+We use pre-ranked GSEA using the genes from these pathways to check for significance.
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+The significant pathways here are the second and third - both of which are associated with 
+CD8+ T cells.
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+The significant pathway here seems to be the last one - which is related to NK cells. T cell ones 
+are also significant but not as strongly.
+
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+All the T cell pathways (1 to 7) seem to be significant (not very strong though) as well as the 
+last list related to the NK cells and cytotoxicity.
+
+### Fourth cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,4])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+
+Here also we see that the T cell lists turn out be more significant as in most cases. But this may be due to our pathways chosen for B cells not being representative enough.
+
+
+It seems one of the things that influenced the GSEA is the absence of too many genes in the gene lists corresponding to the B cells that we chose here, and the size of the T cell represented pathways were way bigger in size.
+
+
+## TFH GoM - [LN+PBMC] (K=4)
+
+The topic model fit
+
+```{r}
+topic_clus_list <- get(load("../data/TFH146/CountClust_Models_filtered_TFH.rda"))
+omega <- topic_clus_list[[4]]$omega
+theta <- topic_clus_list[[4]]$theta
+```
+
+```{r}
+theta2 <- theta
+```
+
+An example of matching the genes from the pathways to that from the data.
+
+We use pre-ranked GSEA using the genes from these pathways to check for significance.
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+CD8+ T cells and the NK cell pathway at the end show significant enrichment.
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+CD8+ T cell pathway shows stronger enrichment along with the final NK cell pathway. 
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+CD8+ T cells seem to show stronger enrichment along with the final NK cell genes.
+
+### Fourth cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,4])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+This seems to have high enrichment in CD8+ T cells as well as CD4 T cell signaling and the final NK cell signaling.
+
+## Pooled data GoM - [LN+PBMC] (K=4)
+
+The topic model fit
+
+```{r}
+topic_clus_list <- get(load("../data/TFH146/CountClust_Models_filtered_pooled.rda"))
+omega <- topic_clus_list[[4]]$omega
+theta <- topic_clus_list[[4]]$theta
+theta2 <- theta
+```
+
+An example of matching the genes from the pathways to that from the data.
+
+We use pre-ranked GSEA using the genes from these pathways to check for significance.
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+The significant pathways here are the second and third - both of which are associated with 
+CD8+ T cells.
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+the final NK cell pathway shows stronger enrichment.
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+CD8+ T cell and the final pathway due to NK cells show stronger enrichment. 
+
+### Fourth cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,4])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_names, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+None of the results are very significant compared to others. T cell lists are in general significant, but none of the lists comparatively stand out from the others.
+
+
+## Gene expression pathway analysis
+
+### Live cells
+
+```{r echo=FALSE, eval=TRUE}
+
+LiveCells_LN_UMI <- read.table('../data/TFH146/live cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary <- read.table('../data/TFH146/live cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+
+#- First filtering - remove cells with less than 10 genes
+LiveCells_LN_UMI <- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES > 10)]]
+LiveCells_LN_UMI_summary <- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
+
+##- PBMC - no reads information
+LiveCells_PBMC_UMI <- read.table('../data/TFH146/live cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary <- read.table('../data/TFH146/live cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_PBMC_UMI <- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES > 10)]]
+LiveCells_PBMC_UMI_summary <- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
+
+identical(colnames(LiveCells_LN_UMI), rownames(LiveCells_LN_UMI_summary)) # TRUE
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI[, which(LiveCells_LN_UMI_summary$NUM_GENES >= 400 & LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI_filtered[which(apply(LiveCells_LN_UMI_filtered, 1, sum) != 0), ]
+#- PBMC
+identical(colnames(LiveCells_PBMC_UMI), rownames(LiveCells_PBMC_UMI_summary)) # TRUE
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI[, which(LiveCells_PBMC_UMI_summary$NUM_GENES >= 400 & LiveCells_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI_filtered[which(apply(LiveCells_PBMC_UMI_filtered, 1, sum) != 0), ] 
+#- Merging
+LiveCells_UMI <- plyr::rbind.fill(as.data.frame(t(LiveCells_LN_UMI_filtered)), as.data.frame(t(LiveCells_PBMC_UMI_filtered)))
+rownames(LiveCells_UMI) <- c(paste(colnames(LiveCells_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(LiveCells_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(LiveCells_UMI) # 1210 cells and 19,183 genes
+length(unique(c(rownames(LiveCells_LN_UMI_filtered), rownames(LiveCells_PBMC_UMI_filtered)))) # 19,183 genes
+LiveCells_UMI[is.na(LiveCells_UMI)] <- 0 # NAs - replace NA by 0
+LiveCells_UMI <- as.data.frame(t(LiveCells_UMI))
+
+counts <- t(LiveCells_UMI)
+idx <- which(!is.na(match(substring(colnames(counts), 1, 2), c("RP", "MT", "RN"))))
+counts2 <- counts[, -idx]
+```
+
+```{r}
+vec <- apply(counts2, 2, function(x) sum(x))
+names(vec) <- colnames(counts2)
+out <- fgsea::fgsea(gene_names, vec, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+mm
+```
+
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 7}
+idx <- match(gene_names[[2]], colnames(counts2))
+idx <- idx[!is.na(idx)]
+temp1 <- colMeans(counts2[, idx])
+temp2 <- colMeans(counts2[, -idx])
+temp1 <- temp1[!is.na(temp1)]
+temp2 <- temp2[!is.na(temp2)]
+
+data_ggplot <- data.frame(Expr =  as.numeric(c(temp1, temp2)))
+data_ggplot$Condition <- c(rep("CD8+ T", length(temp1)), rep("others", length(temp2))) 
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr, color = Condition)) + geom_violin(aes(x = Condition, y = Expr, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=10))
+plot1
+```
+
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 7}
+idx <- match(gene_names[[3]], colnames(counts2))
+idx <- idx[!is.na(idx)]
+temp1 <- colMeans(counts2[, idx])
+temp2 <- colMeans(counts2[, -idx])
+temp1 <- temp1[!is.na(temp1)]
+temp2 <- temp2[!is.na(temp2)]
+
+data_ggplot <- data.frame(Expr =  as.numeric(c(temp1, temp2)))
+data_ggplot$Condition <- c(rep("CD8+ T", length(temp1)), rep("others", length(temp2))) 
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr, color = Condition)) + geom_violin(aes(x = Condition, y = Expr, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=10))
+plot1
+```
+
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 7}
+idx <- match(gene_names[[11]], colnames(counts2))
+idx <- idx[!is.na(idx)]
+temp1 <- colMeans(counts2[, idx])
+temp2 <- colMeans(counts2[, -idx])
+temp1 <- temp1[!is.na(temp1)]
+temp2 <- temp2[!is.na(temp2)]
+
+data_ggplot <- data.frame(Expr =  as.numeric(c(temp1, temp2)))
+data_ggplot$Condition <- c(rep("CD8+ T", length(temp1)), rep("others", length(temp2))) 
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr, color = Condition)) + geom_violin(aes(x = Condition, y = Expr, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=10))
+plot1
+```
+
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 7}
+LiveCells_fac <- c(rep("Live_LN", dim(LiveCells_LN_UMI_filtered)[2]),
+                   rep("Live_PBMC", dim(LiveCells_PBMC_UMI_filtered)[2]))
+
+data_ggplot <- data.frame(Expr =  counts2[, "B2M"])
+data_ggplot$Condition <-  LiveCells_fac
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr, color = Condition)) + geom_violin(aes(x = Condition, y = Expr, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=10)) + ggtitle("B2M")
+plot1
+```
+
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 7}
+LiveCells_fac <- c(rep("Live_LN", dim(LiveCells_LN_UMI_filtered)[2]),
+                   rep("Live_PBMC", dim(LiveCells_PBMC_UMI_filtered)[2]))
+
+data_ggplot <- data.frame(Expr =  counts2[, "MALAT1"])
+data_ggplot$Condition <-  LiveCells_fac
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr, color = Condition)) + geom_violin(aes(x = Condition, y = Expr, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=10)) + ggtitle("MALAT1")
+plot1
+```
+
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 7}
+LiveCells_fac <- c(rep("Live_LN", dim(LiveCells_LN_UMI_filtered)[2]),
+                   rep("Live_PBMC", dim(LiveCells_PBMC_UMI_filtered)[2]))
+
+data_ggplot <- data.frame(Expr =  counts2[, "TMSB4X"])
+data_ggplot$Condition <-  LiveCells_fac
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr, color = Condition)) + geom_violin(aes(x = Condition, y = Expr, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=10)) + ggtitle("TMSB4X")
+plot1
+```
+
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 7}
+LiveCells_fac <- c(rep("Live_LN", dim(LiveCells_LN_UMI_filtered)[2]),
+                   rep("Live_PBMC", dim(LiveCells_PBMC_UMI_filtered)[2]))
+
+data_ggplot <- data.frame(Expr =  counts2[, "TMSB10"])
+data_ggplot$Condition <-  LiveCells_fac
+plot1 <- ggplot(data = data_ggplot) + geom_jitter(aes(x = Condition, y = Expr, color = Condition)) + geom_violin(aes(x = Condition, y = Expr, color = Condition)) + labs(x = '', y = 'Expr of this gene') + guides(color = 'none') + theme(axis.text.x = element_text(size=10)) + ggtitle("TMSB10")
+plot1
+```

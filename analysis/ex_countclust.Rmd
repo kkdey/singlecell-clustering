@@ -140,7 +140,7 @@ imp_genes <- apply(indices, 1, function(x) return(colnames(counts2)[x]))
 
 ```{r}
 out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("name", "summary"), species="human");
-cbind.data.frame(out$name)
+cbind.data.frame(out$name)[,1]
 ```
 
 We find markers like interleukin related genes showing up as top driving genes.
@@ -149,7 +149,7 @@ We find markers like interleukin related genes showing up as top driving genes.
 
 ```{r}
 out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("name", "summary"), species="human");
-cbind.data.frame(out$name)
+cbind.data.frame(out$name)[,1]
 ```
 
 We find NK cell related genes among the top genes in this cluster.
@@ -158,7 +158,7 @@ We find NK cell related genes among the top genes in this cluster.
 
 ```{r}
 out <- mygene::queryMany(imp_genes[1:50,3],  scopes="symbol", fields=c("name", "summary"), species="human");
-cbind.data.frame(out$name)
+cbind.data.frame(out$name)[,1]
 ```
 
 ### top genes - Cluster 4, K = 4
@@ -166,7 +166,7 @@ cbind.data.frame(out$name)
 ```{r fig.width = 7}
 out <- mygene::queryMany(imp_genes[1:50,4],  scopes="symbol", fields=c("name", "summary"), species="human");
 #cbind.data.frame(out$name)
-cbind.data.frame(out$name)
+cbind.data.frame(out$name)[,1]
 ```
 
 We find lymph related and B cell marker genes among the top driving genes for this cluster.
