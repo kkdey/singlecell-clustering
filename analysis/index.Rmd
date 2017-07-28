@@ -25,21 +25,21 @@ analysis of the clusters, for the different patients
 
 First, we perform this analysis for TFH146
 
-[CountClust application separately on LN and PBMC Live cells for TFH146](separate_countclust_LN_PBMC_Live_TFH146.Rmd)
+[CountClust application separately on LN and PBMC Live cells for TFH146](separate_countclust_LN_PBMC_Live_TFH146.html)
 
-[CountClust application separately on LN and PBMC TFH cells for TFH146](separate_countclust_LN_PBMC_TFH_TFH146.Rmd)
+[CountClust application separately on LN and PBMC TFH cells for TFH146](separate_countclust_LN_PBMC_TFH_TFH146.html)
 
 Next we perform the analysis for TFH041
 
-[CountClust application separately on LN and PBMC Live cells for TFH041](separate_countclust_LN_PBMC_Live_TFH041.Rmd)
+[CountClust application separately on LN and PBMC Live cells for TFH041](separate_countclust_LN_PBMC_Live_TFH041.html)
 
-[CountClust application separately on LN and PBMC TFH cells for TFH041](separate_countclust_LN_PBMC_TFH_TFH041.Rmd)
+[CountClust application separately on LN and PBMC TFH cells for TFH041](separate_countclust_LN_PBMC_TFH_TFH041.html)
 
 Finally the analysis on the Live cells for the TFH095 and MP046
 
-[CountClust application separately on LN and PBMC Live cells for TFH095](separate_countclust_LN_PBMC_Live_TFH095.Rmd)
+[CountClust application separately on LN and PBMC Live cells for TFH095](separate_countclust_LN_PBMC_Live_TFH095.html)
 
-[CountClust application separately on LN and PBMC Live cells for MP046](separate_countclust_LN_PBMC_Live_MP046.Rmd)
+[CountClust application separately on LN and PBMC Live cells for MP046](separate_countclust_LN_PBMC_Live_MP046.html)
 
 
 
