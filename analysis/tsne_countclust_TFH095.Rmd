@@ -1,0 +1,340 @@
+---
+title: "t-SNE vs CountClust comparisons - TFH095 Live cells"
+author: "Kushal K Dey"
+date: "7/28/2017"
+output: html_document
+---
+
+# Live Cells
+
+In this script, we compare the results for t-SNE and CountClust comparisons for the Live cells in TFH095 and see if the expression for the genes distinguishing the clusters show expression in cells that form distinct clusters in the t-SNE plot.
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+```
+
+## Processing the Data
+
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Live Cells
+##- LN - no reads information
+LiveCells_LN_UMI <- read.table('../data/TFH095/LN/reads.TFH095_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary <- read.table('../data/TFH095/LN/reads.TFH095_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_LN_UMI <- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES > 10)]]
+LiveCells_LN_UMI_summary <- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
+
+##- PBMC - no reads information
+LiveCells_PBMC_UMI <- read.table('../data/TFH095/PBMC/reads.TFH095_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary <- read.table('../data/TFH095/PBMC/reads.TFH095_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_PBMC_UMI <- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES > 10)]]
+LiveCells_PBMC_UMI_summary <- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
+```
+
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Filtering datasets and merging
+#- LN
+identical(colnames(LiveCells_LN_UMI), rownames(LiveCells_LN_UMI_summary)) # TRUE
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI[, which(LiveCells_LN_UMI_summary$NUM_GENES >= 400 & LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 417 cells
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI_filtered[which(apply(LiveCells_LN_UMI_filtered, 1, sum) != 0), ] # 14,946 genes and 417 cells
+#- PBMC
+identical(colnames(LiveCells_PBMC_UMI), rownames(LiveCells_PBMC_UMI_summary)) # TRUE
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI[, which(LiveCells_PBMC_UMI_summary$NUM_GENES >= 400 & LiveCells_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 409 cells
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI_filtered[which(apply(LiveCells_PBMC_UMI_filtered, 1, sum) != 0), ] # 12,391 genes and 409 cells
+#- Merging
+LiveCells_UMI <- rbind.fill(as.data.frame(t(LiveCells_LN_UMI_filtered)), as.data.frame(t(LiveCells_PBMC_UMI_filtered)))
+rownames(LiveCells_UMI) <- c(paste(colnames(LiveCells_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(LiveCells_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(LiveCells_UMI) # 826 cells and 16,230 genes
+length(unique(c(rownames(LiveCells_LN_UMI_filtered), rownames(LiveCells_PBMC_UMI_filtered)))) # 16,230 genes
+LiveCells_UMI[is.na(LiveCells_UMI)] <- 0 # NAs - replace NA by 0
+LiveCells_UMI <- as.data.frame(t(LiveCells_UMI))
+```
+
+## Live Cells - (tSNE + CountClust genes)
+
+
+```{r echo=FALSE, eval=FALSE}
+seuratObj <- new('seurat', raw.data = LiveCells_UMI)
+seuratObj <- Setup(seuratObj, min.cells = 0, min.genes = 0, project = 'Pantaleo', total.expr = 10000) # no need to filter - already done
+#- Output
+seuratObj_LiveCells_global <- seuratObj
+```
+
+
+```{r echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
+###--- Regress out unwanted sources of variation
+mito.genes <- grep("^MT-", rownames(seuratObj_LiveCells_global@data), value = TRUE)
+percent.mito <- colSums(as.matrix(expm1(seuratObj_LiveCells_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_LiveCells_global@data)))
+seuratObj_LiveCells_global <- AddMetaData(seuratObj_LiveCells_global, percent.mito, 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'nGene')
+#- remove unwanted sources of variation
+seuratObj_LiveCells_global <- RegressOut(seuratObj_LiveCells_global, latent.vars = c('nUMI', 'percent.mito')) # remove effect of CDR (high correlation between nGene and nUMI - 0.97) and mitochondrial
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+seuratObj_LiveCells_global <- MeanVarPlot(seuratObj_LiveCells_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_LiveCells_global@var.genes)
+seuratObj_LiveCells_global <- PCA(seuratObj_LiveCells_global, pc.genes = seuratObj_LiveCells_global@var.genes)
+seuratObj_LiveCells_global <- ProjectPCA(seuratObj_LiveCells_global)
+VizPCA(seuratObj_LiveCells_global, 1:2)
+```
+
+```{r echo=FALSE, eval=FALSE}
+seuratObj_LiveCells_global <- RunTSNE(seuratObj_LiveCells_global, dims.use = 1:10, perplexity = 50)
+```
+
+```{r echo=FALSE, eval=FALSE}
+save(seuratObj_LiveCells_global, file = "../output/TFH095/seuratLiveCells.rda")
+```
+
+```{r}
+seuratObj_LiveCells_global <- get(load("../output/TFH095/seuratLiveCells.rda"))
+```
+
+
+```{r echo=TRUE, eval=TRUE}
+seuratObj_LiveCells_global <- MeanVarPlot(seuratObj_LiveCells_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_LiveCells_global@var.genes)
+seuratObj_LiveCells_global <- PCA(seuratObj_LiveCells_global, pc.genes = seuratObj_LiveCells_global@var.genes)
+seuratObj_LiveCells_global <- ProjectPCA(seuratObj_LiveCells_global)
+VizPCA(seuratObj_LiveCells_global, 1:2)
+```
+
+```{r}
+###--- tSNE
+labels <- unlist(str_split(rownames(seuratObj_LiveCells_global@tsne.rot), '_'))[seq(2, length(unlist(str_split(rownames(seuratObj_LiveCells_global@tsne.rot), '_'))), 2)]
+nUMI <- seuratObj_LiveCells_global@data.info$nUMI
+nGene <- seuratObj_LiveCells_global@data.info$nGene
+
+data_ggplot <- data.frame(labels = labels,
+                          nUMI = nUMI,
+                          nGene = nGene,
+                          tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nUMI), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2') + scale_color_gradient2('# mapped UMI', low = 'royalblue', high = 'red', mid = 'grey80', midpoint = 2000)
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nGene), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2') + scale_color_gradient2('# detected genes', low = 'royalblue', high = 'red', mid = 'grey80', midpoint = 1000)
+
+plot_grid(plot1, plot2, plot3, ncol = 2, align = 'v')
+```
+
+
+### Cluster 1
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=15, fig.height=16}
+###--- tSNE - CountClust - cluster 1
+cex.size = 2
+data_ggplot <- data.frame(tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2],
+                          TMSB10 = seuratObj_LiveCells_global@data['TMSB10', ], 
+                          IL7R = seuratObj_LiveCells_global@data['IL7R', ],
+                          MALAT1 = seuratObj_LiveCells_global@data['MALAT1', ], # LiveCells marker
+                          COMMD6 = seuratObj_LiveCells_global@data['COMMD6', ] # LiveCells marker
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = TMSB10), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['TMSB10', ], 0.2),  name = "TMSB10")
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = IL7R), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['IL7R', ], 0.2),  name = "IL7R")
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = MALAT1), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['MALAT1', ], 0.2),  name = "MALAT1")
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = COMMD6), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['COMMD6', ], 0.2),  name = "COMMD6")
+
+plot_grid(plot1, plot2, plot3, plot4, ncol = 2, align = 'v')
+```
+
+
+### Cluster 2
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=15, fig.height=16}
+###--- tSNE - CountClust - cluster 2
+cex.size = 2
+data_ggplot <- data.frame(tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2],
+                          TNFAIP3 = seuratObj_LiveCells_global@data['TNFAIP3', ], 
+                          LTB = seuratObj_LiveCells_global@data['LTB', ],
+                          TRAC = seuratObj_LiveCells_global@data['TRAC', ], # LiveCells marker
+                          KB1208A123 = seuratObj_LiveCells_global@data['KB-1208A12.3', ] # LiveCells marker
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = TNFAIP3), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['TNFAIP3', ], 0.2),  name = "TNFAIP3")
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = LTB), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['LTB', ], 0.2),  name = "LTB")
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = TRAC), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['TRAC', ], 0.2),  name = "TRAC")
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = KB1208A123), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['KB-1208A12.3', ], 0.2),  name = "KB1208A123")
+
+plot_grid(plot1, plot2, plot3, plot4, ncol = 2, align = 'v')
+```
+
+
+### Cluster 3
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=15, fig.height=16}
+###--- tSNE - CountClust - cluster 3
+cex.size = 2
+data_ggplot <- data.frame(tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2],
+                          CCL5 = seuratObj_LiveCells_global@data['CCL5', ], 
+                          NKG7 = seuratObj_LiveCells_global@data['NKG7', ],
+                          CMC1 = seuratObj_LiveCells_global@data['CMC1', ], # LiveCells marker
+                          KLRD1 = seuratObj_LiveCells_global@data['KLRD1', ] # LiveCells marker
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CCL5), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['CCL5', ], 0.2),  name = "CCL5")
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = NKG7), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['NKG7', ], 0.2),  name = "NKG7")
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color =CMC1), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['CMC1', ], 0.2),  name = "CMC1")
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = KLRD1), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['KLRD1', ], 0.2),  name = "KLRD1")
+
+plot_grid(plot1, plot2, plot3, plot4, ncol = 2, align = 'v')
+```
+
+
+### Cluster 4
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=15, fig.height=16}
+###--- tSNE - CountClust - cluster 4
+cex.size = 2
+data_ggplot <- data.frame(tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2],
+                          HLADRA = seuratObj_LiveCells_global@data['HLA-DRA', ], 
+                          LYZ = seuratObj_LiveCells_global@data['LYZ', ],
+                          CD74 = seuratObj_LiveCells_global@data['CD74', ], # LiveCells marker
+                          MS4A1 = seuratObj_LiveCells_global@data['MS4A1', ] # LiveCells marker
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = HLADRA), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['HLA-DRA', ], 0.2),  name = "HLA-DRA")
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = LYZ), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['LYZ', ], 0.2),  name = "LYZ")
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = CD74), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['CD74', ], 0.2),  name = "CD74")
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = MS4A1), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_LiveCells_global@data['MS4A1', ], 0.2),  name = "MS4A1")
+
+plot_grid(plot1, plot2, plot3, plot4, ncol = 2, align = 'v')
+```
+
+
+
+
+

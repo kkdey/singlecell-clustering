@@ -207,6 +207,8 @@ $(document).ready(function () {
 </div>
 
 
+<div id="countclust-analysis-of-the-joint-ln-and-pbmc-cells-for-live-cells-and-tfh-sorted-cells" class="section level2">
+<h2>CountClust analysis of the joint LN and PBMC cells for Live cells and TFH sorted cells</h2>
 <p>We apply CountClust Grade of Membership (GoM) model for clustering the single cell data from lymph node (LN) and peripheral blood mononuclear cells (PBMC) of three HIV- and one HIV+ patients.</p>
 <p>An example of countclust fit on single cell data from one patient (TFH146) on just the Live cells.</p>
 <p><a href="ex_countclust.html">Example application of CountClust</a></p>
@@ -214,6 +216,9 @@ $(document).ready(function () {
 <p><a href="tfh041Explore.html">CountClust on TFH041 scRNA-seq data</a></p>
 <p><a href="tfh095Explore.html">CountClust on TFH095 scRNA-seq data</a></p>
 <p><a href="mp046Explore.html">CountClust on MP046 scRNA-seq data</a></p>
+</div>
+<div id="separate-countclust-analysis-of-the-ln-and-pbmc-cells" class="section level2">
+<h2>Separate CountClust analysis of the LN and PBMC cells</h2>
 <p>Separate Grade of Membership model fit and subsequent gene annotations and gene set enrichment analysis of the clusters, for the different patients</p>
 <p>First, we perform this analysis for TFH146</p>
 <p><a href="separate_countclust_LN_PBMC_Live_TFH146.html">CountClust application separately on LN and PBMC Live cells for TFH146</a></p>
@@ -224,6 +229,15 @@ $(document).ready(function () {
 <p>Finally the analysis on the Live cells for the TFH095 and MP046</p>
 <p><a href="separate_countclust_LN_PBMC_Live_TFH095.html">CountClust application separately on LN and PBMC Live cells for TFH095</a></p>
 <p><a href="separate_countclust_LN_PBMC_Live_MP046.html">CountClust application separately on LN and PBMC Live cells for MP046</a></p>
+</div>
+<div id="comparison-of-countclust-results-with-t-sne" class="section level2">
+<h2>Comparison of CountClust results with t-SNE</h2>
+<p>We projected the expression of top driving genes from fitting the CountClust model on the t-SNE space obtained using the Seurat package by Satijalab.</p>
+<p>The projections for TFH146, TFH041 and TFH095 are</p>
+<p><a href="tsne_countclust_TFH146.html">t-SNE projection of CountClust top cluster driving genes - TFH 146</a></p>
+<p><a href="tsne_countclust_TFH095.html">t-SNE projection of CountClust top cluster driving genes - TFH 095</a></p>
+<p><a href="tsne_countclust_TFH041.html">t-SNE projection of CountClust top cluster driving genes - TFH 041</a></p>
+</div>
 
 <hr>
 <p>

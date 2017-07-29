@@ -454,6 +454,7 @@ plot1 <- ggplot(data = TFH_LN_UMI_summary) + geom_histogram(aes(NUM_GENES), bins
 plot2 <- ggplot(data = TFH_PBMC_UMI_summary) + geom_histogram(aes(NUM_GENES), bins = 100, color = 'grey50', fill = 'grey60') + labs(x = 'Total Genes', y = 'Count', title = 'PBMC sample') + geom_vline(xintercept = 400, color = 'red')
 plot_grid(plot1, plot2, ncol = 2, labels = c('A', 'B'), align = 'v')
 ```
+
 ```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
 ###--- Filtering datasets and merging
 #- LN

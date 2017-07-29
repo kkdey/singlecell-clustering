@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>t-SNE vs CountClust comparisons - TFH095 Live cells</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">t-SNE vs CountClust comparisons - TFH095 Live cells</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>7/28/2017</em></h4>
+
+</div>
+
+
+<div id="live-cells" class="section level1">
+<h1>Live Cells</h1>
+<p>In this script, we compare the results for t-SNE and CountClust comparisons for the Live cells in TFH095 and see if the expression for the genes distinguishing the clusters show expression in cells that form distinct clusters in the t-SNE plot.</p>
+<div id="processing-the-data" class="section level2">
+<h2>Processing the Data</h2>
+<pre class="r"><code>###--- Live Cells
+##- LN - no reads information
+LiveCells_LN_UMI &lt;- read.table(&#39;../data/TFH095/LN/reads.TFH095_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt&#39;, header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary &lt;- read.table(&#39;../data/TFH095/LN/reads.TFH095_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt&#39;, header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_LN_UMI &lt;- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES &gt; 10)]]
+LiveCells_LN_UMI_summary &lt;- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
+
+##- PBMC - no reads information
+LiveCells_PBMC_UMI &lt;- read.table(&#39;../data/TFH095/PBMC/reads.TFH095_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt&#39;, header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary &lt;- read.table(&#39;../data/TFH095/PBMC/reads.TFH095_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt&#39;, header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_PBMC_UMI &lt;- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES &gt; 10)]]
+LiveCells_PBMC_UMI_summary &lt;- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]</code></pre>
+<pre class="r"><code>###--- Filtering datasets and merging
+#- LN
+identical(colnames(LiveCells_LN_UMI), rownames(LiveCells_LN_UMI_summary)) # TRUE</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>LiveCells_LN_UMI_filtered &lt;- LiveCells_LN_UMI[, which(LiveCells_LN_UMI_summary$NUM_GENES &gt;= 400 &amp; LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS &gt;= 750)] # 417 cells
+LiveCells_LN_UMI_filtered &lt;- LiveCells_LN_UMI_filtered[which(apply(LiveCells_LN_UMI_filtered, 1, sum) != 0), ] # 14,946 genes and 417 cells
+#- PBMC
+identical(colnames(LiveCells_PBMC_UMI), rownames(LiveCells_PBMC_UMI_summary)) # TRUE</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>LiveCells_PBMC_UMI_filtered &lt;- LiveCells_PBMC_UMI[, which(LiveCells_PBMC_UMI_summary$NUM_GENES &gt;= 400 &amp; LiveCells_PBMC_UMI_summary$NUM_TRANSCRIPTS &gt;= 750)] # 409 cells
+LiveCells_PBMC_UMI_filtered &lt;- LiveCells_PBMC_UMI_filtered[which(apply(LiveCells_PBMC_UMI_filtered, 1, sum) != 0), ] # 12,391 genes and 409 cells
+#- Merging
+LiveCells_UMI &lt;- rbind.fill(as.data.frame(t(LiveCells_LN_UMI_filtered)), as.data.frame(t(LiveCells_PBMC_UMI_filtered)))
+rownames(LiveCells_UMI) &lt;- c(paste(colnames(LiveCells_LN_UMI_filtered), &#39;LN&#39;, sep = &#39;_&#39;), paste(colnames(LiveCells_PBMC_UMI_filtered), &#39;PBMC&#39;, sep = &#39;_&#39;))
+dim(LiveCells_UMI) # 826 cells and 16,230 genes</code></pre>
+<pre><code>## [1]  1122 17757</code></pre>
+<pre class="r"><code>length(unique(c(rownames(LiveCells_LN_UMI_filtered), rownames(LiveCells_PBMC_UMI_filtered)))) # 16,230 genes</code></pre>
+<pre><code>## [1] 17757</code></pre>
+<pre class="r"><code>LiveCells_UMI[is.na(LiveCells_UMI)] &lt;- 0 # NAs - replace NA by 0
+LiveCells_UMI &lt;- as.data.frame(t(LiveCells_UMI))</code></pre>
+</div>
+<div id="live-cells---tsne-countclust-genes" class="section level2">
+<h2>Live Cells - (tSNE + CountClust genes)</h2>
+<pre class="r"><code>seuratObj_LiveCells_global &lt;- get(load(&quot;../output/TFH095/seuratLiveCells.rda&quot;))</code></pre>
+<pre class="r"><code>seuratObj_LiveCells_global &lt;- MeanVarPlot(seuratObj_LiveCells_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)</code></pre>
+<p><img src="tsne_countclust_TFH095_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>length(seuratObj_LiveCells_global@var.genes)</code></pre>
+<pre><code>## [1] 887</code></pre>
+<pre class="r"><code>seuratObj_LiveCells_global &lt;- PCA(seuratObj_LiveCells_global, pc.genes = seuratObj_LiveCells_global@var.genes)</code></pre>
+<pre><code>## [1] &quot;PC1&quot;
+##  [1] &quot;IL7R&quot;       &quot;CCL5&quot;       &quot;SYNE2&quot;      &quot;NKG7&quot;       &quot;GZMA&quot;      
+##  [6] &quot;GNLY&quot;       &quot;IL32&quot;       &quot;AC092580.4&quot; &quot;GZMH&quot;       &quot;TNFAIP3&quot;   
+## [11] &quot;CST7&quot;       &quot;KLRB1&quot;      &quot;TRDC&quot;       &quot;KLRD1&quot;      &quot;FGFBP2&quot;    
+## [16] &quot;ID2&quot;        &quot;CTSW&quot;       &quot;CD8A&quot;       &quot;CMC1&quot;       &quot;SAMD3&quot;     
+## [21] &quot;GZMK&quot;       &quot;SYTL3&quot;      &quot;IL2RB&quot;      &quot;DNAJB1&quot;     &quot;PYHIN1&quot;    
+## [26] &quot;GPR171&quot;     &quot;TC2N&quot;       &quot;PRF1&quot;       &quot;CCL4&quot;       &quot;GZMB&quot;      
+## [1] &quot;&quot;
+##  [1] &quot;LYZ&quot;      &quot;FCN1&quot;     &quot;IFI30&quot;    &quot;HLA-DRA&quot;  &quot;S100A9&quot;   &quot;MNDA&quot;    
+##  [7] &quot;CST3&quot;     &quot;VCAN&quot;     &quot;IGSF6&quot;    &quot;S100A8&quot;   &quot;CD74&quot;     &quot;FCER1G&quot;  
+## [13] &quot;CYBB&quot;     &quot;HLA-DRB1&quot; &quot;CSTA&quot;     &quot;AIF1&quot;     &quot;CLEC12A&quot;  &quot;S100A12&quot; 
+## [19] &quot;CD36&quot;     &quot;SERPINA1&quot; &quot;LST1&quot;     &quot;CFD&quot;      &quot;MS4A6A&quot;   &quot;HLA-DPA1&quot;
+## [25] &quot;HLA-DQB1&quot; &quot;MPEG1&quot;    &quot;CTSS&quot;     &quot;MS4A7&quot;    &quot;MEF2C&quot;    &quot;MS4A1&quot;   
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC2&quot;
+##  [1] &quot;TYROBP&quot;   &quot;GNLY&quot;     &quot;CCL5&quot;     &quot;FCN1&quot;     &quot;S100A9&quot;   &quot;S100A4&quot;  
+##  [7] &quot;LYZ&quot;      &quot;FCGR3A&quot;   &quot;NKG7&quot;     &quot;KLRD1&quot;    &quot;S100A8&quot;   &quot;CMC1&quot;    
+## [13] &quot;S100A6&quot;   &quot;FCER1G&quot;   &quot;GZMH&quot;     &quot;SRGN&quot;     &quot;MNDA&quot;     &quot;VCAN&quot;    
+## [19] &quot;CST7&quot;     &quot;GZMB&quot;     &quot;CSTA&quot;     &quot;S100A12&quot;  &quot;GZMA&quot;     &quot;CST3&quot;    
+## [25] &quot;CLEC12A&quot;  &quot;AIF1&quot;     &quot;FGFBP2&quot;   &quot;SERPINA1&quot; &quot;IGSF6&quot;    &quot;CTSW&quot;    
+## [1] &quot;&quot;
+##  [1] &quot;MS4A1&quot;        &quot;BANK1&quot;        &quot;CD79A&quot;        &quot;IGHM&quot;        
+##  [5] &quot;RALGPS2&quot;      &quot;HLA-DRA&quot;      &quot;HLA-DQB1&quot;     &quot;CD83&quot;        
+##  [9] &quot;CD79B&quot;        &quot;CD69&quot;         &quot;HLA-DQB2&quot;     &quot;CD74&quot;        
+## [13] &quot;HLA-DPB1&quot;     &quot;SWAP70&quot;       &quot;PAX5&quot;         &quot;CD22&quot;        
+## [17] &quot;HVCN1&quot;        &quot;IRF8&quot;         &quot;HLA-DPA1&quot;     &quot;HLA-DOA&quot;     
+## [21] &quot;MT-ND3&quot;       &quot;HLA-DRB1&quot;     &quot;HLA-DQA1&quot;     &quot;FCRL1&quot;       
+## [25] &quot;IGKC&quot;         &quot;KB-1208A12.3&quot; &quot;CD19&quot;         &quot;GPR183&quot;      
+## [29] &quot;IGHD&quot;         &quot;MEF2C&quot;       
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC3&quot;
+##  [1] &quot;IL7R&quot;      &quot;AIF1&quot;      &quot;FCN1&quot;      &quot;VCAN&quot;      &quot;S100A12&quot;  
+##  [6] &quot;S100A9&quot;    &quot;LYZ&quot;       &quot;FOS&quot;       &quot;S100A8&quot;    &quot;CLEC12A&quot;  
+## [11] &quot;TNFAIP3&quot;   &quot;IGSF6&quot;     &quot;MNDA&quot;      &quot;CSTA&quot;      &quot;CD36&quot;     
+## [16] &quot;SERPINA1&quot;  &quot;LST1&quot;      &quot;CFD&quot;       &quot;DNAJB1&quot;    &quot;CST3&quot;     
+## [21] &quot;ICOS&quot;      &quot;CD69&quot;      &quot;MS4A6A&quot;    &quot;TBC1D4&quot;    &quot;CHRM3-AS2&quot;
+## [26] &quot;C1orf162&quot;  &quot;ANXA1&quot;     &quot;ACTG1&quot;     &quot;IFI30&quot;     &quot;HSP90AA1&quot; 
+## [1] &quot;&quot;
+##  [1] &quot;GNLY&quot;     &quot;NKG7&quot;     &quot;GZMH&quot;     &quot;MS4A1&quot;    &quot;GZMB&quot;     &quot;CCL5&quot;    
+##  [7] &quot;FGFBP2&quot;   &quot;KLRD1&quot;    &quot;GZMA&quot;     &quot;CD74&quot;     &quot;TRDC&quot;     &quot;CMC1&quot;    
+## [13] &quot;HLA-DPA1&quot; &quot;CST7&quot;     &quot;HLA-DPB1&quot; &quot;HLA-DRB1&quot; &quot;HLA-DQB1&quot; &quot;IGHM&quot;    
+## [19] &quot;HLA-DRA&quot;  &quot;CTSW&quot;     &quot;HOPX&quot;     &quot;KLRF1&quot;    &quot;HLA-DQA1&quot; &quot;PRF1&quot;    
+## [25] &quot;BANK1&quot;    &quot;HLA-DQB2&quot; &quot;PLEK&quot;     &quot;FCGR3A&quot;   &quot;CCL4&quot;     &quot;CD79A&quot;   
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC4&quot;
+##  [1] &quot;MTRNR2L12&quot;     &quot;MTRNR2L8&quot;      &quot;MTRNR2L2&quot;      &quot;IL7R&quot;         
+##  [5] &quot;RN7SK&quot;         &quot;LINC00926&quot;     &quot;IGHD&quot;          &quot;BIRC3&quot;        
+##  [9] &quot;RNPC3&quot;         &quot;SNX2&quot;          &quot;TUBGCP2&quot;       &quot;CCDC53&quot;       
+## [13] &quot;HMGB2&quot;         &quot;LUC7L3&quot;        &quot;THAP5&quot;         &quot;S100A4&quot;       
+## [17] &quot;IGHM&quot;          &quot;AC006129.2&quot;    &quot;RP11-386I14.4&quot; &quot;S1PR1&quot;        
+## [21] &quot;FTL&quot;           &quot;GPR171&quot;        &quot;CASP8&quot;         &quot;IGKC&quot;         
+## [25] &quot;PRDM1&quot;         &quot;TARSL2&quot;        &quot;ISY1&quot;          &quot;RN7SKP174&quot;    
+## [29] &quot;MPP7&quot;          &quot;RANBP3&quot;       
+## [1] &quot;&quot;
+##  [1] &quot;KLF6&quot;         &quot;JUN&quot;          &quot;FOS&quot;          &quot;RGS1&quot;        
+##  [5] &quot;MT-RNR1&quot;      &quot;TNFAIP3&quot;      &quot;MT-ND3&quot;       &quot;FOSB&quot;        
+##  [9] &quot;MT-ND5&quot;       &quot;HSP90AA1&quot;     &quot;DUSP1&quot;        &quot;NR4A2&quot;       
+## [13] &quot;ZFP36L2&quot;      &quot;KB-1208A12.3&quot; &quot;RGS2&quot;         &quot;NFKBIA&quot;      
+## [17] &quot;SRGN&quot;         &quot;DNAJB1&quot;       &quot;IL2RB&quot;        &quot;ACTG1&quot;       
+## [21] &quot;ZFP36L1&quot;      &quot;IFNG&quot;         &quot;FAM211A&quot;      &quot;CD69&quot;        
+## [25] &quot;RASGEF1B&quot;     &quot;ITPR2&quot;        &quot;PMAIP1&quot;       &quot;XCL2&quot;        
+## [29] &quot;XCL1&quot;         &quot;HSP90B1&quot;     
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC5&quot;
+##  [1] &quot;VCAN&quot;    &quot;S100A12&quot; &quot;S100A8&quot;  &quot;CD36&quot;    &quot;NFKBIA&quot;  &quot;FOS&quot;     &quot;JUN&quot;    
+##  [8] &quot;S100A9&quot;  &quot;FOSB&quot;    &quot;ANXA1&quot;   &quot;IL7R&quot;    &quot;DUSP1&quot;   &quot;TNFAIP3&quot; &quot;FCN1&quot;   
+## [15] &quot;CSTA&quot;    &quot;MNDA&quot;    &quot;ZFP36L2&quot; &quot;CEBPD&quot;   &quot;IGSF6&quot;   &quot;FBXL5&quot;   &quot;EGR1&quot;   
+## [22] &quot;CD69&quot;    &quot;LYZ&quot;     &quot;MS4A6A&quot;  &quot;KLRB1&quot;   &quot;IGHM&quot;    &quot;PTGER2&quot;  &quot;CD79A&quot;  
+## [29] &quot;FCRL1&quot;   &quot;IGHD&quot;   
+## [1] &quot;&quot;
+##  [1] &quot;MS4A7&quot;    &quot;FCGR3A&quot;   &quot;LST1&quot;     &quot;IFITM3&quot;   &quot;IGJ&quot;      &quot;CCDC88A&quot; 
+##  [7] &quot;STMN1&quot;    &quot;ANXA5&quot;    &quot;FCER1G&quot;   &quot;AIF1&quot;     &quot;ACTB&quot;     &quot;INIP&quot;    
+## [13] &quot;MPEG1&quot;    &quot;TNFRSF1B&quot; &quot;CFD&quot;      &quot;RHOC&quot;     &quot;PHTF2&quot;    &quot;DUSP6&quot;   
+## [19] &quot;WARS&quot;     &quot;PSMD11&quot;   &quot;RNF214&quot;   &quot;SERPINA1&quot; &quot;CENPK&quot;    &quot;TIGIT&quot;   
+## [25] &quot;PCNA&quot;     &quot;CCDC137&quot;  &quot;SMC4&quot;     &quot;ITM2A&quot;    &quot;MAF&quot;      &quot;PTPN11&quot;  
+## [1] &quot;&quot;
+## [1] &quot;&quot;</code></pre>
+<pre class="r"><code>seuratObj_LiveCells_global &lt;- ProjectPCA(seuratObj_LiveCells_global)</code></pre>
+<pre><code>## [1] &quot;PC1&quot;
+##  [1] &quot;IL7R&quot;       &quot;CCL5&quot;       &quot;CD2&quot;        &quot;CD3D&quot;       &quot;TRBC2&quot;     
+##  [6] &quot;SYNE2&quot;      &quot;RPS6&quot;       &quot;NKG7&quot;       &quot;CD3E&quot;       &quot;B2M&quot;       
+## [11] &quot;GZMA&quot;       &quot;ETS1&quot;       &quot;RPS3&quot;       &quot;GNLY&quot;       &quot;IL32&quot;      
+## [16] &quot;RPS12&quot;      &quot;AC092580.4&quot; &quot;GZMH&quot;       &quot;RPS25&quot;      &quot;CD3G&quot;      
+## [21] &quot;TNFAIP3&quot;    &quot;MALAT1&quot;     &quot;CST7&quot;       &quot;RPL13&quot;      &quot;KLRB1&quot;     
+## [26] &quot;IFITM1&quot;     &quot;PCED1B-AS1&quot; &quot;RPS27A&quot;     &quot;SLFN5&quot;      &quot;RPS29&quot;     
+## [1] &quot;&quot;
+##  [1] &quot;LYZ&quot;      &quot;FCN1&quot;     &quot;IFI30&quot;    &quot;HLA-DRA&quot;  &quot;S100A9&quot;   &quot;MNDA&quot;    
+##  [7] &quot;CST3&quot;     &quot;FPR1&quot;     &quot;VCAN&quot;     &quot;IGSF6&quot;    &quot;S100A8&quot;   &quot;CD74&quot;    
+## [13] &quot;FCER1G&quot;   &quot;CYBB&quot;     &quot;HLA-DRB1&quot; &quot;CSTA&quot;     &quot;AIF1&quot;     &quot;CLEC12A&quot; 
+## [19] &quot;S100A12&quot;  &quot;CD14&quot;     &quot;CD68&quot;     &quot;CD36&quot;     &quot;SERPINA1&quot; &quot;HCK&quot;     
+## [25] &quot;LST1&quot;     &quot;CFD&quot;      &quot;MS4A6A&quot;   &quot;IRAK3&quot;    &quot;CPVL&quot;     &quot;HLA-DPA1&quot;
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC2&quot;
+##  [1] &quot;TYROBP&quot;   &quot;GNLY&quot;     &quot;CCL5&quot;     &quot;FCN1&quot;     &quot;S100A9&quot;   &quot;S100A4&quot;  
+##  [7] &quot;LYZ&quot;      &quot;FCGR3A&quot;   &quot;NKG7&quot;     &quot;KLRD1&quot;    &quot;S100A8&quot;   &quot;CMC1&quot;    
+## [13] &quot;B2M&quot;      &quot;S100A6&quot;   &quot;FCER1G&quot;   &quot;GZMH&quot;     &quot;SRGN&quot;     &quot;MNDA&quot;    
+## [19] &quot;VCAN&quot;     &quot;FPR1&quot;     &quot;CST7&quot;     &quot;GZMB&quot;     &quot;CSTA&quot;     &quot;S100A12&quot; 
+## [25] &quot;GZMA&quot;     &quot;CST3&quot;     &quot;CLEC12A&quot;  &quot;AIF1&quot;     &quot;FGFBP2&quot;   &quot;SERPINA1&quot;
+## [1] &quot;&quot;
+##  [1] &quot;MS4A1&quot;    &quot;BANK1&quot;    &quot;CD79A&quot;    &quot;IGHM&quot;     &quot;RALGPS2&quot;  &quot;RPLP2&quot;   
+##  [7] &quot;HLA-DRA&quot;  &quot;HLA-DQB1&quot; &quot;CD83&quot;     &quot;CD79B&quot;    &quot;CD69&quot;     &quot;RPL23&quot;   
+## [13] &quot;HLA-DQB2&quot; &quot;RPS25&quot;    &quot;LTB&quot;      &quot;RPS5&quot;     &quot;RPL30&quot;    &quot;TPT1&quot;    
+## [19] &quot;CD74&quot;     &quot;HLA-DPB1&quot; &quot;SWAP70&quot;   &quot;PAX5&quot;     &quot;RPL38&quot;    &quot;CD22&quot;    
+## [25] &quot;HVCN1&quot;    &quot;IRF8&quot;     &quot;HLA-DPA1&quot; &quot;HLA-DOA&quot;  &quot;MT-ND3&quot;   &quot;HLA-DRB1&quot;
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC3&quot;
+##  [1] &quot;TPT1&quot;       &quot;IL7R&quot;       &quot;CD3D&quot;       &quot;TRAC&quot;       &quot;LDHB&quot;      
+##  [6] &quot;AIF1&quot;       &quot;FCN1&quot;       &quot;FYB&quot;        &quot;VCAN&quot;       &quot;IL6ST&quot;     
+## [11] &quot;FPR1&quot;       &quot;S100A12&quot;    &quot;S100A9&quot;     &quot;LYZ&quot;        &quot;FOS&quot;       
+## [16] &quot;S100A8&quot;     &quot;CD3G&quot;       &quot;TCF7&quot;       &quot;BCL11B&quot;     &quot;CLEC12A&quot;   
+## [21] &quot;TNFAIP3&quot;    &quot;IGSF6&quot;      &quot;MNDA&quot;       &quot;AC008964.1&quot; &quot;RGCC&quot;      
+## [26] &quot;CSTA&quot;       &quot;CD14&quot;       &quot;PABPC1&quot;     &quot;IL6R&quot;       &quot;RPLP2&quot;     
+## [1] &quot;&quot;
+##  [1] &quot;GNLY&quot;     &quot;NKG7&quot;     &quot;GZMH&quot;     &quot;MS4A1&quot;    &quot;GZMB&quot;     &quot;CCL5&quot;    
+##  [7] &quot;FGFBP2&quot;   &quot;KLRD1&quot;    &quot;GZMA&quot;     &quot;CD74&quot;     &quot;TRDC&quot;     &quot;CMC1&quot;    
+## [13] &quot;HLA-DPA1&quot; &quot;CST7&quot;     &quot;HLA-DPB1&quot; &quot;HLA-DRB1&quot; &quot;HLA-DQB1&quot; &quot;IGHM&quot;    
+## [19] &quot;HLA-DRA&quot;  &quot;CTSW&quot;     &quot;HOPX&quot;     &quot;KLRF1&quot;    &quot;HLA-DQA1&quot; &quot;PRF1&quot;    
+## [25] &quot;BANK1&quot;    &quot;HLA-DQB2&quot; &quot;PLEK&quot;     &quot;FCGR3A&quot;   &quot;CCL4&quot;     &quot;CD79A&quot;   
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC4&quot;
+##  [1] &quot;RPL34&quot;     &quot;RPS18&quot;     &quot;RPS14&quot;     &quot;RPS6&quot;      &quot;RPS27A&quot;   
+##  [6] &quot;RPL32&quot;     &quot;RPL13A&quot;    &quot;RPS27&quot;     &quot;RPS29&quot;     &quot;TXNIP&quot;    
+## [11] &quot;RPL31&quot;     &quot;RPL41&quot;     &quot;RPS19&quot;     &quot;RPS15A&quot;    &quot;RPL11&quot;    
+## [16] &quot;MTRNR2L12&quot; &quot;RPS8&quot;      &quot;MT-RNR2&quot;   &quot;RPS12&quot;     &quot;RPL10&quot;    
+## [21] &quot;RPL35A&quot;    &quot;RPL21&quot;     &quot;RPL39&quot;     &quot;RPL13&quot;     &quot;RPL37&quot;    
+## [26] &quot;RPL35&quot;     &quot;MTRNR2L8&quot;  &quot;RPS23&quot;     &quot;CD52&quot;      &quot;RPL7&quot;     
+## [1] &quot;&quot;
+##  [1] &quot;KLF6&quot;         &quot;JUN&quot;          &quot;FOS&quot;          &quot;RGS1&quot;        
+##  [5] &quot;MT-RNR1&quot;      &quot;TNFAIP3&quot;      &quot;MT-ND3&quot;       &quot;MT-ND4&quot;      
+##  [9] &quot;MT-CO2&quot;       &quot;FOSB&quot;         &quot;MT-ATP6&quot;      &quot;YPEL5&quot;       
+## [13] &quot;MT-ND1&quot;       &quot;MT-ND5&quot;       &quot;HSP90AA1&quot;     &quot;MT-CO3&quot;      
+## [17] &quot;DUSP1&quot;        &quot;NR4A2&quot;        &quot;EIF1&quot;         &quot;PPP1R15A&quot;    
+## [21] &quot;ZFP36L2&quot;      &quot;KB-1208A12.3&quot; &quot;MT-CYB&quot;       &quot;RGS2&quot;        
+## [25] &quot;NFKBIA&quot;       &quot;SRGN&quot;         &quot;DNAJB1&quot;       &quot;HLA-B&quot;       
+## [29] &quot;IL2RB&quot;        &quot;ACTG1&quot;       
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC5&quot;
+##  [1] &quot;VCAN&quot;     &quot;S100A12&quot;  &quot;S100A8&quot;   &quot;CD14&quot;     &quot;CD36&quot;     &quot;NFKBIA&quot;  
+##  [7] &quot;IL8&quot;      &quot;TREM1&quot;    &quot;FOS&quot;      &quot;JUN&quot;      &quot;S100A9&quot;   &quot;JUNB&quot;    
+## [13] &quot;FOSB&quot;     &quot;ANXA1&quot;    &quot;CCR1&quot;     &quot;CD163&quot;    &quot;IL7R&quot;     &quot;RPS25&quot;   
+## [19] &quot;DUSP1&quot;    &quot;TNFAIP3&quot;  &quot;FCN1&quot;     &quot;CSTA&quot;     &quot;MNDA&quot;     &quot;C19orf59&quot;
+## [25] &quot;LGALS2&quot;   &quot;ZFP36L2&quot;  &quot;THBS1&quot;    &quot;CEBPD&quot;    &quot;CLEC4E&quot;   &quot;FPR1&quot;    
+## [1] &quot;&quot;
+##  [1] &quot;MS4A7&quot;         &quot;C5AR1&quot;         &quot;FCGR3A&quot;        &quot;LST1&quot;         
+##  [5] &quot;IFITM3&quot;        &quot;CDKN1C&quot;        &quot;IGJ&quot;           &quot;LILRB2&quot;       
+##  [9] &quot;LILRA2&quot;        &quot;CCDC88A&quot;       &quot;STMN1&quot;         &quot;RP11-290F20.3&quot;
+## [13] &quot;SOX4&quot;          &quot;MIS18BP1&quot;      &quot;ANXA5&quot;         &quot;FCER1G&quot;       
+## [17] &quot;AIF1&quot;          &quot;ACTB&quot;          &quot;SIDT2&quot;         &quot;INIP&quot;         
+## [21] &quot;ADA&quot;           &quot;MAFB&quot;          &quot;RNF144B&quot;       &quot;MLTK&quot;         
+## [25] &quot;MZB1&quot;          &quot;MPEG1&quot;         &quot;TNFRSF1B&quot;      &quot;CFD&quot;          
+## [29] &quot;KIAA0101&quot;      &quot;CKB&quot;          
+## [1] &quot;&quot;
+## [1] &quot;&quot;</code></pre>
+<pre class="r"><code>VizPCA(seuratObj_LiveCells_global, 1:2)</code></pre>
+<p><img src="tsne_countclust_TFH095_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
+<pre class="r"><code>###--- tSNE
+labels &lt;- unlist(str_split(rownames(seuratObj_LiveCells_global@tsne.rot), &#39;_&#39;))[seq(2, length(unlist(str_split(rownames(seuratObj_LiveCells_global@tsne.rot), &#39;_&#39;))), 2)]
+nUMI &lt;- seuratObj_LiveCells_global@data.info$nUMI
+nGene &lt;- seuratObj_LiveCells_global@data.info$nGene
+
+data_ggplot &lt;- data.frame(labels = labels,
+                          nUMI = nUMI,
+                          nGene = nGene,
+                          tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2])
+
+plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
+plot2 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nUMI), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;) + scale_color_gradient2(&#39;# mapped UMI&#39;, low = &#39;royalblue&#39;, high = &#39;red&#39;, mid = &#39;grey80&#39;, midpoint = 2000)
+plot3 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nGene), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;) + scale_color_gradient2(&#39;# detected genes&#39;, low = &#39;royalblue&#39;, high = &#39;red&#39;, mid = &#39;grey80&#39;, midpoint = 1000)
+
+plot_grid(plot1, plot2, plot3, ncol = 2, align = &#39;v&#39;)</code></pre>
+<p><img src="tsne_countclust_TFH095_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<div id="cluster-1" class="section level3">
+<h3>Cluster 1</h3>
+<p><img src="tsne_countclust_TFH095_files/figure-html/unnamed-chunk-12-1.png" width="1440" /></p>
+</div>
+<div id="cluster-2" class="section level3">
+<h3>Cluster 2</h3>
+<p><img src="tsne_countclust_TFH095_files/figure-html/unnamed-chunk-13-1.png" width="1440" /></p>
+</div>
+<div id="cluster-3" class="section level3">
+<h3>Cluster 3</h3>
+<p><img src="tsne_countclust_TFH095_files/figure-html/unnamed-chunk-14-1.png" width="1440" /></p>
+</div>
+<div id="cluster-4" class="section level3">
+<h3>Cluster 4</h3>
+<p><img src="tsne_countclust_TFH095_files/figure-html/unnamed-chunk-15-1.png" width="1440" /></p>
+</div>
+</div>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

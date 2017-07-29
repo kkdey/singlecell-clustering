@@ -5,6 +5,11 @@ output:
     toc: false
 ---
 
+
+
+
+## CountClust analysis of the joint LN and PBMC cells for Live cells and TFH sorted cells
+
 We apply CountClust Grade of Membership (GoM) model for clustering the single cell data from lymph 
 node (LN) and peripheral blood mononuclear cells (PBMC) of three HIV- and one HIV+ patients.
 
@@ -19,6 +24,9 @@ An example of countclust fit on single cell data from one patient (TFH146) on ju
 [CountClust on TFH095 scRNA-seq data](tfh095Explore.html)
 
 [CountClust on MP046 scRNA-seq data](mp046Explore.html)
+
+
+## Separate CountClust analysis of the LN and PBMC cells 
 
 Separate Grade of Membership model fit and subsequent gene annotations and gene set enrichment
 analysis of the clusters, for the different patients
@@ -40,6 +48,19 @@ Finally the analysis on the Live cells for the TFH095 and MP046
 [CountClust application separately on LN and PBMC Live cells for TFH095](separate_countclust_LN_PBMC_Live_TFH095.html)
 
 [CountClust application separately on LN and PBMC Live cells for MP046](separate_countclust_LN_PBMC_Live_MP046.html)
+
+
+## Comparison of CountClust results with t-SNE
+
+We projected the expression of top driving genes from fitting the CountClust model on the t-SNE space obtained using the Seurat package by Satijalab.
+
+The projections for TFH146, TFH041 and TFH095  are 
+
+[t-SNE projection of CountClust top cluster driving genes - TFH 146](tsne_countclust_TFH146.html)
+
+[t-SNE projection of CountClust top cluster driving genes - TFH 095](tsne_countclust_TFH095.html)
+
+[t-SNE projection of CountClust top cluster driving genes - TFH 041](tsne_countclust_TFH041.html)
 
 
 

@@ -1,0 +1,22 @@
+---
+NEtitle: "t-SNE vs CountClust comparisons - MP046 Live cells"
+author: "Kushal K Dey"
+date: "7/28/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+```
+
+
