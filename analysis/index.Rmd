@@ -7,6 +7,16 @@ output:
 
 
 
+We check for the UMI patterns and dropout rates compared to the characteristics of the genes 
+like gene length, GC content etc.
+
+## Exploration of scRNA-seq data - UMI, dropouts etc.
+
+[UMI study for TFH146](umi_study_TFH.html)
+
+[Dropout rates versus position of the genes along chromosome and pathway groups](dropout_study.html)
+
+[Dropout rates versus GC content of the genes](dropout_gc_study.html)
 
 ## CountClust analysis of the joint LN and PBMC cells for Live cells and TFH sorted cells
 

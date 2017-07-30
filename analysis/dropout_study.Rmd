@@ -1,0 +1,1307 @@
+---
+title: "Dropout rate versus Functional pathways"
+author: "Kushal K Dey"
+date: "7/29/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+library(maptpx)
+library(CountClust)
+library(ggplot2)
+library(GGally)
+library(GSEABase)
+library(limma)
+library(reshape2)
+library(data.table)
+library(knitr)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(stringr)
+library(NMF)
+library(rsvd)
+library(RColorBrewer)
+library(MAST)
+library(biomaRt)
+```
+
+## Processing the Data
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Live Cells
+##- LN - no reads information
+LiveCells_LN_UMI <- read.table('../data//TFH146/Live Cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary <- read.table('../data/TFH146/Live Cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_LN_UMI <- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES > 10)]]
+LiveCells_LN_UMI_summary <- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
+
+##- PBMC - no reads information
+LiveCells_PBMC_UMI <- read.table('../data/TFH146/Live Cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary <- read.table('../data/TFH146/Live Cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_PBMC_UMI <- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES > 10)]]
+LiveCells_PBMC_UMI_summary <- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
+
+
+
+###--- TFH Cells
+##- LN
+TFH_LN_UMI <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_LN_reads <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_LN_UMI_summary <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_LN_reads_summary <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_LN_UMI <- TFH_LN_UMI[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_reads <- TFH_LN_reads[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_UMI_summary <- TFH_LN_UMI_summary[colnames(TFH_LN_UMI), ]
+TFH_LN_reads_summary <- TFH_LN_reads_summary[colnames(TFH_LN_reads), ]
+
+##- PBMC
+TFH_PBMC_UMI <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_PBMC_reads <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_PBMC_UMI_summary <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_PBMC_reads_summary <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_PBMC_UMI <- TFH_PBMC_UMI[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_reads <- TFH_PBMC_reads[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_UMI_summary <- TFH_PBMC_UMI_summary[colnames(TFH_PBMC_UMI), ]
+TFH_PBMC_reads_summary <- TFH_PBMC_reads_summary[colnames(TFH_PBMC_reads), ]
+```
+
+## TFH sorted cells
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Filtering datasets and merging
+#- LN
+identical(colnames(TFH_LN_UMI), rownames(TFH_LN_UMI_summary)) # TRUE
+TFH_LN_UMI_filtered <- TFH_LN_UMI[, which(TFH_LN_UMI_summary$NUM_GENES >= 400 & TFH_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 344 cells
+TFH_LN_UMI_filtered <- TFH_LN_UMI_filtered[which(apply(TFH_LN_UMI_filtered, 1, sum) != 0), ] # 14,856 genes and 344 cells
+#- PBMC
+identical(colnames(TFH_PBMC_UMI), rownames(TFH_PBMC_UMI_summary)) # TRUE
+TFH_PBMC_UMI_filtered <- TFH_PBMC_UMI[, which(TFH_PBMC_UMI_summary$NUM_GENES >= 400 & TFH_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 361 cells
+TFH_PBMC_UMI_filtered <- TFH_PBMC_UMI_filtered[which(apply(TFH_PBMC_UMI_filtered, 1, sum) != 0), ] # 14,657 genes and 361 cells
+#- Merging
+TFH_UMI <- rbind.fill(as.data.frame(t(TFH_LN_UMI_filtered)), as.data.frame(t(TFH_PBMC_UMI_filtered)))
+rownames(TFH_UMI) <- c(paste(colnames(TFH_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(TFH_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(TFH_UMI) # 705 cells and 17,772 genes
+length(unique(c(rownames(TFH_LN_UMI_filtered), rownames(TFH_PBMC_UMI_filtered)))) # 19,384 genes
+TFH_UMI[is.na(TFH_UMI)] <- 0 # NAs - replace NA by 0
+TFH_UMI <- as.data.frame(t(TFH_UMI))
+```
+ 
+## Pathways and dropouts - TFH  sorted cells
+
+The pathways to consider here 
+
+```{r}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+```{r}
+dropout_rates <- apply(TFH_UMI, 1, function(x) return(length(which(x > 0))))
+```
+
+```{r}
+vec <- as.vector(dropout_rates)
+vec2 <- (vec - mean(vec))/sd(vec)
+names(vec2) <- names(dropout_rates)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+```{r}
+plot(density(mm$`out$padj`))
+```
+
+
+
+## TFH sorted cells position study
+
+```{r}
+ensembl = useMart("ensembl",dataset="hsapiens_gene_ensembl")
+filters = listFilters(ensembl)
+filters[1:5,]
+```
+
+```{r}
+out <- getBM(attributes = c('external_gene_name', 'chromosome_name',
+                   'start_position', 'end_position'),
+      filters = 'external_gene_name', 
+      values = rownames(TFH_UMI), 
+      mart = ensembl)
+out[1:5,]
+```
+
+
+### chromosome 1
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 1)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 2
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 2)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 3
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 3)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 4
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 4)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 5
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 5)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 6
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 6)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 7
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 7)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 8
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 8)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 9
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 9)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 10
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 10)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 11
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 11)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 12
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 12)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 13
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 13)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 14
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 14)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 15
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 15)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 16
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 16)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 17
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 17)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+
+### chromosome 18
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 18)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 19
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 19)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 20
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 20)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(TFH_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- TFH_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+
+
+## Live Cells
+
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Filtering datasets and merging
+#- LN
+identical(colnames(LiveCells_LN_UMI), rownames(LiveCells_LN_UMI_summary)) # TRUE
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI[, which(LiveCells_LN_UMI_summary$NUM_GENES >= 400 & LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI_filtered[which(apply(LiveCells_LN_UMI_filtered, 1, sum) != 0), ]
+#- PBMC
+identical(colnames(LiveCells_PBMC_UMI), rownames(LiveCells_PBMC_UMI_summary)) # TRUE
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI[, which(LiveCells_PBMC_UMI_summary$NUM_GENES >= 400 & LiveCells_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI_filtered[which(apply(LiveCells_PBMC_UMI_filtered, 1, sum) != 0), ] 
+#- Merging
+LiveCells_UMI <- rbind.fill(as.data.frame(t(LiveCells_LN_UMI_filtered)), as.data.frame(t(LiveCells_PBMC_UMI_filtered)))
+rownames(LiveCells_UMI) <- c(paste(colnames(LiveCells_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(LiveCells_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(LiveCells_UMI) 
+length(unique(c(rownames(LiveCells_LN_UMI_filtered), rownames(LiveCells_PBMC_UMI_filtered)))) # 19,183 genes
+LiveCells_UMI[is.na(LiveCells_UMI)] <- 0 # NAs - replace NA by 0
+LiveCells_UMI <- as.data.frame(t(LiveCells_UMI))
+```
+
+## Pathways and dropouts - Live cells
+
+The pathways to consider here 
+
+```{r}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+```{r}
+dropout_rates <- apply(LiveCells_UMI, 1, function(x) return(length(which(x > 0))))
+```
+
+```{r}
+vec <- as.vector(dropout_rates)
+vec2 <- (vec - mean(vec))/sd(vec)
+names(vec2) <- names(dropout_rates)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+```{r}
+plot(density(mm$`out$padj`))
+```
+
+
+## Live cells position study
+
+```{r}
+out <- getBM(attributes = c('external_gene_name', 'chromosome_name',
+                   'start_position', 'end_position'),
+      filters = 'external_gene_name', 
+      values = rownames(TFH_UMI), 
+      mart = ensembl)
+out[1:5,]
+```
+
+### chromosome 1
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 1)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 2
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 2)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 3
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 3)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 4
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 4)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 5
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 5)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 6
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 6)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 7
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 7)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 8
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 8)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 9
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 9)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 10
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 10)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 11
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 11)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 12
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 12)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 13
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 13)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 14
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 14)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 15
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 15)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 16
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 16)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 17
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 17)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+
+### chromosome 18
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 18)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 19
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 19)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
+### chromosome 20
+
+```{r}
+par(mfrow=c(2,2))
+idx <- which(out$chromosome_name == 20)
+gene_ids <- out$external_gene_name[idx]
+start_pos <- out$start_position[idx]
+end_pos <- out$end_position[idx]
+temp_idx <- match(gene_ids, rownames(LiveCells_UMI))
+temp_idx <- temp_idx[!is.na(temp_idx)]
+tmp <- LiveCells_UMI[temp_idx,]
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+
+width <- end_pos[which(!is.na(temp_idx))] - start_pos[which(!is.na(temp_idx))]
+plot(log(width), dropouts, xlab = "Log width of the gene", ylab = "dropout rates", pch=20, cex=0.6)
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(start_pos)], dropouts[order(start_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout rates")
+
+dropouts <- apply(tmp, 1, function(x) return(length(which(x == 0))/length(x)))
+plot(start_pos[order(end_pos)], dropouts[order(end_pos)], pch = 20, xlab = "Start position of genes", ylab = "Dropout times width")
+
+dropout_width <- width*dropouts
+plot(start_pos[order(start_pos)], dropout_width[order(start_pos)], pch=20)
+
+```
+
