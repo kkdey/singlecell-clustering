@@ -1,0 +1,384 @@
+---
+title: "UMI study 3 - Transcript count"
+author: "Kushal K Dey"
+date: "7/31/2017"
+output: html_document
+---
+
+We check gene features for various genes of interest that show extremely high overall expression.
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+library(maptpx)
+library(CountClust)
+library(ggplot2)
+library(GGally)
+library(GSEABase)
+library(limma)
+library(reshape2)
+library(data.table)
+library(knitr)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(stringr)
+library(NMF)
+library(rsvd)
+library(RColorBrewer)
+library(MAST)
+library(biomaRt)
+```
+
+## Processing the Data
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Live Cells
+##- LN - no reads information
+LiveCells_LN_UMI <- read.table('../data//TFH146/Live Cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_LN_UMI_summary <- read.table('../data/TFH146/Live Cells/LN/reads.TFH_146_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_LN_UMI <- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES > 10)]]
+LiveCells_LN_UMI_summary <- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
+
+##- PBMC - no reads information
+LiveCells_PBMC_UMI <- read.table('../data/TFH146/Live Cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
+LiveCells_PBMC_UMI_summary <- read.table('../data/TFH146/Live Cells/PBMC/reads.TFH_146_Blood_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+LiveCells_PBMC_UMI <- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES > 10)]]
+LiveCells_PBMC_UMI_summary <- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
+
+
+
+###--- TFH Cells
+##- LN
+TFH_LN_UMI <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_LN_reads <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_LN_UMI_summary <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_LN_reads_summary <- read.table('../data/TFH146/TFH Sorted/LN/reads.TFH146_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_LN_UMI <- TFH_LN_UMI[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_reads <- TFH_LN_reads[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES > 10)]]
+TFH_LN_UMI_summary <- TFH_LN_UMI_summary[colnames(TFH_LN_UMI), ]
+TFH_LN_reads_summary <- TFH_LN_reads_summary[colnames(TFH_LN_reads), ]
+
+##- PBMC
+TFH_PBMC_UMI <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_PBMC_reads <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.txt.gz', header = TRUE, row.names = 1)
+TFH_PBMC_UMI_summary <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
+TFH_PBMC_reads_summary <- read.table('../data/TFH146/TFH Sorted/PBMC/reads.TFH146_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt', header = TRUE, row.names = 1)
+#- First filtering - remove cells with less than 10 genes
+TFH_PBMC_UMI <- TFH_PBMC_UMI[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_reads <- TFH_PBMC_reads[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES > 10)]]
+TFH_PBMC_UMI_summary <- TFH_PBMC_UMI_summary[colnames(TFH_PBMC_UMI), ]
+TFH_PBMC_reads_summary <- TFH_PBMC_reads_summary[colnames(TFH_PBMC_reads), ]
+```
+
+# TFH sorted cells
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Filtering datasets and merging
+#- LN
+identical(colnames(TFH_LN_UMI), rownames(TFH_LN_UMI_summary)) # TRUE
+TFH_LN_UMI_filtered <- TFH_LN_UMI[, which(TFH_LN_UMI_summary$NUM_GENES >= 400 & TFH_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 344 cells
+TFH_LN_UMI_filtered <- TFH_LN_UMI_filtered[which(apply(TFH_LN_UMI_filtered, 1, sum) != 0), ] # 14,856 genes and 344 cells
+#- PBMC
+identical(colnames(TFH_PBMC_UMI), rownames(TFH_PBMC_UMI_summary)) # TRUE
+TFH_PBMC_UMI_filtered <- TFH_PBMC_UMI[, which(TFH_PBMC_UMI_summary$NUM_GENES >= 400 & TFH_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] # 361 cells
+TFH_PBMC_UMI_filtered <- TFH_PBMC_UMI_filtered[which(apply(TFH_PBMC_UMI_filtered, 1, sum) != 0), ] # 14,657 genes and 361 cells
+#- Merging
+TFH_UMI <- rbind.fill(as.data.frame(t(TFH_LN_UMI_filtered)), as.data.frame(t(TFH_PBMC_UMI_filtered)))
+rownames(TFH_UMI) <- c(paste(colnames(TFH_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(TFH_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(TFH_UMI) # 705 cells and 17,772 genes
+length(unique(c(rownames(TFH_LN_UMI_filtered), rownames(TFH_PBMC_UMI_filtered)))) # 19,384 genes
+TFH_UMI[is.na(TFH_UMI)] <- 0 # NAs - replace NA by 0
+TFH_UMI <- as.data.frame(t(TFH_UMI))
+```
+
+```{r}
+ensembl = useMart("ensembl",dataset="hsapiens_gene_ensembl")
+filters = listFilters(ensembl)
+```
+
+```{r}
+out <- getBM(attributes = c('external_gene_name', 'transcript_count', 'transcript_tsl', "gene_biotype", "transcript_length"),
+      filters = 'external_gene_name', 
+      values = rownames(TFH_UMI), 
+      mart = ensembl)
+```
+
+## transcript count
+
+### median
+
+
+```{r}
+idx <- match(out$external_gene_name, rownames(TFH_UMI))
+idx2 <- idx[!is.na(idx)]
+medianUMI_genes <- apply(TFH_UMI[idx2, ], 1, function(x) return(median(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(TFH_UMI)[idx2],
+                         medianUMI = medianUMI_genes,
+                         n  = out$transcript_length[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$medianUMI, mat2$n, ylab = "Transcript length",
+     xlab = "median UMI per gene", pch = 20)
+```
+
+### max
+
+
+```{r}
+idx <- match(out$external_gene_name, rownames(TFH_UMI))
+idx2 <- idx[!is.na(idx)]
+maxUMI_genes <- apply(TFH_UMI[idx2, ], 1, function(x) return(max(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(TFH_UMI)[idx2],
+                         maxUMI = maxUMI_genes,
+                         n  = out$transcript_length[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$maxUMI, mat2$n, ylab = "Transcript length",
+     xlab = "max UMI per gene", pch = 20)
+```
+
+### mean
+
+
+```{r}
+idx <- match(out$external_gene_name, rownames(TFH_UMI))
+idx2 <- idx[!is.na(idx)]
+meanUMI_genes <- apply(TFH_UMI[idx2, ], 1, function(x) return(mean(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(TFH_UMI)[idx2],
+                         meanUMI = meanUMI_genes,
+                         n  = out$transcript_length[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$meanUMI, mat2$n, ylab = "Trasncript length",
+     xlab = "mean UMI per gene", pch = 20)
+```
+
+
+## transcript count
+
+### median
+
+```{r}
+idx <- match(out$external_gene_name, rownames(TFH_UMI))
+idx2 <- idx[!is.na(idx)]
+medianUMI_genes <- apply(TFH_UMI[idx2, ], 1, function(x) return(median(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(TFH_UMI)[idx2],
+                         medianUMI = medianUMI_genes,
+                         n  = out$transcript_length[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$medianUMI, mat2$n, ylab = "Transcript count",
+     xlab = "median UMI per gene", pch = 20)
+```
+
+
+
+### max
+
+```{r}
+idx <- match(out$external_gene_name, rownames(TFH_UMI))
+idx2 <- idx[!is.na(idx)]
+maxUMI_genes <- apply(TFH_UMI[idx2, ], 1, function(x) return(max(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(TFH_UMI)[idx2],
+                         maxUMI = maxUMI_genes,
+                         n  = out$transcript_count[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$maxUMI, mat2$n, ylab = "Transcript count",
+     xlab = "max UMI per gene", pch = 20)
+```
+
+
+### mean
+
+```{r}
+idx <- match(out$external_gene_name, rownames(TFH_UMI))
+idx2 <- idx[!is.na(idx)]
+meanUMI_genes <- apply(TFH_UMI[idx2, ], 1, function(x) return(mean(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(TFH_UMI)[idx2],
+                         meanUMI = meanUMI_genes,
+                         n  = out$transcript_count[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$meanUMI, mat2$n, ylab = "Transcript count",
+     xlab = "mean UMI per gene", pch = 20)
+```
+
+# Live Cells
+
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Filtering datasets and merging
+#- LN
+identical(colnames(LiveCells_LN_UMI), rownames(LiveCells_LN_UMI_summary)) # TRUE
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI[, which(LiveCells_LN_UMI_summary$NUM_GENES >= 400 & LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_LN_UMI_filtered <- LiveCells_LN_UMI_filtered[which(apply(LiveCells_LN_UMI_filtered, 1, sum) != 0), ]
+#- PBMC
+identical(colnames(LiveCells_PBMC_UMI), rownames(LiveCells_PBMC_UMI_summary)) # TRUE
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI[, which(LiveCells_PBMC_UMI_summary$NUM_GENES >= 400 & LiveCells_PBMC_UMI_summary$NUM_TRANSCRIPTS >= 750)] 
+LiveCells_PBMC_UMI_filtered <- LiveCells_PBMC_UMI_filtered[which(apply(LiveCells_PBMC_UMI_filtered, 1, sum) != 0), ] 
+#- Merging
+LiveCells_UMI <- rbind.fill(as.data.frame(t(LiveCells_LN_UMI_filtered)), as.data.frame(t(LiveCells_PBMC_UMI_filtered)))
+rownames(LiveCells_UMI) <- c(paste(colnames(LiveCells_LN_UMI_filtered), 'LN', sep = '_'), paste(colnames(LiveCells_PBMC_UMI_filtered), 'PBMC', sep = '_'))
+dim(LiveCells_UMI) 
+length(unique(c(rownames(LiveCells_LN_UMI_filtered), rownames(LiveCells_PBMC_UMI_filtered)))) # 19,183 genes
+LiveCells_UMI[is.na(LiveCells_UMI)] <- 0 # NAs - replace NA by 0
+LiveCells_UMI <- as.data.frame(t(LiveCells_UMI))
+```
+
+
+```{r}
+out <- getBM(attributes = c('external_gene_name', 'transcript_count', 'transcript_tsl', "gene_biotype", "transcript_length"),
+      filters = 'external_gene_name', 
+      values = rownames(LiveCells_UMI), 
+      mart = ensembl)
+```
+
+## transcript count
+
+### median
+
+
+```{r}
+idx <- match(out$external_gene_name, rownames(LiveCells_UMI))
+idx2 <- idx[!is.na(idx)]
+medianUMI_genes <- apply(LiveCells_UMI[idx2, ], 1, function(x) return(median(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(LiveCells_UMI)[idx2],
+                         medianUMI = medianUMI_genes,
+                         n  = out$transcript_length[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$medianUMI, mat2$n, ylab = "Transcript length",
+     xlab = "median UMI per gene", pch = 20)
+```
+
+### max
+
+
+```{r}
+idx <- match(out$external_gene_name, rownames(LiveCells_UMI))
+idx2 <- idx[!is.na(idx)]
+maxUMI_genes <- apply(LiveCells_UMI[idx2, ], 1, function(x) return(max(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(LiveCells_UMI)[idx2],
+                         maxUMI = maxUMI_genes,
+                         n  = out$transcript_length[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$maxUMI, mat2$n, ylab = "
+     Transcript length",
+     xlab = "max UMI per gene", pch = 20)
+```
+
+### mean
+
+
+```{r}
+idx <- match(out$external_gene_name, rownames(LiveCells_UMI))
+idx2 <- idx[!is.na(idx)]
+meanUMI_genes <- apply(LiveCells_UMI[idx2, ], 1, function(x) return(mean(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(LiveCells_UMI)[idx2],
+                         meanUMI = meanUMI_genes,
+                         n  = out$transcript_length[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$meanUMI, mat2$n, ylab = "Transcript length",
+     xlab = "mean UMI per gene", pch = 20)
+```
+
+
+## transcript count
+
+### median
+
+```{r}
+idx <- match(out$external_gene_name, rownames(LiveCells_UMI))
+idx2 <- idx[!is.na(idx)]
+medianUMI_genes <- apply(LiveCells_UMI[idx2, ], 1, function(x) return(median(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(LiveCells_UMI)[idx2],
+                         medianUMI = medianUMI_genes,
+                         n  = out$transcript_length[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$medianUMI, mat2$n, ylab = "Transcript count",
+     xlab = "median UMI per gene", pch = 20)
+```
+
+
+
+### max
+
+```{r}
+idx <- match(out$external_gene_name, rownames(LiveCells_UMI))
+idx2 <- idx[!is.na(idx)]
+maxUMI_genes <- apply(LiveCells_UMI[idx2, ], 1, function(x) return(max(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(LiveCells_UMI)[idx2],
+                         maxUMI = maxUMI_genes,
+                         n  = out$transcript_count[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$maxUMI, mat2$n, ylab = "Transcript count",
+     xlab = "max UMI per gene", pch = 20)
+```
+
+
+### mean
+
+```{r}
+idx <- match(out$external_gene_name, rownames(LiveCells_UMI))
+idx2 <- idx[!is.na(idx)]
+meanUMI_genes <- apply(LiveCells_UMI[idx2, ], 1, function(x) return(mean(x)))
+
+mat2 <- cbind.data.frame(gene_name = rownames(LiveCells_UMI)[idx2],
+                         meanUMI = meanUMI_genes,
+                         n  = out$transcript_count[which(!is.na(idx))])
+```
+
+
+```{r}
+plot(mat2$meanUMI, mat2$n, ylab = "Transcript count",
+     xlab = "mean UMI per gene", pch = 20)
+```
+
