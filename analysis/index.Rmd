@@ -18,6 +18,10 @@ like gene length, GC content etc.
 
 [Dropout rates versus GC content of the genes](dropout_gc_study.html)
 
+We next perform an analysis of the dispersion of genes against the average expression using Seurat and do a pathway based enrichment analysis of the genes that seem to be outliers in this plot.
+
+[Dispersion versus Average expression analysis](cvplot_analysis.html)
+
 ## CountClust analysis of the joint LN and PBMC cells for Live cells and TFH sorted cells
 
 We apply CountClust Grade of Membership (GoM) model for clustering the single cell data from lymph 
