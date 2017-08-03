@@ -1,0 +1,322 @@
+---
+title: "The coefficient of variation versus mean plots (HIV+ and HIV- patients)"
+author: "Kushal K Dey"
+date: "8/1/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+library(maptpx)
+library(CountClust)
+library(ggplot2)
+library(GGally)
+library(GSEABase)
+library(limma)
+library(reshape2)
+library(data.table)
+library(knitr)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(stringr)
+library(NMF)
+library(rsvd)
+library(RColorBrewer)
+library(MAST)
+```
+
+In this script, we plot the coefficient of variation against the mean expression patterns of the
+genes for each study case (HIV+ and HIV-). We know that the points that act as outliers in this
+plot do not fit the Poisson model well. We here try to observe if there is a pattern among the 
+genes that show large deviations from this model. Are these genes related? Are they part of the same functional group or pathway?
+
+## TFH146
+
+### TFH sorted cells
+
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/TFH146/seuratTFH.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Regress out unwanted sources of variation
+mito.genes <- grep("^MT-", rownames(seuratObj_TFH_global@data), value = TRUE)
+percent.mito <- colSums(as.matrix(expm1(seuratObj_TFH_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_TFH_global@data)))
+seuratObj_TFH_global <- AddMetaData(seuratObj_TFH_global, percent.mito, 'percent.mito')
+GenePlot(seuratObj_TFH_global, 'nUMI', 'percent.mito')
+GenePlot(seuratObj_TFH_global, 'nUMI', 'nGene')
+#- remove unwanted sources of variation
+seuratObj_TFH_global <- RegressOut(seuratObj_TFH_global, latent.vars = c('nUMI', 'percent.mito')) # remove effect of CDR (high correlation between nGene and nUMI - 0.97) and mitochondrial
+```
+
+Mean variance plot
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_TFH_global@var.genes)
+```
+
+Pathway analysis of the normed mean variance measure calculated from Seurat.
+
+```{r echo=FALSE, eval=TRUE}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+```{r echo=FALSE, eval=TRUE}
+vec <- seuratObj_TFH_global@mean.var$data.norm.y
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE)[1:20],]
+```
+
+### Live Cells
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_LiveCells_global <- get(load("../output/TFH146/seuratLiveCells.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Regress out unwanted sources of variation
+mito.genes <- grep("^MT-", rownames(seuratObj_LiveCells_global@data), value = TRUE)
+percent.mito <- colSums(as.matrix(expm1(seuratObj_LiveCells_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_LiveCells_global@data)))
+seuratObj_LiveCells_global <- AddMetaData(seuratObj_LiveCells_global, percent.mito, 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'nGene')
+#- remove unwanted sources of variation
+seuratObj_LiveCells_global <- RegressOut(seuratObj_LiveCells_global, latent.vars = c('nUMI', 'percent.mito')) # remove effect of CDR (high correlation between nGene and nUMI - 0.97) and mitochondrial
+```
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_LiveCells_global <- MeanVarPlot(seuratObj_LiveCells_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_LiveCells_global@var.genes)
+```
+
+```{r echo=FALSE, eval=TRUE}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+```{r echo=FALSE, eval=TRUE}
+vec <- seuratObj_LiveCells_global@mean.var$data.norm.y
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE)[1:20],]
+```
+
+
+
+## TFH095
+
+### TFH sorted cells
+
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/TFH095/seuratTFH.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Regress out unwanted sources of variation
+mito.genes <- grep("^MT-", rownames(seuratObj_TFH_global@data), value = TRUE)
+percent.mito <- colSums(as.matrix(expm1(seuratObj_TFH_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_TFH_global@data)))
+seuratObj_TFH_global <- AddMetaData(seuratObj_TFH_global, percent.mito, 'percent.mito')
+GenePlot(seuratObj_TFH_global, 'nUMI', 'percent.mito')
+GenePlot(seuratObj_TFH_global, 'nUMI', 'nGene')
+#- remove unwanted sources of variation
+seuratObj_TFH_global <- RegressOut(seuratObj_TFH_global, latent.vars = c('nUMI', 'percent.mito')) # remove effect of CDR (high correlation between nGene and nUMI - 0.97) and mitochondrial
+```
+
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_TFH_global@var.genes)
+```
+
+Pathway analysis of the normed mean variance measure calculated from Seurat.
+
+```{r echo=FALSE, eval=TRUE}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+```{r echo=FALSE, eval=TRUE}
+vec <- sort(seuratObj_TFH_global@mean.var$data.norm.y, decreasing = TRUE)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE)[1:20],]
+```
+
+### Live Cells
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_LiveCells_global <- get(load("../output/TFH095/seuratLiveCells.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Regress out unwanted sources of variation
+mito.genes <- grep("^MT-", rownames(seuratObj_LiveCells_global@data), value = TRUE)
+percent.mito <- colSums(as.matrix(expm1(seuratObj_LiveCells_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_LiveCells_global@data)))
+seuratObj_LiveCells_global <- AddMetaData(seuratObj_LiveCells_global, percent.mito, 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'nGene')
+#- remove unwanted sources of variation
+seuratObj_LiveCells_global <- RegressOut(seuratObj_LiveCells_global, latent.vars = c('nUMI', 'percent.mito')) # remove effect of CDR (high correlation between nGene and nUMI - 0.97) and mitochondrial
+```
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_LiveCells_global <- MeanVarPlot(seuratObj_LiveCells_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_LiveCells_global@var.genes)
+```
+
+```{r echo=FALSE, eval=TRUE}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+```{r echo=FALSE, eval=TRUE}
+vec <- seuratObj_LiveCells_global@mean.var$data.norm.y
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE)[1:20],]
+```
+
+
+
+## TFH041
+
+### TFH sorted cells
+
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/TFH041/seuratTFH.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Regress out unwanted sources of variation
+mito.genes <- grep("^MT-", rownames(seuratObj_TFH_global@data), value = TRUE)
+percent.mito <- colSums(as.matrix(expm1(seuratObj_TFH_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_TFH_global@data)))
+seuratObj_TFH_global <- AddMetaData(seuratObj_TFH_global, percent.mito, 'percent.mito')
+GenePlot(seuratObj_TFH_global, 'nUMI', 'percent.mito')
+GenePlot(seuratObj_TFH_global, 'nUMI', 'nGene')
+#- remove unwanted sources of variation
+seuratObj_TFH_global <- RegressOut(seuratObj_TFH_global, latent.vars = c('nUMI', 'percent.mito')) # remove effect of CDR (high correlation between nGene and nUMI - 0.97) and mitochondrial
+```
+
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_TFH_global@var.genes)
+```
+
+Pathway analysis of the normed mean variance measure calculated from Seurat.
+
+```{r echo=FALSE, eval=TRUE}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+```{r echo=FALSE, eval=TRUE}
+vec <- seuratObj_TFH_global@mean.var$data.norm.y
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE)[1:20],]
+```
+
+### Live Cells
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_LiveCells_global <- get(load("../output/TFH041/seuratLiveCells.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+###--- Regress out unwanted sources of variation
+mito.genes <- grep("^MT-", rownames(seuratObj_LiveCells_global@data), value = TRUE)
+percent.mito <- colSums(as.matrix(expm1(seuratObj_LiveCells_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_LiveCells_global@data)))
+seuratObj_LiveCells_global <- AddMetaData(seuratObj_LiveCells_global, percent.mito, 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'percent.mito')
+GenePlot(seuratObj_LiveCells_global, 'nUMI', 'nGene')
+#- remove unwanted sources of variation
+seuratObj_LiveCells_global <- RegressOut(seuratObj_LiveCells_global, latent.vars = c('nUMI', 'percent.mito')) # remove effect of CDR (high correlation between nGene and nUMI - 0.97) and mitochondrial
+```
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_LiveCells_global <- MeanVarPlot(seuratObj_LiveCells_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_LiveCells_global@var.genes)
+```
+
+```{r echo=FALSE, eval=TRUE}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+```{r echo=FALSE, eval=TRUE}
+vec <- seuratObj_LiveCells_global@mean.var$data.norm.y
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE)[1:20],]
+```
+
+

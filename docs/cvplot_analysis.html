@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>The coefficient of variation versus mean plots (HIV+ and HIV- patients)</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">The coefficient of variation versus mean plots (HIV+ and HIV- patients)</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>8/1/2017</em></h4>
+
+</div>
+
+
+<p>In this script, we plot the coefficient of variation against the mean expression patterns of the genes for each study case (HIV+ and HIV-). We know that the points that act as outliers in this plot do not fit the Poisson model well. We here try to observe if there is a pattern among the genes that show large deviations from this model. Are these genes related? Are they part of the same functional group or pathway?</p>
+<div id="tfh146" class="section level2">
+<h2>TFH146</h2>
+<div id="tfh-sorted-cells" class="section level3">
+<h3>TFH sorted cells</h3>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-3-1.png" width="672" /><img src="cvplot_analysis_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+<pre><code>## [1] &quot;Regressing out nUMI&quot;         &quot;Regressing out percent.mito&quot;</code></pre>
+<p>Mean variance plot <img src="cvplot_analysis_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre><code>## [1] 1228</code></pre>
+<p>Pathway analysis of the normed mean variance measure calculated from Seurat.</p>
+<pre><code>##                                                                         out$padj
+## enriched in T cells (I) (M7.0)                                        0.01891862
+## T cell activation (I) (M7.1)                                          0.01891862
+## T cell activation (II) (M7.3)                                         0.01891862
+## AP-1 transcription factor network (M20)                               0.01891862
+## chemokine cluster (I) (M27.0)                                         0.01891862
+## chemokine cluster (II) (M27.1)                                        0.01891862
+## suppression of MAPK signaling (M56)                                   0.01891862
+## chemokines and inflammatory molecules in myeloid cells (M86.0)        0.01891862
+## adhesion and migration, chemotaxis (M91)                              0.01891862
+## growth factor induced, enriched in nuclear receptor subfamily 4 (M94) 0.01891862
+## cytokines - recepters cluster (M115)                                  0.01891862
+## enriched for TF motif PAX3 (M179)                                     0.01891862
+## signaling in T cells (I) (M35.0)                                      0.02813112
+## enriched in G-protein coupled receptors (M130)                        0.02813112
+## cell adhesion (lymphocyte homing) (M21)                               0.02990897
+## cell cycle and growth arrest (M31)                                    0.03738622
+## TBA (M136)                                                            0.04289755
+## B cell development (M9)                                               0.04872087
+## inflammasome receptors and signaling (M53)                            0.04872087
+## putative targets of PAX3 (M89.1)                                      0.06307808
+##                                                                       out$size
+## enriched in T cells (I) (M7.0)                                              54
+## T cell activation (I) (M7.1)                                                47
+## T cell activation (II) (M7.3)                                               28
+## AP-1 transcription factor network (M20)                                     10
+## chemokine cluster (I) (M27.0)                                               10
+## chemokine cluster (II) (M27.1)                                               8
+## suppression of MAPK signaling (M56)                                          9
+## chemokines and inflammatory molecules in myeloid cells (M86.0)              14
+## adhesion and migration, chemotaxis (M91)                                     9
+## growth factor induced, enriched in nuclear receptor subfamily 4 (M94)       10
+## cytokines - recepters cluster (M115)                                        10
+## enriched for TF motif PAX3 (M179)                                           10
+## signaling in T cells (I) (M35.0)                                            13
+## enriched in G-protein coupled receptors (M130)                               8
+## cell adhesion (lymphocyte homing) (M21)                                      9
+## cell cycle and growth arrest (M31)                                           9
+## TBA (M136)                                                                  16
+## B cell development (M9)                                                      5
+## inflammasome receptors and signaling (M53)                                   9
+## putative targets of PAX3 (M89.1)                                             8
+##                                                                                                                                 topgenes
+## enriched in T cells (I) (M7.0)                                          CCL5, GZMK, IL7R, TIGIT, GZMA, SH2D1A, TRAV20, ITM2A, LEF1, NKG7
+## T cell activation (I) (M7.1)                                          CCL5, IL7R, TIGIT, SLAMF7, CRTAM, CCR7, MS4A1, IL21R, LEF1, THEMIS
+## T cell activation (II) (M7.3)                                                CCL5, IFNG, TIGIT, GZMA, SLAMF7, CRTAM, STAT4, NKG7, IL18R1
+## AP-1 transcription factor network (M20)                                                      IFNG, FOS, JUN, FOSB, JUNB, IL6, CCL2, EGR1
+## chemokine cluster (I) (M27.0)                                                                     CCL5, CXCL13, IFNG, CXCL12, CCL2, CCL4
+## chemokine cluster (II) (M27.1)                                                                           CCL5, CXCL13, CCL2, CCL4, ANXA1
+## suppression of MAPK signaling (M56)                                                                             HSPA6, DUSP1, FOS, DUSP6
+## chemokines and inflammatory molecules in myeloid cells (M86.0)                                 TNF, DUSP1, TNFAIP3, SLAMF7, NFKBIA, CCL4
+## adhesion and migration, chemotaxis (M91)                                                                  CCL5, CXCL13, PROK2, CCR7, F2R
+## growth factor induced, enriched in nuclear receptor subfamily 4 (M94)                              DUSP1, ID1, PPP1R15A, EGR3, IL6, PLK2
+## cytokines - recepters cluster (M115)                                                                  IL2RA, IFNG, IL7R, IL10, CSF2, IL6
+## enriched for TF motif PAX3 (M179)                                                                           USP1, CASP8AP2, PMS1, RANBP6
+## signaling in T cells (I) (M35.0)                                                         IL2RA, IFNG, TNF, FOS, JUN, TNFRSF4, FOSB, JUNB
+## enriched in G-protein coupled receptors (M130)                                                                          CCL5, F2R, ITPR3
+## cell adhesion (lymphocyte homing) (M21)                                                                               CXCL13, CCR7, SELL
+## cell cycle and growth arrest (M31)                                                         DUSP1, TNFAIP3, PPP1R15A, GADD45B, JUNB, SIK1
+## TBA (M136)                                                                  DNM2, GNAI2, CTSD, PPP2R1A, MAP2K2, NR1H2, GNB2, COPE, ASNA1
+## B cell development (M9)                                                                                                   TNF, LTA, CCR7
+## inflammasome receptors and signaling (M53)                                                           TNFAIP3, NFKBIA, BIRC3, PAK1, NLRP3
+## putative targets of PAX3 (M89.1)                                                                                RGS1, DUSP1, DUSP2, EGR3</code></pre>
+</div>
+<div id="live-cells" class="section level3">
+<h3>Live Cells</h3>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-8-1.png" width="672" /><img src="cvplot_analysis_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
+<pre><code>## [1] &quot;Regressing out nUMI&quot;         &quot;Regressing out percent.mito&quot;</code></pre>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre><code>## [1] 950</code></pre>
+<pre><code>##                                                       out$padj out$size
+## enriched in T cells (I) (M7.0)                      0.02076000       57
+## enriched in NK cells (I) (M7.2)                     0.02076000       45
+## enriched in monocytes (II) (M11.0)                  0.02076000      137
+## immune activation - generic cluster (M37.0)         0.02076000      207
+## enriched in B cells (I) (M47.0)                     0.02076000       47
+## enriched in B cells (II) (M47.1)                    0.02076000       35
+## enriched in B cells (III) (M47.2)                   0.02076000       26
+## plasma cells &amp; B cells, immunoglobulins (M156.0)    0.02076000       29
+## plasma cells, immunoglobulins (M156.1)              0.02076000       19
+## signaling in T cells (I) (M35.0)                    0.03710209       14
+## enriched for cell migration (M122)                  0.03710209        4
+## cell cycle and transcription (M4.0)                 0.05030307      266
+## enriched in monocytes (IV) (M118.0)                 0.05030307       47
+## enriched in hepatocyte nuclear factors (II) (M88.2) 0.06249652        5
+## enriched in NK cells (II) (M61.0)                   0.06665465       16
+## enriched in antigen presentation (I) (M71)          0.06665465       15
+## enriched in G-protein coupled receptors (M130)      0.06665465       10
+## chemokine cluster (II) (M27.1)                      0.07465916        9
+## cell cycle (I) (M4.1)                               0.08472495      121
+## T cell activation (II) (M7.3)                       0.08472495       28
+##                                                                                                                                                                                                                                                                                                                                                                                                                                           topgenes
+## enriched in T cells (I) (M7.0)                                                                                                                                                                                                                                                                                              XCL2, XCL1, GNLY, GZMA, KLRB1, GZMB, CCL5, GZMK, GZMH, EOMES, TIGIT, SAMD3, NKG7, PRF1, ICOS, MAL, TRAJ17, SIRPG, IL7R
+## enriched in NK cells (I) (M7.2)                                                                                                                                                                                                                                                                           XCL2, XCL1, GNLY, GZMA, CST7, KLRB1, GZMB, CCL5, KLRC1, KLRF1, KLRD1, HOPX, FGFBP2, GZMH, S1PR5, EOMES, SAMD3, NKG7, PRF1, SLAMF7, MYBL1
+## enriched in monocytes (II) (M11.0)                                                                                                                                                                                                                                    S100A9, S100A8, S100A12, HSPA6, CST3, CD14, HK3, CCR1, FPR1, NLRP3, SERPINA1, LILRA1, FCER1G, MS4A6A, SULF2, MNDA, VNN2, TYROBP, RAB31, CYBB, RNF130, TFEC, LST1, CPVL, SGK1
+## immune activation - generic cluster (M37.0)         S100A8, LYZ, HK3, C19orf59, NLRP3, BANK1, HLA-DRA, TCL1A, CD22, KIF16B, HMGB2, CORO2A, CKAP2, LGALS3, FCGR3A, SULF2, RBBP8, VNN2, SLC19A2, BLM, GSN, ACTN1, ZNF608, DOCK5, SGK1, MEF2C, CHI3L2, MAL, SMC4, F5, BASP1, PPIL4, LRRK2, DHCR24, EMR1, PAX5, HLA-DOA, ADCY9, HAL, MS4A4A, TMEM176B, BARD1, RGL4, MBOAT2, FAM105A, FKBP14, EBF1, BCL6, LRP12, FBP1, FCGR3B, IMPA2, CDA, CLEC4D, VNN1
+## enriched in B cells (I) (M47.0)                                                                                                                                                                                                                                                                                                IGKV3-20, IGHM, MS4A1, BANK1, TCL1A, CD22, FCRL2, PKIG, FCRL5, E2F5, IGHD, AFF3, PAX5, KLHL14, STAP1, EBF1, HLA-DOB
+## enriched in B cells (II) (M47.1)                                                                                                                                                                                                                                                                                                            IGHA1, IGHM, MS4A1, BANK1, TCL1A, PKIG, FCRL5, PAX5, KLF8, PAWR, KLHL14, EBF1, HLA-DOB, RALGPS2, SP140
+## enriched in B cells (III) (M47.2)                                                                                                                                                                                                                                                                                                                                                     IGKC, IGHA1, CD69, FCRL5, MEF2C, IGHD, HLA-DOA, TBC1D9, PAWR
+## plasma cells &amp; B cells, immunoglobulins (M156.0)                                                                                                                                                                                                                                                                                             IGJ, IGKC, IGKV3-20, TNFRSF17, CD22, FCRL2, CD52, IGHG1, IGKV1D-13, ITM2C, IGLL5, IGKV4-1, E2F5, IGHD
+## plasma cells, immunoglobulins (M156.1)                                                                                                                                                                                                                                                                                                                            IGKC, IGKV1-5, IGHA1, IGKV3-20, IGHM, TNFRSF17, IGHG1, IGKV1D-13, IGLL5, IGKV4-1
+## signaling in T cells (I) (M35.0)                                                                                                                                                                                                                                                                                                                                                             TNFRSF4, EGR1, GZMB, JUN, JUNB, PRF1, FOS, IFNG, ATF3
+## enriched for cell migration (M122)                                                                                                                                                                                                                                                                                                                                                                                              NBL1, NR2F2, LAMA4
+## cell cycle and transcription (M4.0)                                                                                                                                       S100A9, S100A12, VCAN, HSPA6, MKI67, CST3, CD14, CCR1, FPR1, STMN1, DEPDC1, SERPINA1, LILRA1, FCER1G, CENPF, MS4A6A, BUB1, KIF23, MNDA, PADI4, NCAPG, TYROBP, WDHD1, WDR76, RAB31, FBXO5, CYBB, RNF130, TFEC, LST1, CCNB1, CPVL, RRM1, GINS2, ASF1B, ATAD2, PTTG1, WHSC1
+## enriched in monocytes (IV) (M118.0)                                                                                                                                                                                                                                                                                                                LYZ, C19orf59, LGALS3, PADI4, DOCK5, TNFRSF1B, F5, LRRK2, EMR1, HAL, TMEM176B, MPP1, BCL6, VNN1
+## enriched in hepatocyte nuclear factors (II) (M88.2)                                                                                                                                                                                                                                                                                                                                                                                   HNF1B, HNF4G
+## enriched in NK cells (II) (M61.0)                                                                                                                                                                                                                                                                                                                                                                               KIR2DL2, KLRB1, KLRF1, S1PR5, NKG7
+## enriched in antigen presentation (I) (M71)                                                                                                                                                                                                                                                                                                                                                   HLA-DRA, CD74, HLA-DPB1, HLA-DRB1, HLA-DQB1, HLA-DPA1
+## enriched in G-protein coupled receptors (M130)                                                                                                                                                                                                                                                                                                                                                  XCL1, CCL5, S1PR5, GPR18, F2R, PDE4D, PTGDR, ADRB2
+## chemokine cluster (II) (M27.1)                                                                                                                                                                                                                                                                                                                                                                                      XCL1, CCR1, CCL5, CCL4, CXCL13
+## cell cycle (I) (M4.1)                                                                                                                                                                                                                                                      KIF15, ESPL1, KIFC1, MCM2, SPAG5, RAD54L, C11orf82, CDCA5, CDKN3, TRIP13, SGOL2, AURKA, CDCA8, MND1, SPC24, CDCA3, CDT1, KIF2C, MYBL2, CDK1, OIP5, PRKAR2B, SKA3, SPC25
+## T cell activation (II) (M7.3)                                                                                                                                                                                                                                                                                                                GZMA, CCL5, CRTAM, TIGIT, NKG7, ICOS, SLAMF7, SIRPG, IL18R1, IFNG, GPR171, SP140, SLAMF1, TRAT1, CD3G</code></pre>
+</div>
+</div>
+<div id="tfh095" class="section level2">
+<h2>TFH095</h2>
+<div id="tfh-sorted-cells-1" class="section level3">
+<h3>TFH sorted cells</h3>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-13-1.png" width="672" /><img src="cvplot_analysis_files/figure-html/unnamed-chunk-13-2.png" width="672" /></p>
+<pre><code>## [1] &quot;Regressing out nUMI&quot;         &quot;Regressing out percent.mito&quot;</code></pre>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<pre><code>## [1] 887</code></pre>
+<p>Pathway analysis of the normed mean variance measure calculated from Seurat.</p>
+<pre><code>##                                                                 out$padj
+## enriched in T cells (I) (M7.0)                                0.01087642
+## enriched in NK cells (I) (M7.2)                               0.01087642
+## enriched in B cells (I) (M47.0)                               0.01087642
+## enriched in B cells (II) (M47.1)                              0.01087642
+## enriched in B cells (III) (M47.2)                             0.01087642
+## immuregulation - monocytes, T and B cells (M57)               0.01087642
+## plasma cells &amp; B cells, immunoglobulins (M156.0)              0.01087642
+## plasma cells, immunoglobulins (M156.1)                        0.01087642
+## enriched in monocytes (II) (M11.0)                            0.01199041
+## cell cycle and transcription (M4.0)                           0.01283482
+## chemokines and receptors (M38)                                0.01336329
+## T cell activation (II) (M7.3)                                 0.01712896
+## chemokine cluster (I) (M27.0)                                 0.01712896
+## enriched in B cells (VI) (M69)                                0.01712896
+## signaling in T cells (I) (M35.0)                              0.01892277
+## activated dendritic cells (M67)                               0.01892277
+## RIG-1 like receptor signaling (M68)                           0.02161708
+## antigen presentation (lipids and proteins) (M28)              0.02401309
+## MHC-TLR7-TLR8 cluster (M146)                                  0.02401309
+## proinflammatory dendritic cell, myeloid cell response (M86.1) 0.02606303
+##                                                               out$size
+## enriched in T cells (I) (M7.0)                                      56
+## enriched in NK cells (I) (M7.2)                                     45
+## enriched in B cells (I) (M47.0)                                     47
+## enriched in B cells (II) (M47.1)                                    35
+## enriched in B cells (III) (M47.2)                                   26
+## immuregulation - monocytes, T and B cells (M57)                     11
+## plasma cells &amp; B cells, immunoglobulins (M156.0)                    30
+## plasma cells, immunoglobulins (M156.1)                              21
+## enriched in monocytes (II) (M11.0)                                 177
+## cell cycle and transcription (M4.0)                                303
+## chemokines and receptors (M38)                                      10
+## T cell activation (II) (M7.3)                                       28
+## chemokine cluster (I) (M27.0)                                       14
+## enriched in B cells (VI) (M69)                                      20
+## signaling in T cells (I) (M35.0)                                    14
+## activated dendritic cells (M67)                                     11
+## RIG-1 like receptor signaling (M68)                                 10
+## antigen presentation (lipids and proteins) (M28)                     9
+## MHC-TLR7-TLR8 cluster (M146)                                        16
+## proinflammatory dendritic cell, myeloid cell response (M86.1)       12
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 topgenes
+## enriched in T cells (I) (M7.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             XCL1, GNLY, ITM2A, GZMB, CCL5, ICOS, KLRB1, PRF1, GZMA, TIGIT, GZMK, GZMH, TRAV20, XCL2, NKG7
+## enriched in NK cells (I) (M7.2)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                XCL1, GNLY, GZMB, KLRD1, CCL5, MYBL1, GPR56, HOPX, KLRB1, FGFBP2, KLRF1, PRF1, GZMA, GZMH, XCL2, NKG7, CST7, PLEKHF1, FCGR3B, KLRC1, SH2D2A, IL2RB, SAMD3
+## enriched in B cells (I) (M47.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           IGHD, TCL1A, TCF4, BCL11A, MS4A1, CD200, IGHM, MACROD2, IGKV3-20, CD79A, CD22, FCER2, RALGPS2, VPREB3, CR2, FCRL1, TSPAN13, BANK1, PNOC, EBF1, PKIG, PPAPDC1B, STAP1, HLA-DOB, FCRL2, CD19, CD79B, PAX5, PTPRK
+## enriched in B cells (II) (M47.1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            IGHA1, TCL1A, TCF4, BCL11A, MS4A1, IGHM, CD79A, BLNK, RALGPS2, TPD52, CR2, BANK1, PNOC, EBF1, PKIG, HLA-DOB, CD19, CD79B, DENND5B, PAX5, PTPRK, FCRLA, PAWR, FCRL5, KIAA0125
+## enriched in B cells (III) (M47.2)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      IGHD, IGHA1, IGKC, HLA-DQA1, MEF2C, TBC1D9, TPD52, VPREB3, FCRL3, PNOC, ALOX5, HLA-DOA, DENND5B, HHEX, FCRLA, PAWR, FCRL5, KIAA0125, CD69, CELSR1
+## immuregulation - monocytes, T and B cells (M57)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   IGHD, CD200, CCL4, CD79A, FCER2, CTLA4
+## plasma cells &amp; B cells, immunoglobulins (M156.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     IGHD, IGJ, IGKC, IGKV3-20, CD22, IGHG1, IGLL5, VPREB3, FCRL1, IGLV2-23, STAP1, CD52, FCRL2, OSBPL10
+## plasma cells, immunoglobulins (M156.1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          IGKV1-5, IGHD, IGHA1, IGKC, IGHM, IGKV3-20, IGHG1, IGLL5, PNOC, IGLV2-23
+## enriched in monocytes (II) (M11.0)                                                                                                                                                                                                                                                                                                                                            S100A8, S100A9, FCN1, MS4A7, MNDA, CSTA, CST3, FCER1G, LST1, CD36, AIF1, S100A12, IFI30, RAB31, FAM198B, SERPINA1, MARCH1, FCGR1B, TYROBP, HSPA6, EMR2, CD14, MS4A6A, LILRB2, IGSF6, FPR1, RNASE2, CYBB, AOAH, CLEC7A, LILRA5, CSF3R, MPEG1, CHST15, ALOX5, LGALS2, LILRA1, CSF1R, FCGR2A, LY86, P2RY13, ZNF467, RNF130, CEBPD, CPVL, PLBD1, ITGAX, TNS3, C5AR1, CD33, CCR1, KCNE3, GAS2L1
+## cell cycle and transcription (M4.0)                           VCAN, S100A9, FCN1, MNDA, CSTA, CST3, FCER1G, LST1, CD36, AIF1, S100A12, IFI30, CENPE, CDC6, PLK1, RAB31, FAM198B, SERPINA1, CENPF, MARCKS, CDC20, FCGR1B, CDK1, TYROBP, HSPA6, EMR2, CD14, MS4A6A, LILRB2, CENPW, BIRC5, IGSF6, FPR1, STMN1, CDC7, FAM83D, TOP2A, NCAPG, APITD1, CHAC2, KIAA1524, ASPM, CYBB, AOAH, MCM4, CLEC7A, MLF1IP, AURKA, CSF3R, SPAG5, MPEG1, SMC2, CHST15, ALOX5, CCNB1, LGALS2, LILRA1, CSF1R, FCGR2A, KIAA0101, DONSON, LMNB1, LY86, PAICS, FBXO5, RNF130, CENPK, CEBPD, CPVL, PLBD1, RACGAP1, ITGAX, TNS3, C5AR1, CD33, CCR1, CDCA8, CFD, APOBEC3A, CENPN, PCNA, PTAFR, STIL, DNA2, MCM6, MKI67, CLEC4A, RRM2, CPPED1, TBXAS1, MAFB, RFC3, PRIM1, KIF20B, TRIP13, PADI4, NCF2
+## chemokines and receptors (M38)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     IL8, CCL4, CCL5, CCR5
+## T cell activation (II) (M7.3)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          IFNG, CCL5, ICOS, IL18R1, GZMA, CCR5, TIGIT, NKG7
+## chemokine cluster (I) (M27.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                IFNG, CXCL13, XCL1, IL8, CCL4, CCL5, CXCL10
+## enriched in B cells (VI) (M69)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              MS4A1, CD200, CD79A, CD22, CR2, FCRL1, TSPAN13, PPAPDC1B, HLA-DOB, FCRL2, CD19, CD79B, PTPRK
+## signaling in T cells (I) (M35.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            IFNG, GZMB, PRF1, EGR1, IL2RA, JUN, ATF3, FOS, TNFRSF4, FOSB
+## activated dendritic cells (M67)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                IGKC, RSAD2, DDX60, BIRC3
+## RIG-1 like receptor signaling (M68)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   IL8, ISG15, CXCL10
+## antigen presentation (lipids and proteins) (M28)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               CD36, CD1A, HLA-DRA, HLA-DRB1, CD8A, CD1C
+## MHC-TLR7-TLR8 cluster (M146)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      HLA-DRA, HLA-DQA1, CD74, HLA-B, HLA-DRB1, HLA-DPA1, HLA-DPB1, HLA-DQB1
+## proinflammatory dendritic cell, myeloid cell response (M86.1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 IFNG, CCL4, IL1B, HS3ST3B1</code></pre>
+</div>
+<div id="live-cells-1" class="section level3">
+<h3>Live Cells</h3>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-18-1.png" width="672" /><img src="cvplot_analysis_files/figure-html/unnamed-chunk-18-2.png" width="672" /></p>
+<pre><code>## [1] &quot;Regressing out nUMI&quot;         &quot;Regressing out percent.mito&quot;</code></pre>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<pre><code>## [1] 887</code></pre>
+<pre><code>##                                                                 out$padj
+## enriched in T cells (I) (M7.0)                                0.01071961
+## enriched in NK cells (I) (M7.2)                               0.01071961
+## chemokines and receptors (M38)                                0.01071961
+## enriched in B cells (I) (M47.0)                               0.01071961
+## enriched in B cells (II) (M47.1)                              0.01071961
+## enriched in B cells (III) (M47.2)                             0.01071961
+## plasma cells &amp; B cells, immunoglobulins (M156.0)              0.01071961
+## plasma cells, immunoglobulins (M156.1)                        0.01071961
+## enriched in monocytes (II) (M11.0)                            0.01204693
+## cell cycle and transcription (M4.0)                           0.01288275
+## immuregulation - monocytes, T and B cells (M57)               0.01364230
+## T cell activation (II) (M7.3)                                 0.01996990
+## enriched in B cells (VI) (M69)                                0.02377998
+## regulation of antigen presentation and immune response (M5.0) 0.03863526
+## chemokine cluster (I) (M27.0)                                 0.04385826
+## antigen presentation (lipids and proteins) (M28)              0.04385826
+## signaling in T cells (I) (M35.0)                              0.04385826
+## enriched in NK cells (II) (M61.0)                             0.04385826
+## activated dendritic cells (M67)                               0.04385826
+## RIG-1 like receptor signaling (M68)                           0.04385826
+##                                                               out$size
+## enriched in T cells (I) (M7.0)                                      56
+## enriched in NK cells (I) (M7.2)                                     45
+## chemokines and receptors (M38)                                      10
+## enriched in B cells (I) (M47.0)                                     47
+## enriched in B cells (II) (M47.1)                                    35
+## enriched in B cells (III) (M47.2)                                   26
+## plasma cells &amp; B cells, immunoglobulins (M156.0)                    30
+## plasma cells, immunoglobulins (M156.1)                              21
+## enriched in monocytes (II) (M11.0)                                 177
+## cell cycle and transcription (M4.0)                                303
+## immuregulation - monocytes, T and B cells (M57)                     11
+## T cell activation (II) (M7.3)                                       28
+## enriched in B cells (VI) (M69)                                      20
+## regulation of antigen presentation and immune response (M5.0)       79
+## chemokine cluster (I) (M27.0)                                       14
+## antigen presentation (lipids and proteins) (M28)                     9
+## signaling in T cells (I) (M35.0)                                    14
+## enriched in NK cells (II) (M61.0)                                   15
+## activated dendritic cells (M67)                                     11
+## RIG-1 like receptor signaling (M68)                                 10
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 topgenes
+## enriched in T cells (I) (M7.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             XCL1, GNLY, ITM2A, GZMB, CCL5, ICOS, KLRB1, PRF1, GZMA, TIGIT, GZMK, GZMH, TRAV20, XCL2, NKG7
+## enriched in NK cells (I) (M7.2)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                XCL1, GNLY, GZMB, KLRD1, CCL5, MYBL1, GPR56, HOPX, KLRB1, FGFBP2, KLRF1, PRF1, GZMA, GZMH, XCL2, NKG7, CST7, PLEKHF1, FCGR3B, KLRC1, SH2D2A, IL2RB, SAMD3
+## chemokines and receptors (M38)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     IL8, CCL4, CCL5, CCR5
+## enriched in B cells (I) (M47.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           IGHD, TCL1A, TCF4, BCL11A, MS4A1, CD200, IGHM, MACROD2, IGKV3-20, CD79A, CD22, FCER2, RALGPS2, VPREB3, CR2, FCRL1, TSPAN13, BANK1, PNOC, EBF1, PKIG, PPAPDC1B, STAP1, HLA-DOB, FCRL2, CD19, CD79B, PAX5, PTPRK
+## enriched in B cells (II) (M47.1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            IGHA1, TCL1A, TCF4, BCL11A, MS4A1, IGHM, CD79A, BLNK, RALGPS2, TPD52, CR2, BANK1, PNOC, EBF1, PKIG, HLA-DOB, CD19, CD79B, DENND5B, PAX5, PTPRK, FCRLA, PAWR, FCRL5, KIAA0125
+## enriched in B cells (III) (M47.2)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      IGHD, IGHA1, IGKC, HLA-DQA1, MEF2C, TBC1D9, TPD52, VPREB3, FCRL3, PNOC, ALOX5, HLA-DOA, DENND5B, HHEX, FCRLA, PAWR, FCRL5, KIAA0125, CD69, CELSR1
+## plasma cells &amp; B cells, immunoglobulins (M156.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     IGHD, IGJ, IGKC, IGKV3-20, CD22, IGHG1, IGLL5, VPREB3, FCRL1, IGLV2-23, STAP1, CD52, FCRL2, OSBPL10
+## plasma cells, immunoglobulins (M156.1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          IGKV1-5, IGHD, IGHA1, IGKC, IGHM, IGKV3-20, IGHG1, IGLL5, PNOC, IGLV2-23
+## enriched in monocytes (II) (M11.0)                                                                                                                                                                                                                                                                                                                                            S100A8, S100A9, FCN1, MS4A7, MNDA, CSTA, CST3, FCER1G, LST1, CD36, AIF1, S100A12, IFI30, RAB31, FAM198B, SERPINA1, MARCH1, FCGR1B, TYROBP, HSPA6, EMR2, CD14, MS4A6A, LILRB2, IGSF6, FPR1, RNASE2, CYBB, AOAH, CLEC7A, LILRA5, CSF3R, MPEG1, CHST15, ALOX5, LGALS2, LILRA1, CSF1R, FCGR2A, LY86, P2RY13, ZNF467, RNF130, CEBPD, CPVL, PLBD1, ITGAX, TNS3, C5AR1, CD33, CCR1, KCNE3, GAS2L1
+## cell cycle and transcription (M4.0)                           VCAN, S100A9, FCN1, MNDA, CSTA, CST3, FCER1G, LST1, CD36, AIF1, S100A12, IFI30, CENPE, CDC6, PLK1, RAB31, FAM198B, SERPINA1, CENPF, MARCKS, CDC20, FCGR1B, CDK1, TYROBP, HSPA6, EMR2, CD14, MS4A6A, LILRB2, CENPW, BIRC5, IGSF6, FPR1, STMN1, CDC7, FAM83D, TOP2A, NCAPG, APITD1, CHAC2, KIAA1524, ASPM, CYBB, AOAH, MCM4, CLEC7A, MLF1IP, AURKA, CSF3R, SPAG5, MPEG1, SMC2, CHST15, ALOX5, CCNB1, LGALS2, LILRA1, CSF1R, FCGR2A, KIAA0101, DONSON, LMNB1, LY86, PAICS, FBXO5, RNF130, CENPK, CEBPD, CPVL, PLBD1, RACGAP1, ITGAX, TNS3, C5AR1, CD33, CCR1, CDCA8, CFD, APOBEC3A, CENPN, PCNA, PTAFR, STIL, DNA2, MCM6, MKI67, CLEC4A, RRM2, CPPED1, TBXAS1, MAFB, RFC3, PRIM1, KIF20B, TRIP13, PADI4, NCF2
+## immuregulation - monocytes, T and B cells (M57)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   IGHD, CD200, CCL4, CD79A, FCER2, CTLA4
+## T cell activation (II) (M7.3)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          IFNG, CCL5, ICOS, IL18R1, GZMA, CCR5, TIGIT, NKG7
+## enriched in B cells (VI) (M69)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              MS4A1, CD200, CD79A, CD22, CR2, FCRL1, TSPAN13, PPAPDC1B, HLA-DOB, FCRL2, CD19, CD79B, PTPRK
+## regulation of antigen presentation and immune response (M5.0)                                                                                                                                                                                                                                                                                                                                                                                                                                MNDA, FCER1G, HLA-DRA, HLA-DQA1, FCGR1B, MEF2C, LILRB2, HLA-DRB1, HLA-DPA1, CLEC7A, CTLA4, JUN, HLA-DPB1, HLA-DOB, HLA-DOA, HLA-DQB1, CD19, DUSP6, TLR5, LYN, FOS, TLR7, HLA-DMB, CD86, PTPN22, TLR10, HLA-DMA, IRAK3, NFKBIA, KLRK1, PAK1, INPP5D, LIME1, TLR6, BTLA, CTSH
+## chemokine cluster (I) (M27.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                IFNG, CXCL13, XCL1, IL8, CCL4, CCL5, CXCL10
+## antigen presentation (lipids and proteins) (M28)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               CD36, CD1A, HLA-DRA, HLA-DRB1, CD8A, CD1C
+## signaling in T cells (I) (M35.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            IFNG, GZMB, PRF1, EGR1, IL2RA, JUN, ATF3, FOS, TNFRSF4, FOSB
+## enriched in NK cells (II) (M61.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     KIR2DL2, GPR56, KLRB1, KLRF1, KIR2DL3, NKG7, IL2RB
+## activated dendritic cells (M67)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                IGKC, RSAD2, DDX60, BIRC3
+## RIG-1 like receptor signaling (M68)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   IL8, ISG15, CXCL10</code></pre>
+</div>
+</div>
+<div id="tfh041" class="section level2">
+<h2>TFH041</h2>
+<div id="tfh-sorted-cells-2" class="section level3">
+<h3>TFH sorted cells</h3>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-23-1.png" width="672" /><img src="cvplot_analysis_files/figure-html/unnamed-chunk-23-2.png" width="672" /></p>
+<pre><code>## [1] &quot;Regressing out nUMI&quot;         &quot;Regressing out percent.mito&quot;</code></pre>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<pre><code>## [1] 845</code></pre>
+<p>Pathway analysis of the normed mean variance measure calculated from Seurat.</p>
+<pre><code>##                                                     out$padj out$size
+## enriched in T cells (I) (M7.0)                   0.009642337       55
+## T cell activation (I) (M7.1)                     0.009642337       47
+## enriched in NK cells (I) (M7.2)                  0.009642337       43
+## chemokine cluster (I) (M27.0)                    0.009642337        6
+## antigen presentation (lipids and proteins) (M28) 0.009642337        8
+## signaling in T cells (II) (M35.1)                0.009642337       10
+## enriched in B cells (II) (M47.1)                 0.009642337       26
+## G protein coupled receptors cluster (M155)       0.009642337       30
+## plasma cells &amp; B cells, immunoglobulins (M156.0) 0.009642337       21
+## chemokine cluster (II) (M27.1)                   0.013585025        7
+## signaling in T cells (I) (M35.0)                 0.013585025       14
+## cytokines - recepters cluster (M115)             0.028512698        5
+## enriched in B cells (III) (M47.2)                0.034485063       14
+## T cell activation (II) (M7.3)                    0.048484848       28
+## inositol phosphate metabolism (M129)             0.048484848       10
+## TBA (source: B cells) (M217)                     0.050634058       18
+## T cell differentiation (M14)                     0.055927165       11
+## chemokines and receptors (M38)                   0.055927165        9
+## suppression of MAPK signaling (M56)              0.092432741       11
+## cell division (stimulated CD4+ T cells) (M46)    0.092451027       47
+##                                                                                                                                                                                                               topgenes
+## enriched in T cells (I) (M7.0)                   XCL1, GZMB, GNLY, XCL2, KLRB1, NKG7, GZMA, GZMK, TIGIT, PRF1, CCL5, LEF1, GZMH, SH2D1A, NELL2, RORA, UBASH3A, IL32, IL7R, MAL, EOMES, CD2, PRKCH, RASGRP1, SAMD3, CD6
+## T cell activation (I) (M7.1)                                                 CD8A, CRTAM, MS4A1, TIGIT, CCL5, LEF1, CCR7, RORA, SLAMF7, IL7R, DPP4, EOMES, CD2, THEMIS, PRKCH, RASGRP1, CD8B, CAMK4, TXK, TCF7, BCL11B
+## enriched in NK cells (I) (M7.2)                                       XCL1, GZMB, GNLY, XCL2, IL2RB, KLRD1, KLRB1, NKG7, GZMA, PRF1, HOPX, CCL5, S1PR5, GZMH, MYBL1, CST7, TGFBR3, RORA, SLAMF7, IL18RAP, KLRF1, EOMES
+## chemokine cluster (I) (M27.0)                                                                                                                                                                   XCL1, CCL4, IFNG, CCL5
+## antigen presentation (lipids and proteins) (M28)                                                                                                                                             CD8A, CCR7, HLA-DRA, CD1C
+## signaling in T cells (II) (M35.1)                                                                                                                                                              GZMB, IL2RB, IFNG, PRF1
+## enriched in B cells (II) (M47.1)                                                                                                                            IGLV1-44, IGHA1, IGKC, IGHD, HLA-DQA1, PAWR, VPREB3, FCRL3
+## G protein coupled receptors cluster (M155)                                                        IGLV1-44, IGKV4-1, IGHG1, IGKC, IGLV3-19, IGJ, IGLV2-23, IGHD, IGLV4-60, CPNE5, PCDH9, ITM2C, VPREB3, IGKV3-20, CD52
+## plasma cells &amp; B cells, immunoglobulins (M156.0)                                                                   IGLV1-44, IGKV4-1, IGHA1, IGHG1, IGKC, IGLV3-19, IGLV2-23, IGHV3-48, IGHD, IGKV1-5, DERL3, IGLV4-60
+## chemokine cluster (II) (M27.1)                                                                                                                                                                 XCL1, CCL4, ANXA1, CCL5
+## signaling in T cells (I) (M35.0)                                                                                                                                                           GZMB, IFNG, FOS, PRF1, EGR1
+## cytokines - recepters cluster (M115)                                                                                                                                                          VCAM1, OSMR, CAV1, WWTR1
+## enriched in B cells (III) (M47.2)                                                                                                                                                            IGHA1, IGHG1, CPNE5, PAWR
+## T cell activation (II) (M7.3)                                                                                                                                             CRTAM, IFNG, NKG7, GZMA, TIGIT, CCL5, SLAMF7
+## inositol phosphate metabolism (M129)                                                                                                                                                         XCL1, CCL5, S1PR5, PTGER2
+## TBA (source: B cells) (M217)                                                                                  COX6B1, UQCRC2, COX7B, UQCRFS1, COX7A2L, UQCRQ, COX8A, COX5A, COX6C, UQCRB, COX7C, UQCR10, ATP5L, UQCRC1
+## T cell differentiation (M14)                                                                                                                                          SH2D1A, UBASH3A, MAL, RASGRP1, TXK, TCF7, BCL11B
+## chemokines and receptors (M38)                                                                                                                                                           CCL4, CCL5, HCK, CXCR6, ICAM1
+## suppression of MAPK signaling (M56)                                                                                                                                                           CCL4, IGHD, CTLA4, CD200
+## cell division (stimulated CD4+ T cells) (M46)                                                MS4A1, BANK1, IGHD, TCL1A, RALGPS2, PCDH9, CD200, MACROD2, VPREB3, IGKV3-20, PPAPDC1B, FAM129C, ABCB4, EBF1, FCRL5, FCRL1</code></pre>
+</div>
+<div id="live-cells-2" class="section level3">
+<h3>Live Cells</h3>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-28-1.png" width="672" /><img src="cvplot_analysis_files/figure-html/unnamed-chunk-28-2.png" width="672" /></p>
+<pre><code>## [1] &quot;Regressing out nUMI&quot;         &quot;Regressing out percent.mito&quot;</code></pre>
+<p><img src="cvplot_analysis_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+<pre><code>## [1] 1311</code></pre>
+<pre><code>##                                                                  out$padj
+## regulation of antigen presentation and immune response (M5.0) 0.008171748
+## enriched in T cells (I) (M7.0)                                0.008171748
+## AP-1 transcription factor network (M20)                       0.008171748
+## cell adhesion (lymphocyte homing) (M21)                       0.008171748
+## chemokine cluster (I) (M27.0)                                 0.008171748
+## chemokine cluster (II) (M27.1)                                0.008171748
+## cell cycle and growth arrest (M31)                            0.008171748
+## chemokines and receptors (M38)                                0.008171748
+## transcription regulation in cell development (M49)            0.008171748
+## immuregulation - monocytes, T and B cells (M57)               0.008171748
+## putative targets of PAX3 (M89.1)                              0.008171748
+## adhesion and migration, chemotaxis (M91)                      0.008171748
+## enriched in antigen presentation (II) (M95.0)                 0.008171748
+## cell cycle (I) (M4.1)                                         0.008668420
+## enriched in monocytes (II) (M11.0)                            0.008668420
+## cell cycle and transcription (M4.0)                           0.010684948
+## T cell activation (I) (M7.1)                                  0.010684948
+## T cell activation (II) (M7.3)                                 0.010684948
+## targets of FOSL1/2 (M0)                                       0.011052194
+## signaling in T cells (I) (M35.0)                              0.011052194
+##                                                               out$size
+## regulation of antigen presentation and immune response (M5.0)       76
+## enriched in T cells (I) (M7.0)                                      55
+## AP-1 transcription factor network (M20)                             10
+## cell adhesion (lymphocyte homing) (M21)                              9
+## chemokine cluster (I) (M27.0)                                        8
+## chemokine cluster (II) (M27.1)                                       8
+## cell cycle and growth arrest (M31)                                  10
+## chemokines and receptors (M38)                                      10
+## transcription regulation in cell development (M49)                  41
+## immuregulation - monocytes, T and B cells (M57)                      9
+## putative targets of PAX3 (M89.1)                                    10
+## adhesion and migration, chemotaxis (M91)                             9
+## enriched in antigen presentation (II) (M95.0)                       21
+## cell cycle (I) (M4.1)                                              143
+## enriched in monocytes (II) (M11.0)                                 138
+## cell cycle and transcription (M4.0)                                289
+## T cell activation (I) (M7.1)                                        46
+## T cell activation (II) (M7.3)                                       28
+## targets of FOSL1/2 (M0)                                              5
+## signaling in T cells (I) (M35.0)                                    13
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         topgenes
+## regulation of antigen presentation and immune response (M5.0)                                                                                                                                                                                                                                                                                                                                HLA-DRA, CTLA4, HLA-DQA1, PAG1, FCER1G, MNDA, JUN, NFKBIA, HLA-DMA, CCR7, DUSP6, TLR6, CTSH, HLA-DPB1, FOS, LY96, MEF2A, SLA2, CHUK
+## enriched in T cells (I) (M7.0)                                                                                                                                                                                                                                                                                                                                                                                      CCL5, GZMK, GZMH, IL7R, ICOS, GNLY, GZMA, ITM2A, SH2D1A, MAL, TIGIT, KLRB1, GATA3, RASGRP1, SLA2, NKG7, RORA
+## AP-1 transcription factor network (M20)                                                                                                                                                                                                                                                                                                                                                                                                                                                   IL8, JUN, JUNB, ATF3, FOS, FOSL2, FOSB
+## cell adhesion (lymphocyte homing) (M21)                                                                                                                                                                                                                                                                                                                                                                                                                                                                CXCL13, SELL, MLLT4, CCR7
+## chemokine cluster (I) (M27.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                     CCL5, CXCL13, IL8, CCL20, CCL4
+## chemokine cluster (II) (M27.1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                  CCL5, CXCL13, CCL20, CCL4, ANXA1
+## cell cycle and growth arrest (M31)                                                                                                                                                                                                                                                                                                                                                                                                                                                         IL8, TNFAIP3, JUNB, DUSP1, RARA, SIK1
+## chemokines and receptors (M38)                                                                                                                                                                                                                                                                                                                                                                                                                                                                            CCL5, IL8, CCL4, CXCR4
+## transcription regulation in cell development (M49)                                                                                                                                                                                                                                                                                                                                                                                   VCAN, STMN1, TYROBP, HMGB2, ASPM, KIF4A, FES, BASP1, FBXO5, LYN, CASC5, ANK1, EPB42, SEMA4A
+## immuregulation - monocytes, T and B cells (M57)                                                                                                                                                                                                                                                                                                                                                                                                                                                  CTLA4, IGHD, CD79A, CCL4, CD200
+## putative targets of PAX3 (M89.1)                                                                                                                                                                                                                                                                                                                                                                                                                                                     RGS1, ATF3, NR4A2, EGR3, EGR2, DUSP1, DUSP2
+## adhesion and migration, chemotaxis (M91)                                                                                                                                                                                                                                                                                                                                                                                                                                                   CCL5, CXCL13, F2R, CCR7, ANXA1, ADRB2
+## enriched in antigen presentation (II) (M95.0)                                                                                                                                                                                                                                                                                                                                                                                                              HLA-DRA, IRF8, ITGA4, ITGAM, AIF1, SELL, SLA, HLA-DMA, PLEK, HLA-DPB1
+## cell cycle (I) (M4.1)                                                                                                                                            CENPF, STMN1, TOP2A, MKI67, CENPE, FOXM1, PCNA, SMC4, CDC45, CEP55, EXO1, SGOL2, ASPM, CDC7, MCM4, APITD1, SPC24, KNTC1, POLE2, NUSAP1, GINS2, AURKB, CENPW, CDCA8, BUB1B, PRIM1, PRC1, FBXO5, GMNN, CASC5, CENPH, RFC5, RAD54L, CKS2, CCNA2, KIF18A, CDT1, NCAPG, CCNE2, FEN1, FANCI, MLF1IP, RRM2, RFC4, CCNB2, POLA1, CHEK1, DHFR, CDKN3, SPAG5, ANLN, KIF2C
+## enriched in monocytes (II) (M11.0)                                                                                                                                                                                                                                                            S100A9, S100A8, CSTA, TYROBP, IFI30, IGSF6, CD36, FCN1, LGALS2, SERPINA1, FCER1G, MNDA, S100A12, CST3, ITGAM, AIF1, TREM1, VNN3, CTSH, HNMT, FCGRT, NOD2, SLC31A2, FES, KCNE3, LILRA6, FCGR2A, KYNU, VNN2, FGL2, PRKCD, LYN, C5AR1
+## cell cycle and transcription (M4.0)                           CENPF, S100A9, VCAN, STMN1, TOP2A, KIAA0101, CSTA, MKI67, TYROBP, CENPE, IFI30, IGSF6, CD36, FCN1, LGALS2, SERPINA1, FOXM1, PCNA, FCER1G, HMOX1, MNDA, S100A12, RRM1, CDC45, CST3, AIF1, CEP55, EXO1, UBE2T, SGOL2, ASPM, CTSH, HNMT, CDC7, MCM4, APITD1, FCGRT, SPC24, KNTC1, ATAD2, POLE2, NUSAP1, GINS2, APOBEC3A, NOD2, LMNB1, ARHGAP11A, CCDC34, SLC31A2, KIF4A, FES, WDFY3, LILRA6, FCGR2A, AURKB, CENPW, KYNU, EZH2, CDCA8, BUB1B, FGL2, PRIM1, PRC1, PRKCD
+## T cell activation (I) (M7.1)                                                                                                                                                                                                                                                                                                                                                                                                                               CCL5, MS4A1, IL7R, ICOS, TXK, TIGIT, CCR7, GATA3, RASGRP1, SLA2, RORA
+## T cell activation (II) (M7.3)                                                                                                                                                                                                                                                                                                                                                                                                                                                        CCL5, ICOS, GZMA, TIGIT, IL18R1, SLA2, NKG7
+## targets of FOSL1/2 (M0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                IL8, MMP2
+## signaling in T cells (I) (M35.0)                                                                                                                                                                                                                                                                                                                                                                                                                        JUN, IL2RA, JUNB, TNFRSF4, ATF3, FOS, FOSB, TNF, GZMB, IFNG, EGR1, FASLG</code></pre>
+</div>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
