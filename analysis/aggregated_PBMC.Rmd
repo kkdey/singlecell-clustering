@@ -1,0 +1,355 @@
+---
+title: "Cluster analysis of the PBMC aggregated (4 time periods)"
+author: "Kushal K Dey"
+date: "8/4/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+```
+
+```{r}
+counts61 <- get(load("../output/GS_PBMC_8_2013_MCCB1050.rda"))
+counts61 <- as.matrix(counts61)
+counts62 <- get(load("../output/GS_PBMC_2_2015_GRN0304.rda"))
+counts62 <- as.matrix(counts62)
+counts63 <- get(load("../output/GS_PBMC_2_2016_GRN0535.rda"))
+counts63 <- as.matrix(counts63)
+counts64 <- get(load("../output/GS_PBMC_10_2016_GRN0760.rda"))
+counts64 <- as.matrix(counts64)
+aggregated_data <- rbind(counts61, counts62, counts63, counts64)
+dim(aggregated_data)
+```
+
+```{r}
+fac <- c(rep("Aug-2013", dim(counts61)[1]),
+         rep("Feb-2015", dim(counts62)[1]),
+         rep("Feb-2016", dim(counts63)[1]),
+         rep("Oct-2016", dim(counts64)[1]))
+fac <- factor(fac, levels = c("Aug-2013", "Feb-2015", "Feb-2016", "Oct-2016"))
+length(fac)
+```
+
+```{r echo=FALSE, eval=FALSE}
+rownames(aggregated_data) <- 1:dim(aggregated_data)[1]
+seuratObj <- new('seurat', raw.data = t(aggregated_data))
+seuratObj <- Setup(seuratObj, min.cells = 0, min.genes = 0, project = 'Pantaleo', total.expr = 10000) # no need to filter - already done
+#- Output
+seuratObj_TFH_global <- seuratObj
+```
+
+```{r echo=FALSE, eval=FALSE}
+seuratObj_TFH_global <- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_TFH_global@var.genes)
+seuratObj_TFH_global <- PCA(seuratObj_TFH_global, pc.genes = seuratObj_TFH_global@var.genes)
+seuratObj_TFH_global <- ProjectPCA(seuratObj_TFH_global)
+VizPCA(seuratObj_TFH_global, 1:2)
+```
+
+```{r echo=FALSE, eval= FALSE}
+save(seuratObj_TFH_global, file = "../output/seurat_aggregated_mcc_2.rda")
+```
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_aggregated_mcc_2.rda"))
+tsne_data <- get(load("../output/tsne_seurat_aggregated_mcc.rda"))
+seuratObj_TFH_global@tsne.rot <- data.frame(tsne_data)
+```
+
+## t-SNE projection
+
+```{r echo=FALSE, eval=TRUE}
+labels <- fac
+nUMI <- seuratObj_TFH_global@data.info$nUMI
+nGene <- seuratObj_TFH_global@data.info$nGene
+
+data_ggplot <- data.frame(labels = labels,
+                          nUMI = nUMI,
+                          nGene = nGene,
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+```
+
+
+```{r echo=FALSE, eval=TRUE}
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+## Cluster analysis
+
+```{r}
+topic_clus <- get(load("../output/maptpx_aggregated_MCC.rda"))
+```
+
+```{r}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = RColorBrewer::brewer.pal(8, "Accent"),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+```{r}
+PlotCountClust(topic_clus[[2]], fac)
+PlotCountClust(topic_clus[[3]], fac)
+PlotCountClust(topic_clus[[4]], fac)
+PlotCountClust(topic_clus[[5]], fac)
+PlotCountClust(topic_clus[[6]], fac)
+PlotCountClust(topic_clus[[7]], fac)
+PlotCountClust(topic_clus[[8]], fac)
+```
+
+## t-SNE projection + CountClust coloring
+
+```{r fig.height = 6, echo=FALSE, eval=TRUE}
+labels2 <- as.factor(apply(topic_clus[[2]]$omega, 1, function(x) return(which.max(x))))
+labels3 <- as.factor(apply(topic_clus[[3]]$omega, 1, function(x) return(which.max(x))))
+labels4 <- as.factor(apply(topic_clus[[4]]$omega, 1, function(x) return(which.max(x))))
+labels5 <- as.factor(apply(topic_clus[[5]]$omega, 1, function(x) return(which.max(x))))
+labels6 <- as.factor(apply(topic_clus[[6]]$omega, 1, function(x) return(which.max(x))))
+
+data_ggplot <- data.frame(labels2 = labels2,
+                          labels3 = labels3,
+                          labels4 = labels4,
+                          labels5 = labels5,
+                          labels6 = labels6,
+                          nUMI = nUMI,
+                          nGene = nGene,
+                          tSNE_1 = seuratObj_TFH_global@pca.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@pca.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels4), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels5), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels6), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+```
+
+
+
+
+```{r}
+
+```
+
+```{r}
+topic_clus <- get(load("../output/maptpx_aggregated_MCC.rda"))
+```
+
+```{r}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = RColorBrewer::brewer.pal(10, "Paired"),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+```{r}
+PlotCountClust(topic_clus[[2]], fac)
+PlotCountClust(topic_clus[[3]], fac)
+PlotCountClust(topic_clus[[4]], fac)
+PlotCountClust(topic_clus[[5]], fac)
+PlotCountClust(topic_clus[[6]], fac)
+PlotCountClust(topic_clus[[7]], fac)
+PlotCountClust(topic_clus[[8]], fac)
+PlotCountClust(topic_clus[[9]], fac)
+PlotCountClust(topic_clus[[10]], fac)
+```
+
+
+### K=2 analysis
+
+```{r}
+PlotCountClust(topic_clus[[2]], fac)
+```
+
+
+For $K=2$, we look at the important genes driving the two clusters.
+
+```{r}
+indices <- ExtractTopFeatures(topic_clus[[2]]$theta, top_features = 100, method = "poisson", options = "max")
+imp_genes <- apply(indices, 1, function(x) return(colnames(counts61)[x]))
+```
+
+
+### cluster 1 K = 2
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+```
+
+### cluster 2 K = 2
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+```
+
+
+
+
+For the $K=2$ analysis, we look at the proportion of single cells in each group to come from the 2nd cluster which seems to have higher hemoglobin expressed genes compared to the former.
+
+```{r}
+table(fac)
+```
+
+```{r}
+omega <- topic_clus[[2]]$omega
+cat("Proportion of cells coming from each cluster in the 1st phase Aug 2013 \n")
+nums <- table(apply(omega[which(fac == "Aug-2013"),], 1, function(x) return(which.max(x))))
+nums <- nums/sum(nums)
+nums
+
+cat("\n")
+
+cat("Proportion of cells coming from each cluster in the 2nd phase Feb 2015 \n")
+nums <- table(apply(omega[which(fac == "Feb-2015"),], 1, function(x) return(which.max(x))))
+nums <- nums/sum(nums)
+nums
+
+cat("\n")
+
+cat("Proportion of cells coming from each cluster in the 3rd phase Feb 2016 \n")
+nums <- table(apply(omega[which(fac == "Feb-2016"),], 1, function(x) return(which.max(x))))
+nums <- nums/sum(nums)
+nums
+
+cat("\n")
+
+cat("Proportion of cells coming from each cluster in the 4th phase Oct 2016 \n")
+nums <- table(apply(omega[which(fac == "Oct-2016"),], 1, function(x) return(which.max(x))))
+nums <- nums/sum(nums)
+nums
+```
+
+We see that the genes that minly drive the difference between the two clusters are the hemoglobin genes in the second cluster are more abundant. Also we see from above, that the cells with memberships fully in the second cluster initially decrease as cancer is becoming more serious from 1st phase to second phase. But the proportion of cells with memberships in that cluster actually increases in the 3rd phase when the treatment was going on. But it comes back down very seriously in the 4th phase when the cancer has relapsed.
+
+
+We save the expression data as Seurat object and then perform tSNE and PCA on the data.
+
+
+
+
+
+
+
+```{r}
+save(seuratObj_TFH_global, file = "../output/seurat_aggregated_mcc.rda")
+```
+
+We apply t-SNE
+
+```{r}
+library(tsne)
+out <- tsne::tsne(seuratObj_TFH_global@pca.rot[,1:10], 2)
+seuratObj_TFH_global@tsne.rot <- as.data.frame(out)
+```
+
+```{r}
+save(seuratObj_TFH_global, file = "../output/seurat_aggregated_mcc_2.rda")
+```
+
+```{r}
+seuratObj_TFH_global <- get(load("../output/seurat_aggregated_mcc_2.rda"))
+```
+
+
+
+```{r echo=TRUE, eval=FALSE}
+seuratObj_TFH_global <- RunTSNE(seuratObj_TFH_global, dims.use = 1:10, perplexity = 50)
+```
+
+
+

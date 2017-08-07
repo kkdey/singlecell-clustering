@@ -1,0 +1,161 @@
+---
+title: "Cluster analysis of the PBMC  Oct, 2016"
+author: "Kushal K Dey"
+date: "8/4/2017"
+output: html_document
+---
+
+We look at the cluster patterns of the PBMC cluster data for Oct 2016.
+
+```{r}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+```
+
+```{r}
+counts6 <- get(load("../output/GS_PBMC_2_2015_GRN0304.rda"))
+counts6 <- as.matrix(counts6)
+```
+
+## Cluster analysis
+
+```{r}
+topic_clus <- get(load("../output/maptpx_GS_PBMC_2_2015_GRN0304.rda"))
+```
+
+```{r}
+fac <- rep("PBMC-2-2015", dim(counts6)[1])
+```
+
+```{r}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = RColorBrewer::brewer.pal(8, "Accent"),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+```{r}
+PlotCountClust(topic_clus[[2]], fac)
+PlotCountClust(topic_clus[[3]], fac)
+PlotCountClust(topic_clus[[4]], fac)
+PlotCountClust(topic_clus[[5]], fac)
+PlotCountClust(topic_clus[[6]], fac)
+```
+
+What do these clusters represent?
+
+We look at the top genes for the cluster for $K=3$. Also we perform a GSEA of the top driving genes for each cluster.
+
+```{r}
+indices <- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 100, method = "poisson", options = "max")
+imp_genes <- apply(indices, 1, function(x) return(colnames(counts6)[x]))
+```
+
+### cluster 1 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+```
+
+### cluster 2 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+```
+
+### cluster 3 K = 3
+
+```{r}
+out <- mygene::queryMany(imp_genes[1:50,3],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+```
+
+
+## GSEA 
+
+We perform gene set enrichment analysis on the theta matrices, reprsenting the three clusters, obtained from fitting CountClust on the Live + LN cells.
+
+```{r}
+theta <- topic_clus[[3]]$theta
+theta2 <- t(apply(theta, 1, function(x) return((x - mean(x))/sd(x))))
+```
+
+We extract gene names in pathways from the MAST package 
+
+```{r}
+module <- "BTM"
+min_gene_in_module <- 5
+packageExt <- system.file("extdata", package='MAST')
+module_file <- list.files(packageExt, pattern = module, full.names = TRUE)
+gene_set <- getGmt(module_file)
+gene_ids <- geneIds(gene_set)
+```
+
+### First cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,1])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+### Second cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,2])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
+### Third cluster pre-ranked GSEA
+
+```{r echo=FALSE, eval=TRUE}
+vec <- as.vector(theta2[,3])
+names(vec) <- rownames(theta)
+vec2 <- (vec - mean(vec))/sd(vec)
+out <- fgsea::fgsea(gene_ids, vec2, minSize=1,
+                  maxSize=500,
+                  nperm=10000)
+mm <- cbind.data.frame(out$padj, out$size)
+mm$topgenes <- out$leadingEdge
+rownames(mm) <- names(gene_ids)[as.numeric(rownames(mm))]
+mm[order(mm$`out$padj`, decreasing = FALSE),]
+```
+
