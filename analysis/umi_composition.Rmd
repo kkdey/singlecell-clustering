@@ -1,0 +1,310 @@
+---
+title: "UMI base composition study"
+author: "Kushal K Dey"
+date: "8/7/2017"
+output: html_document
+---
+
+In this script, we investigate if there is any base composition biases in the UMIs or barcodes appended to the reads. Usually the UMIs are appended to the 5' ends of the reads. So, we observe the base composition and base enrichment at the first 30 base positions from the start of the read. The read sequence is obtained from the FASTQ files available for the PBMC data.
+
+```{r message=FALSE, warning=FALSE}
+library(Logolas)
+```
+
+## GRN0535
+
+```{r}
+mat <- get(load("../output/count_table_GS_PBMC_2_2016_GRN0535_S4_L002_R2_001.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+
+```
+
+## GRN0304
+
+```{r}
+mat <- get(load("../output/count_table_GS_PBMC_2_2015_GRN0304_S3_L002_R2_001.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+
+```
+
+## GRN0760
+
+```{r}
+mat <- get(load("../output/count_table_GS_PBMC_10_2016_GRN0760_S5_L002_R2_001.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+
+```
+
+## Comparison with Tung et al (2016)
+
+It most seems that the compositional bias is not very strong. You do observe higher abundance of As but that is expected because As and Ts are more likely to occur and also because of poly A tails, many reads may have A bias. Note that these reads are from the FASTQ files, so they are not mapped and also include ones that have poor mappability or base quality.
+
+The reason for checking for this compositional bias is linked to a previous UMI study data due to Tung et al 2016, where such biases were seen in the UMI at the start of the read.
+
+```{r}
+mat <- get(load("../output/count_table_Tung.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+
+```
+
+```{r echo=FALSE, eval=FALSE}
+tab <- readLines("../output/19239.3.B12.AGCCACTT.L004.R1.C723YACXX.seq.txt")
+head(tab)
+length(tab)
+umi_symbols <- sapply(tab, function(x) return(substring(x, 1, 30)))
+length(umi_symbols)
+head(umi_symbols)
+tail(umi_symbols)
+
+umi_symbols_mat <- do.call(rbind, lapply(umi_symbols, function(x) return(strsplit(x, "")[[1]])))
+table(umi_symbols_mat[,1])
+
+mat <- matrix(0, 4, dim(umi_symbols_mat)[2])
+rownames(mat) <- c("A", "C", "G", "T")
+for(m in 1:dim(umi_symbols_mat)[2]){
+  tabtmp <- table(umi_symbols_mat[,m])
+  idx <- match(rownames(mat), names(tabtmp))
+  idx <- idx[!is.na(idx)]
+  mat[, m] <- tabtmp[idx]
+}
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 20 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+```
+
+```{r echo=FALSE, eval=FALSE}
+save(mat, file = "../output/count_table_19239.3.B12.AGCCACTT.L004.R1.C723YACXX.rda")
+```
+
+## Cells from Different individuals base composition 
+
+### 19098 B12
+
+```{r}
+mat <- get(load("../output/count_table_19098.3.B12.AGCCACTT.L007.R1.C6WYKACXX.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+```
+
+
+### 19101 B12
+
+```{r}
+mat <- get(load("../output/count_table_19101.3.B12.AGCCACTT.L004.R1.C6WYKACXX.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+```
+
+### 19239 B12
+
+```{r}
+mat <- get(load("../output/count_table_19239.3.B12.AGCCACTT.L004.R1.C723YACXX.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+```
+
+
+We now fix an individual and look at multiple cells from the same individual
+
+## Cells from same individual base composition
+
+### 19098 
+
+```{r}
+mat <- get(load("../output/count_table_19098.3.B12.AGCCACTT.L007.R1.C6WYKACXX.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+```
+
+```{r}
+mat <- get(load("../output/count_table_19098.3.G12.CGACTATG.L007.R1.C6WYKACXX.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+```
+
+
+```{r}
+mat <- get(load("../output/count_table_19098.3.H12.CCAAATGC.L007.R1.C6WYKACXX.rda"))
+
+colnames(mat) <- 1:dim(mat)[2]
+color_profile = list("type" = "per_row",
+                     "col" = RColorBrewer::brewer.pal(4,name ="Spectral"))
+
+logomaker(mat,xlab = 'base position',color_profile = color_profile,
+          bg = NULL,
+          frame_width = 1,
+          pop_name = "Base composition at first 30 read positions (with barcode)",
+          main_fontsize = 10)
+
+nlogomaker(mat,xlab = 'UMI base position',logoheight = "log",
+           color_profile = color_profile,
+           bg = c(0.25, 0.25, 0.25, 0.25),
+           frame_width = 1,
+           control = list(logscale = 0.2, quant = 0.5,
+                          depletion_weight = 0.5))
+
+```
+

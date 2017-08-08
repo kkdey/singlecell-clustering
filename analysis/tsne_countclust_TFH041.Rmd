@@ -171,6 +171,15 @@ plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "b
 plot_grid(plot1, plot2, plot3, ncol = 2, align = 'v')
 ```
 
+
+
+
+
+
+
+
+
+
 We now use the top genes from cluster 1 and see where their expression values lie in the t-SNE plot.
 
 ### Cluster 1

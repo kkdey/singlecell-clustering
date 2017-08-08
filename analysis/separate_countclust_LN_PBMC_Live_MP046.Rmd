@@ -172,6 +172,13 @@ out <- mygene::queryMany(imp_genes[1:50,3],  scopes="symbol", fields=c("name", "
 cbind.data.frame(out$name)
 ```
 
+
+
+
+
+
+
+
 ## GSEA 
 
 We perform gene set enrichment analysis on the theta matrices, reprsenting the three clusters, obtained from fitting CountClust on the Live + LN cells.
