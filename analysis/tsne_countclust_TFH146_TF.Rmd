@@ -1,7 +1,7 @@
 ---
-NEtitle: "t-SNE vs CountClust comparisons - TFH041 Live cells"
+title: "Pantaleo tsne + CountClust analysis - TFH146 TF sorted"
 author: "Kushal K Dey"
-date: "7/28/2017"
+date: "8/8/2017"
 output: html_document
 ---
 
@@ -23,7 +23,7 @@ library(CountClust)
 ## Data Loading
 
 ```{r echo=TRUE, eval=TRUE}
-seuratObj_TFH_global <- get(load("../output/TFH041/seuratLiveCells.rda"))
+seuratObj_TFH_global <- get(load("../output/TFH146/seuratTFH.rda"))
 ```
 
 ```{r echo=FALSE, eval=TRUE}
@@ -75,7 +75,7 @@ plot_grid(plot1, plot2, plot3, ncol = 2, align = 'v')
 
 
 ```{r echo=FALSE, eval=TRUE}
-topic_clus <- get(load("../output/TFH041/LN_Live/model2.rda"))
+topic_clus <- get(load("../output/TFH146/LN_TFH/model2.rda"))
 ```
 
 
@@ -623,7 +623,7 @@ plot_grid(plot1, plot2, plot3, ncol = 2, align = 'v')
 ```
 
 ```{r}
-topic_clus <- get(load("../output/TFH041/PBMC_Live/model2.rda"))
+topic_clus <- get(load("../output/TFH146/PBMC_TFH/model2.rda"))
 ```
 
 
@@ -658,7 +658,6 @@ labels <- unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), '_'))[seq(2,
 fac <- labels[which(labels == "PBMC")]
 PlotCountClust(topic_clus[[2]], fac)
 PlotCountClust(topic_clus[[3]], fac)
-PlotCountClust(topic_clus[[4]], fac)
 ```
 
 ## t-SNE projection + CountClust coloring
@@ -667,11 +666,11 @@ PlotCountClust(topic_clus[[4]], fac)
 labels <- unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), '_'))[seq(2, length(unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), '_'))), 2)]
 labels2 <- as.factor(apply(topic_clus[[2]]$omega, 1, function(x) return(which.max(x))))
 labels3 <- as.factor(apply(topic_clus[[3]]$omega, 1, function(x) return(which.max(x))))
-labels4 <- as.factor(apply(topic_clus[[4]]$omega, 1, function(x) return(which.max(x))))
+#labels4 <- as.factor(apply(topic_clus[[4]]$omega, 1, function(x) return(which.max(x))))
 
 data_ggplot <- data.frame(labels2 = labels2,
                           labels3 = labels3,
-                          labels4 = labels4,
+                         # labels4 = labels4,
                           tSNE_1 = seuratObj_TFH_global@tsne.rot[which(labels == "PBMC"), 1],
                           tSNE_2 = seuratObj_TFH_global@tsne.rot[which(labels == "PBMC"), 2])
 
@@ -715,7 +714,7 @@ plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "b
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels6), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
 
-plot_grid(plot1, plot2, plot3, ncol = 2, align = 'v')
+plot_grid(plot1, plot2, ncol = 2, align = 'v')
 ```
 
 

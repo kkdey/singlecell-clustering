@@ -305,327 +305,11 @@ div.tocify {
 </div>
 
 
-<div id="processing-the-data" class="section level2">
-<h2>Processing the Data</h2>
-<pre class="r"><code>###--- Live Cells
-##- LN - no reads information
-LiveCells_LN_UMI &lt;- read.table(&#39;../data/TFH041/Live Cells/LN/reads.TFH041_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt&#39;, header = TRUE, row.names = 1)
-LiveCells_LN_UMI_summary &lt;- read.table(&#39;../data/TFH041/Live Cells/LN/reads.TFH041_Live_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-#- First filtering - remove cells with less than 10 genes
-LiveCells_LN_UMI &lt;- LiveCells_LN_UMI[, rownames(LiveCells_LN_UMI_summary)[which(LiveCells_LN_UMI_summary$NUM_GENES &gt; 10)]]
-LiveCells_LN_UMI_summary &lt;- LiveCells_LN_UMI_summary[colnames(LiveCells_LN_UMI), ]
-
-##- PBMC - no reads information
-LiveCells_PBMC_UMI &lt;- read.table(&#39;../data/TFH041/Live Cells/PBMC/reads.TFH041_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt&#39;, header = TRUE, row.names = 1)
-LiveCells_PBMC_UMI_summary &lt;- read.table(&#39;../data/TFH041/Live Cells/PBMC/reads.TFH041_Live_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-#- First filtering - remove cells with less than 10 genes
-LiveCells_PBMC_UMI &lt;- LiveCells_PBMC_UMI[, rownames(LiveCells_PBMC_UMI_summary)[which(LiveCells_PBMC_UMI_summary$NUM_GENES &gt; 10)]]
-LiveCells_PBMC_UMI_summary &lt;- LiveCells_PBMC_UMI_summary[colnames(LiveCells_PBMC_UMI), ]
-
-
-
-###--- TFH Cells
-##- LN
-TFH_LN_UMI &lt;- read.table(&#39;../data/TFH041/TFH Sorted/LN/reads.TFH041_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt&#39;, header = TRUE, row.names = 1)
-TFH_LN_reads &lt;- read.table(&#39;../data/TFH041/TFH Sorted/LN/reads.TFH041_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.txt&#39;, header = TRUE, row.names = 1)
-TFH_LN_UMI_summary &lt;- read.table(&#39;../data/TFH041/TFH Sorted/LN/reads.TFH041_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-TFH_LN_reads_summary &lt;- read.table(&#39;../data/TFH041/TFH Sorted/LN/reads.TFH041_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-#- First filtering - remove cells with less than 10 genes
-TFH_LN_UMI &lt;- TFH_LN_UMI[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES &gt; 10)]]
-TFH_LN_reads &lt;- TFH_LN_reads[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES &gt; 10)]]
-TFH_LN_UMI_summary &lt;- TFH_LN_UMI_summary[colnames(TFH_LN_UMI), ]
-TFH_LN_reads_summary &lt;- TFH_LN_reads_summary[colnames(TFH_LN_reads), ]
-
-##- PBMC
-TFH_PBMC_UMI &lt;- read.table(&#39;../data/TFH041/TFH Sorted/PBMC/reads.TFH041_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt&#39;, header = TRUE, row.names = 1)
-TFH_PBMC_reads &lt;- read.table(&#39;../data/TFH041/TFH Sorted/PBMC/reads.TFH041_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.txt&#39;, header = TRUE, row.names = 1)
-TFH_PBMC_UMI_summary &lt;- read.table(&#39;../data/TFH041/TFH Sorted/PBMC/reads.TFH041_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-TFH_PBMC_reads_summary &lt;- read.table(&#39;../data/TFH041/TFH Sorted/PBMC/reads.TFH041_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-#- First filtering - remove cells with less than 10 genes
-TFH_PBMC_UMI &lt;- TFH_PBMC_UMI[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES &gt; 10)]]
-TFH_PBMC_reads &lt;- TFH_PBMC_reads[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES &gt; 10)]]
-TFH_PBMC_UMI_summary &lt;- TFH_PBMC_UMI_summary[colnames(TFH_PBMC_UMI), ]
-TFH_PBMC_reads_summary &lt;- TFH_PBMC_reads_summary[colnames(TFH_PBMC_reads), ]</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<pre><code>## [1]   739 15769</code></pre>
-<pre><code>## [1] 15769</code></pre>
-</div>
-<div id="tfh---tsne-countclust-genes" class="section level2">
-<h2>TFH - (tSNE + CountClust genes)</h2>
-<pre class="r"><code>###--- Regress out unwanted sources of variation
-mito.genes &lt;- grep(&quot;^MT-&quot;, rownames(seuratObj_TFH_global@data), value = TRUE)
-percent.mito &lt;- colSums(as.matrix(expm1(seuratObj_TFH_global@data[mito.genes, ]))) / colSums(as.matrix(expm1(seuratObj_TFH_global@data)))
-seuratObj_TFH_global &lt;- AddMetaData(seuratObj_TFH_global, percent.mito, &#39;percent.mito&#39;)
-GenePlot(seuratObj_TFH_global, &#39;nUMI&#39;, &#39;percent.mito&#39;)
-GenePlot(seuratObj_TFH_global, &#39;nUMI&#39;, &#39;nGene&#39;)
-#- remove unwanted sources of variation
-seuratObj_TFH_global &lt;- RegressOut(seuratObj_TFH_global, latent.vars = c(&#39;nUMI&#39;, &#39;percent.mito&#39;)) # remove effect of CDR (high correlation between nGene and nUMI - 0.97) and mitochondrial</code></pre>
-<pre class="r"><code>seuratObj_TFH_global &lt;- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
-length(seuratObj_TFH_global@var.genes)
-seuratObj_TFH_global &lt;- PCA(seuratObj_TFH_global, pc.genes = seuratObj_TFH_global@var.genes)
-seuratObj_TFH_global &lt;- ProjectPCA(seuratObj_TFH_global)
-VizPCA(seuratObj_TFH_global, 1:2)</code></pre>
-<pre class="r"><code>seuratObj_TFH_global &lt;- RunTSNE(seuratObj_TFH_global, dims.use = 1:10, perplexity = 50)</code></pre>
-<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/TFH041/seuratTFH.rda&quot;))</code></pre>
-<pre class="r"><code>seuratObj_TFH_global &lt;- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)</code></pre>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
-<pre class="r"><code>length(seuratObj_TFH_global@var.genes)</code></pre>
-<pre><code>## [1] 845</code></pre>
-<pre class="r"><code>seuratObj_TFH_global &lt;- PCA(seuratObj_TFH_global, pc.genes = seuratObj_TFH_global@var.genes)</code></pre>
-<pre><code>## [1] &quot;PC1&quot;
-##  [1] &quot;CD3D&quot;   &quot;CD2&quot;    &quot;IL7R&quot;   &quot;CCL5&quot;   &quot;FYB&quot;    &quot;IL32&quot;   &quot;GIMAP7&quot;
-##  [8] &quot;GZMA&quot;   &quot;CD3G&quot;   &quot;ID2&quot;    &quot;GZMK&quot;   &quot;SRGN&quot;   &quot;CD3E&quot;   &quot;TRBC2&quot; 
-## [15] &quot;NKG7&quot;   &quot;SLFN5&quot;  &quot;PRF1&quot;   &quot;CD8A&quot;   &quot;KLRB1&quot;  &quot;CMC1&quot;   &quot;SH2D1A&quot;
-## [22] &quot;CCL4&quot;   &quot;TRAT1&quot;  &quot;KLRG1&quot;  &quot;ANXA1&quot;  &quot;KLRD1&quot;  &quot;CST7&quot;   &quot;TIGIT&quot; 
-## [29] &quot;BCL11B&quot; &quot;PTPRC&quot; 
-## [1] &quot;&quot;
-##  [1] &quot;BANK1&quot;        &quot;HLA-DPB1&quot;     &quot;HLA-DQA1&quot;     &quot;RALGPS2&quot;     
-##  [5] &quot;SMIM14&quot;       &quot;IGKC&quot;         &quot;MARCH1&quot;       &quot;RP5-887A10.1&quot;
-##  [9] &quot;IGHD&quot;         &quot;AIM2&quot;         &quot;TCL1A&quot;        &quot;VPREB3&quot;      
-## [13] &quot;FCRL1&quot;        &quot;FCRL5&quot;        &quot;ZFP36L1&quot;      &quot;MARCKS&quot;      
-## [17] &quot;FTL&quot;          &quot;FAM129C&quot;      &quot;LRMP&quot;         &quot;IGHV3-74&quot;    
-## [21] &quot;PPAPDC1B&quot;     &quot;IGJ&quot;          &quot;FAM177B&quot;      &quot;IGLC3&quot;       
-## [25] &quot;IGKJ4&quot;        &quot;IGKV1-5&quot;      &quot;AC096579.7&quot;   &quot;IGKV1-6&quot;     
-## [29] &quot;MT-ND1&quot;       &quot;IGKJ5&quot;       
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC2&quot;
-##  [1] &quot;TCF7&quot;      &quot;LEF1&quot;      &quot;IL7R&quot;      &quot;CD3D&quot;      &quot;GIMAP7&quot;   
-##  [6] &quot;CCR7&quot;      &quot;OXNAD1&quot;    &quot;NOSIP&quot;     &quot;BCL11B&quot;    &quot;CD3G&quot;     
-## [11] &quot;LINC00861&quot; &quot;CHRM3-AS2&quot; &quot;INPP4B&quot;    &quot;CAMK4&quot;     &quot;FYB&quot;      
-## [16] &quot;ITGA6&quot;     &quot;LPAR6&quot;     &quot;CD6&quot;       &quot;CTLA4&quot;     &quot;IL6ST&quot;    
-## [21] &quot;GBP2&quot;      &quot;MAL&quot;       &quot;SLFN5&quot;     &quot;PDK1&quot;      &quot;ANKRD12&quot;  
-## [26] &quot;C14orf64&quot;  &quot;LY96&quot;      &quot;INADL&quot;     &quot;PIM1&quot;      &quot;NEAT1&quot;    
-## [1] &quot;&quot;
-##  [1] &quot;XCL2&quot;     &quot;XCL1&quot;     &quot;KLRD1&quot;    &quot;CCL4&quot;     &quot;CCL3&quot;     &quot;NKG7&quot;    
-##  [7] &quot;PRF1&quot;     &quot;CMC1&quot;     &quot;CCL5&quot;     &quot;GZMA&quot;     &quot;TYROBP&quot;   &quot;CST7&quot;    
-## [13] &quot;GNLY&quot;     &quot;GZMK&quot;     &quot;IL2RB&quot;    &quot;KLRG1&quot;    &quot;GZMB&quot;     &quot;PLEK&quot;    
-## [19] &quot;TIGIT&quot;    &quot;RGS1&quot;     &quot;DUSP2&quot;    &quot;HOPX&quot;     &quot;NFKBIA&quot;   &quot;SRGN&quot;    
-## [25] &quot;CD63&quot;     &quot;FAM98A&quot;   &quot;CD8A&quot;     &quot;ID2&quot;      &quot;RPIA&quot;     &quot;HLA-DPB1&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC3&quot;
-##  [1] &quot;IGHG4&quot;    &quot;XBP1&quot;     &quot;DERL3&quot;    &quot;IGHG3&quot;    &quot;MZB1&quot;     &quot;IGHG2&quot;   
-##  [7] &quot;IGHG1&quot;    &quot;IGJ&quot;      &quot;RRBP1&quot;    &quot;SSR3&quot;     &quot;PIM2&quot;     &quot;IGHA1&quot;   
-## [13] &quot;CITED2&quot;   &quot;ITM2C&quot;    &quot;IGKC&quot;     &quot;CCDC88A&quot;  &quot;HSP90B1&quot;  &quot;CPEB4&quot;   
-## [19] &quot;NUCB2&quot;    &quot;IGKV4-1&quot;  &quot;IGHV6-1&quot;  &quot;DNAJC3&quot;   &quot;IGKJ4&quot;    &quot;TMEM208&quot; 
-## [25] &quot;ITGA6&quot;    &quot;ANKRD36C&quot; &quot;IGHV4-34&quot; &quot;TUBA4A&quot;   &quot;IGLV3-1&quot;  &quot;IGHV3-23&quot;
-## [1] &quot;&quot;
-##  [1] &quot;HLA-DPB1&quot;     &quot;BANK1&quot;        &quot;RALGPS2&quot;      &quot;HLA-DQA1&quot;    
-##  [5] &quot;ZFP36L1&quot;      &quot;SMIM14&quot;       &quot;RPAP2&quot;        &quot;EIF2AK1&quot;     
-##  [9] &quot;HSP90AA1&quot;     &quot;RP5-887A10.1&quot; &quot;HSP90AB1&quot;     &quot;NUTF2&quot;       
-## [13] &quot;OFD1&quot;         &quot;DDX46&quot;        &quot;RPRD2&quot;        &quot;EMG1&quot;        
-## [17] &quot;BEND5&quot;        &quot;SH2D1A&quot;       &quot;KIN&quot;          &quot;IMMP1L&quot;      
-## [21] &quot;CBX5&quot;         &quot;CST7&quot;         &quot;HSD17B11&quot;     &quot;CCDC47&quot;      
-## [25] &quot;CD1C&quot;         &quot;TIGIT&quot;        &quot;PAPOLG&quot;       &quot;FCRL1&quot;       
-## [29] &quot;ZCCHC7&quot;       &quot;PTPRC&quot;       
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC4&quot;
-##  [1] &quot;IGHV3-74&quot;     &quot;IGKV1-6&quot;      &quot;IGKJ5&quot;        &quot;IGKV1-5&quot;     
-##  [5] &quot;IGKJ4&quot;        &quot;IGKC&quot;         &quot;CD8A&quot;         &quot;MT-ND1&quot;      
-##  [9] &quot;SH2D1A&quot;       &quot;GZMA&quot;         &quot;CCL5&quot;         &quot;AHNAK&quot;       
-## [13] &quot;TXNIP&quot;        &quot;IGHG4&quot;        &quot;KLRG1&quot;        &quot;GZMK&quot;        
-## [17] &quot;MT-ND2&quot;       &quot;ZC3H12D&quot;      &quot;IGHG3&quot;        &quot;RP11-284N8.3&quot;
-## [21] &quot;NKG7&quot;         &quot;GTF3C3&quot;       &quot;FAM98A&quot;       &quot;IGKV4-1&quot;     
-## [25] &quot;MTO1&quot;         &quot;SAV1&quot;         &quot;IGHG2&quot;        &quot;IGHV6-1&quot;     
-## [29] &quot;IGHG1&quot;        &quot;RGS2&quot;        
-## [1] &quot;&quot;
-##  [1] &quot;GZMB&quot;     &quot;TYROBP&quot;   &quot;IDH3A&quot;    &quot;CERK&quot;     &quot;HSPA13&quot;   &quot;CUX1&quot;    
-##  [7] &quot;RRBP1&quot;    &quot;MPEG1&quot;    &quot;SAMHD1&quot;   &quot;PANK3&quot;    &quot;ACTL6A&quot;   &quot;AIF1&quot;    
-## [13] &quot;C1orf63&quot;  &quot;CTSB&quot;     &quot;NAGK&quot;     &quot;ESF1&quot;     &quot;DHX30&quot;    &quot;TMF1&quot;    
-## [19] &quot;SMC3&quot;     &quot;CHD9&quot;     &quot;ZBED1&quot;    &quot;C15orf40&quot; &quot;ZNF107&quot;   &quot;COG2&quot;    
-## [25] &quot;CCDC41&quot;   &quot;UTP14A&quot;   &quot;ZMAT1&quot;    &quot;ACSL4&quot;    &quot;G2E3&quot;     &quot;FAM129C&quot; 
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC5&quot;
-##  [1] &quot;IGHV3-74&quot; &quot;IGKJ5&quot;    &quot;IGKV1-6&quot;  &quot;IGKV1-5&quot;  &quot;IGKJ4&quot;    &quot;IGJ&quot;     
-##  [7] &quot;ITGB1&quot;    &quot;IGKC&quot;     &quot;ARHGAP24&quot; &quot;METTL8&quot;   &quot;MPEG1&quot;    &quot;TYROBP&quot;  
-## [13] &quot;RGCC&quot;     &quot;RGS2&quot;     &quot;H3F3B&quot;    &quot;UBAP2&quot;    &quot;CERK&quot;     &quot;SRGN&quot;    
-## [19] &quot;EIF2AK4&quot;  &quot;GZMB&quot;     &quot;PTPN12&quot;   &quot;NR4A2&quot;    &quot;DEK&quot;      &quot;MARCH1&quot;  
-## [25] &quot;LIMS1&quot;    &quot;GOLGB1&quot;   &quot;TXNIP&quot;    &quot;TMEM5&quot;    &quot;CTSB&quot;     &quot;PYHIN1&quot;  
-## [1] &quot;&quot;
-##  [1] &quot;HLA-DPB1&quot;      &quot;PPAPDC1B&quot;      &quot;HLA-DQA1&quot;      &quot;IGLC2&quot;        
-##  [5] &quot;CD8A&quot;          &quot;NEDD9&quot;         &quot;IGHD&quot;          &quot;RP11-164H13.1&quot;
-##  [9] &quot;IGHG1&quot;         &quot;IGLC7&quot;         &quot;IGHG2&quot;         &quot;KLRG1&quot;        
-## [13] &quot;IGHG4&quot;         &quot;TUBA4A&quot;        &quot;C1orf162&quot;      &quot;IGHJ6&quot;        
-## [17] &quot;FOS&quot;           &quot;AQR&quot;           &quot;IGLV3-1&quot;       &quot;NKG7&quot;         
-## [21] &quot;RP11-304L19.5&quot; &quot;ATP6V0A1&quot;      &quot;IGLV2-14&quot;      &quot;ZZEF1&quot;        
-## [25] &quot;RP11-861A13.4&quot; &quot;WDR60&quot;         &quot;CLK2&quot;          &quot;IGLC3&quot;        
-## [29] &quot;SYNE2&quot;         &quot;TMEM208&quot;      
-## [1] &quot;&quot;
-## [1] &quot;&quot;</code></pre>
-<pre class="r"><code>seuratObj_TFH_global &lt;- ProjectPCA(seuratObj_TFH_global)</code></pre>
-<pre><code>## [1] &quot;PC1&quot;
-##  [1] &quot;CD3D&quot;   &quot;CD2&quot;    &quot;IL7R&quot;   &quot;CCL5&quot;   &quot;FYB&quot;    &quot;IL32&quot;   &quot;GIMAP7&quot;
-##  [8] &quot;GZMA&quot;   &quot;CD3G&quot;   &quot;ID2&quot;    &quot;TRAC&quot;   &quot;GZMK&quot;   &quot;GIMAP4&quot; &quot;SRGN&quot;  
-## [15] &quot;CD3E&quot;   &quot;TRBC2&quot;  &quot;NKG7&quot;   &quot;SLFN5&quot;  &quot;PRF1&quot;   &quot;CD8A&quot;   &quot;KLRB1&quot; 
-## [22] &quot;CMC1&quot;   &quot;SH2D1A&quot; &quot;CCL4&quot;   &quot;TRAT1&quot;  &quot;KLRG1&quot;  &quot;B2M&quot;    &quot;ANXA1&quot; 
-## [29] &quot;CD96&quot;   &quot;KLRD1&quot; 
-## [1] &quot;&quot;
-##  [1] &quot;HLA-DRA&quot;  &quot;CD74&quot;     &quot;MS4A1&quot;    &quot;HLA-DRB1&quot; &quot;BANK1&quot;    &quot;HLA-DPA1&quot;
-##  [7] &quot;IGHM&quot;     &quot;HLA-DPB1&quot; &quot;CD79B&quot;    &quot;HLA-DQA1&quot; &quot;RALGPS2&quot;  &quot;RPS23&quot;   
-## [13] &quot;SMIM14&quot;   &quot;HLA-DQB1&quot; &quot;CD52&quot;     &quot;MEF2C&quot;    &quot;CD79A&quot;    &quot;RPS8&quot;    
-## [19] &quot;RPS11&quot;    &quot;SWAP70&quot;   &quot;IGKC&quot;     &quot;CD22&quot;     &quot;HLA-DMA&quot;  &quot;CD19&quot;    
-## [25] &quot;TCF4&quot;     &quot;RPL11&quot;    &quot;MARCH1&quot;   &quot;CD37&quot;     &quot;LAPTM5&quot;   &quot;DRAM2&quot;   
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC2&quot;
-##  [1] &quot;TCF7&quot;      &quot;LEF1&quot;      &quot;IL7R&quot;      &quot;CD3D&quot;      &quot;GIMAP7&quot;   
-##  [6] &quot;CCR7&quot;      &quot;OXNAD1&quot;    &quot;NOSIP&quot;     &quot;RPS12&quot;     &quot;BCL11B&quot;   
-## [11] &quot;CD3G&quot;      &quot;LINC00861&quot; &quot;MALAT1&quot;    &quot;CHRM3-AS2&quot; &quot;IL6R&quot;     
-## [16] &quot;RPS6&quot;      &quot;INPP4B&quot;    &quot;TRAC&quot;      &quot;RPS14&quot;     &quot;CAMK4&quot;    
-## [21] &quot;RPL34&quot;     &quot;GIMAP5&quot;    &quot;FYB&quot;       &quot;ITGA6&quot;     &quot;RPS18&quot;    
-## [26] &quot;RPL11&quot;     &quot;LPAR6&quot;     &quot;RPL32&quot;     &quot;DGKA&quot;      &quot;CD6&quot;      
-## [1] &quot;&quot;
-##  [1] &quot;XCL2&quot;   &quot;XCL1&quot;   &quot;KLRD1&quot;  &quot;CCL4&quot;   &quot;CCL3&quot;   &quot;NKG7&quot;   &quot;FCER1G&quot;
-##  [8] &quot;PRF1&quot;   &quot;CTSW&quot;   &quot;CMC1&quot;   &quot;CCL5&quot;   &quot;GZMA&quot;   &quot;TYROBP&quot; &quot;CST7&quot;  
-## [15] &quot;GNLY&quot;   &quot;GZMK&quot;   &quot;SLAMF7&quot; &quot;IFNG&quot;   &quot;CD160&quot;  &quot;KLRF1&quot;  &quot;GZMH&quot;  
-## [22] &quot;IL2RB&quot;  &quot;KLRG1&quot;  &quot;GZMB&quot;   &quot;CD74&quot;   &quot;KLRC1&quot;  &quot;PLEK&quot;   &quot;TIGIT&quot; 
-## [29] &quot;RGS1&quot;   &quot;DUSP2&quot; 
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC3&quot;
-##  [1] &quot;IGHG4&quot;    &quot;XBP1&quot;     &quot;ELL2&quot;     &quot;DERL3&quot;    &quot;IGHG3&quot;    &quot;MZB1&quot;    
-##  [7] &quot;IGHG2&quot;    &quot;TXNDC11&quot;  &quot;IGHG1&quot;    &quot;IGJ&quot;      &quot;PTP4A3&quot;   &quot;RRBP1&quot;   
-## [13] &quot;TNFRSF17&quot; &quot;SSR3&quot;     &quot;PIM2&quot;     &quot;FKBP11&quot;   &quot;GAS6&quot;     &quot;TRAM2&quot;   
-## [19] &quot;SIL1&quot;     &quot;IGHA1&quot;    &quot;CITED2&quot;   &quot;ITM2C&quot;    &quot;IGKC&quot;     &quot;CCDC88A&quot; 
-## [25] &quot;ENAM&quot;     &quot;FNDC3B&quot;   &quot;C19orf10&quot; &quot;HSP90B1&quot;  &quot;SPAG4&quot;    &quot;CPEB4&quot;   
-## [1] &quot;&quot;
-##  [1] &quot;RPL13A&quot; &quot;RPL31&quot;  &quot;RPS25&quot;  &quot;RPS23&quot;  &quot;RPS12&quot;  &quot;RPS18&quot;  &quot;RPL32&quot; 
-##  [8] &quot;RPLP2&quot;  &quot;RPS14&quot;  &quot;RPS6&quot;   &quot;RPL34&quot;  &quot;RPL13&quot;  &quot;TMSB4X&quot; &quot;RPS21&quot; 
-## [15] &quot;RPL11&quot;  &quot;RPS15A&quot; &quot;RPS29&quot;  &quot;RPS20&quot;  &quot;RPL35A&quot; &quot;RPL23&quot;  &quot;RPS13&quot; 
-## [22] &quot;RPL15&quot;  &quot;RPS8&quot;   &quot;MS4A1&quot;  &quot;RPS2&quot;   &quot;RPL30&quot;  &quot;RPL3&quot;   &quot;RPL27A&quot;
-## [29] &quot;RPL38&quot;  &quot;RPL26&quot; 
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC4&quot;
-##  [1] &quot;IGHV3-74&quot;     &quot;IGKV1-6&quot;      &quot;IGKJ5&quot;        &quot;IGKV1-5&quot;     
-##  [5] &quot;IGKJ4&quot;        &quot;IGKC&quot;         &quot;RPS29&quot;        &quot;RPS15A&quot;      
-##  [9] &quot;RPL13A&quot;       &quot;CD8A&quot;         &quot;MT-ND1&quot;       &quot;SH2D1A&quot;      
-## [13] &quot;HLA-B&quot;        &quot;RPLP2&quot;        &quot;IGKV1OR2-108&quot; &quot;RPS27&quot;       
-## [17] &quot;RPS18&quot;        &quot;GZMA&quot;         &quot;CCL5&quot;         &quot;AHNAK&quot;       
-## [21] &quot;RPL41&quot;        &quot;RPL35&quot;        &quot;RPL27A&quot;       &quot;TXNIP&quot;       
-## [25] &quot;IGHG4&quot;        &quot;ABCA6&quot;        &quot;KLRG1&quot;        &quot;GZMH&quot;        
-## [29] &quot;GZMK&quot;         &quot;GNB2L1&quot;      
-## [1] &quot;&quot;
-##  [1] &quot;MS4A6A&quot;         &quot;RASD1&quot;          &quot;GZMB&quot;           &quot;SERPINF1&quot;      
-##  [5] &quot;DAB2&quot;           &quot;PTCRA&quot;          &quot;hsa-mir-6080&quot;   &quot;ADA&quot;           
-##  [9] &quot;TYROBP&quot;         &quot;LRRC25&quot;         &quot;MMRN1&quot;          &quot;LILRB4&quot;        
-## [13] &quot;RP11-395A13.2&quot;  &quot;FCER1A&quot;         &quot;SOX4&quot;           &quot;SLC40A1&quot;       
-## [17] &quot;KIF3C&quot;          &quot;IDH3A&quot;          &quot;RP11-339B21.14&quot; &quot;RP11-440D17.3&quot; 
-## [21] &quot;WDR76&quot;          &quot;TCL6&quot;           &quot;CDH1&quot;           &quot;SCAMP5&quot;        
-## [25] &quot;RP3-368A4.6&quot;    &quot;NOTCH3&quot;         &quot;MME&quot;            &quot;MEX3B&quot;         
-## [29] &quot;KCNJ13&quot;         &quot;EPHA2&quot;         
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC5&quot;
-##  [1] &quot;IGHV3-74&quot;     &quot;IGKJ5&quot;        &quot;IGKV1-6&quot;      &quot;IGKV1-5&quot;     
-##  [5] &quot;IGKJ4&quot;        &quot;IGJ&quot;          &quot;SERPINF1&quot;     &quot;ABCA6&quot;       
-##  [9] &quot;ITGB1&quot;        &quot;WDR76&quot;        &quot;IGKC&quot;         &quot;ARHGAP24&quot;    
-## [13] &quot;DAB2&quot;         &quot;METTL8&quot;       &quot;PTCRA&quot;        &quot;THAP3&quot;       
-## [17] &quot;CXCR3&quot;        &quot;MPEG1&quot;        &quot;KRAS&quot;         &quot;SLC40A1&quot;     
-## [21] &quot;TYROBP&quot;       &quot;MS4A6A&quot;       &quot;RGCC&quot;         &quot;RGS2&quot;        
-## [25] &quot;hsa-mir-6080&quot; &quot;H3F3B&quot;        &quot;CLEC4C&quot;       &quot;KIF9&quot;        
-## [29] &quot;RASD1&quot;        &quot;OXSM&quot;        
-## [1] &quot;&quot;
-##  [1] &quot;HLA-DPB1&quot;      &quot;PPAPDC1B&quot;      &quot;HLA-DQA1&quot;      &quot;IGLC2&quot;        
-##  [5] &quot;CD8A&quot;          &quot;NEDD9&quot;         &quot;IGHD&quot;          &quot;RPS19&quot;        
-##  [9] &quot;RP11-164H13.1&quot; &quot;IGHG1&quot;         &quot;IGLC7&quot;         &quot;IGHG2&quot;        
-## [13] &quot;SRP72&quot;         &quot;GNB2L1&quot;        &quot;RPS9&quot;          &quot;KLRG1&quot;        
-## [17] &quot;RPS6&quot;          &quot;IGHG4&quot;         &quot;TUBA4A&quot;        &quot;C1orf162&quot;     
-## [21] &quot;RPL12&quot;         &quot;IGHJ6&quot;         &quot;LAPTM5&quot;        &quot;FOS&quot;          
-## [25] &quot;RPLP2&quot;         &quot;AQR&quot;           &quot;KIAA0125&quot;      &quot;IGLV3-1&quot;      
-## [29] &quot;NKG7&quot;          &quot;RP11-304L19.5&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;</code></pre>
-<pre class="r"><code>VizPCA(seuratObj_TFH_global, 1:2)</code></pre>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
-<pre class="r"><code>###--- tSNE
-labels &lt;- unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), &#39;_&#39;))[seq(2, length(unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), &#39;_&#39;))), 2)]
-nUMI &lt;- seuratObj_TFH_global@data.info$nUMI
-nGene &lt;- seuratObj_TFH_global@data.info$nGene
-
-data_ggplot &lt;- data.frame(labels = labels,
-                          nUMI = nUMI,
-                          nGene = nGene,
-                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
-                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
-
-plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
-plot2 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nUMI), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;) + scale_color_gradient2(&#39;# mapped UMI&#39;, low = &#39;royalblue&#39;, high = &#39;red&#39;, mid = &#39;grey80&#39;, midpoint = 2000)
-plot3 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nGene), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;) + scale_color_gradient2(&#39;# detected genes&#39;, low = &#39;royalblue&#39;, high = &#39;red&#39;, mid = &#39;grey80&#39;, midpoint = 1000)
-
-plot_grid(plot1, plot2, plot3, ncol = 2, align = &#39;v&#39;)</code></pre>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
-<p>We now use the top genes from cluster 1 and see where their expression values lie in the t-SNE plot.</p>
-<div id="cluster-1" class="section level3">
-<h3>Cluster 1</h3>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-12-1.png" width="1440" /></p>
-</div>
-<div id="cluster-2" class="section level3">
-<h3>Cluster 2</h3>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-13-1.png" width="1440" /></p>
-</div>
-<div id="cluster-3" class="section level3">
-<h3>Cluster 3</h3>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-14-1.png" width="1440" /></p>
-</div>
-<div id="cluster-4" class="section level3">
-<h3>Cluster 4</h3>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-15-1.png" width="1440" /></p>
-</div>
-</div>
-<div id="live-cells-clustering" class="section level2">
-<h2>Live cells clustering</h2>
-<pre class="r"><code>###--- Filtering datasets and merging
-#- LN
-identical(colnames(LiveCells_LN_UMI), rownames(LiveCells_LN_UMI_summary)) # TRUE</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<pre class="r"><code>LiveCells_LN_UMI_filtered &lt;- LiveCells_LN_UMI[, which(LiveCells_LN_UMI_summary$NUM_GENES &gt;= 400 &amp; LiveCells_LN_UMI_summary$NUM_TRANSCRIPTS &gt;= 750)] # 417 cells
-LiveCells_LN_UMI_filtered &lt;- LiveCells_LN_UMI_filtered[which(apply(LiveCells_LN_UMI_filtered, 1, sum) != 0), ] # 14,946 genes and 417 cells
-#- PBMC
-identical(colnames(LiveCells_PBMC_UMI), rownames(LiveCells_PBMC_UMI_summary)) # TRUE</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<pre class="r"><code>LiveCells_PBMC_UMI_filtered &lt;- LiveCells_PBMC_UMI[, which(LiveCells_PBMC_UMI_summary$NUM_GENES &gt;= 400 &amp; LiveCells_PBMC_UMI_summary$NUM_TRANSCRIPTS &gt;= 750)] # 409 cells
-LiveCells_PBMC_UMI_filtered &lt;- LiveCells_PBMC_UMI_filtered[which(apply(LiveCells_PBMC_UMI_filtered, 1, sum) != 0), ] # 12,391 genes and 409 cells
-#- Merging
-LiveCells_UMI &lt;- rbind.fill(as.data.frame(t(LiveCells_LN_UMI_filtered)), as.data.frame(t(LiveCells_PBMC_UMI_filtered)))
-rownames(LiveCells_UMI) &lt;- c(paste(colnames(LiveCells_LN_UMI_filtered), &#39;LN&#39;, sep = &#39;_&#39;), paste(colnames(LiveCells_PBMC_UMI_filtered), &#39;PBMC&#39;, sep = &#39;_&#39;))
-dim(LiveCells_UMI) # 826 cells and 16,230 genes</code></pre>
-<pre><code>## [1]  1210 19183</code></pre>
-<pre class="r"><code>length(unique(c(rownames(LiveCells_LN_UMI_filtered), rownames(LiveCells_PBMC_UMI_filtered)))) # 16,230 genes</code></pre>
-<pre><code>## [1] 19183</code></pre>
-<pre class="r"><code>LiveCells_UMI[is.na(LiveCells_UMI)] &lt;- 0 # NAs - replace NA by 0
-LiveCells_UMI &lt;- as.data.frame(t(LiveCells_UMI))</code></pre>
-</div>
-<div id="live-cells---tsne-countclust-genes" class="section level2">
-<h2>Live Cells - (tSNE + CountClust genes)</h2>
-<pre class="r"><code>seuratObj_LiveCells_global &lt;- get(load(&quot;../output/TFH041/seuratLiveCells.rda&quot;))</code></pre>
-<pre class="r"><code>seuratObj_LiveCells_global &lt;- MeanVarPlot(seuratObj_LiveCells_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)</code></pre>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
-<pre class="r"><code>length(seuratObj_LiveCells_global@var.genes)</code></pre>
+<div id="data-loading" class="section level2">
+<h2>Data Loading</h2>
+<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/TFH041/seuratLiveCells.rda&quot;))</code></pre>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <pre><code>## [1] 1311</code></pre>
-<pre class="r"><code>seuratObj_LiveCells_global &lt;- PCA(seuratObj_LiveCells_global, pc.genes = seuratObj_LiveCells_global@var.genes)</code></pre>
 <pre><code>## [1] &quot;PC1&quot;
 ##  [1] &quot;TXNIP&quot;         &quot;IL7R&quot;          &quot;MTRNR2L6&quot;      &quot;SELL&quot;         
 ##  [5] &quot;ANXA1&quot;         &quot;ITGB1&quot;         &quot;FAM65B&quot;        &quot;LTB&quot;          
@@ -717,7 +401,6 @@ LiveCells_UMI &lt;- as.data.frame(t(LiveCells_UMI))</code></pre>
 ## [29] &quot;ZBTB38&quot;       &quot;PKN2&quot;        
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;</code></pre>
-<pre class="r"><code>seuratObj_LiveCells_global &lt;- ProjectPCA(seuratObj_LiveCells_global)</code></pre>
 <pre><code>## [1] &quot;PC1&quot;
 ##  [1] &quot;TXNIP&quot;     &quot;MTRNR2L2&quot;  &quot;TPT1&quot;      &quot;MTRNR2L12&quot; &quot;IL7R&quot;     
 ##  [6] &quot;MTRNR2L6&quot;  &quot;TMSB10&quot;    &quot;RPS6&quot;      &quot;RPL13&quot;     &quot;RPS12&quot;    
@@ -806,18 +489,231 @@ LiveCells_UMI &lt;- as.data.frame(t(LiveCells_UMI))</code></pre>
 ## [29] &quot;TMED10&quot;       &quot;DZIP3&quot;       
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;</code></pre>
-<pre class="r"><code>VizPCA(seuratObj_LiveCells_global, 1:2)</code></pre>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-23-2.png" width="672" /></p>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+</div>
+<div id="ln-cells" class="section level2">
+<h2>LN cells</h2>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>fac &lt;- labels[which(labels == &quot;LN&quot;)]
+PlotCountClust(topic_clus[[2]], fac)</code></pre>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[3]], fac)</code></pre>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[4]], fac)</code></pre>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-7-3.png" width="672" /></p>
+</div>
+<div id="t-sne-projection-countclust-coloring" class="section level2">
+<h2>t-SNE projection + CountClust coloring</h2>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="k2-driving-genes" class="section level2">
+<h2>K=2 driving genes</h2>
+<div id="cluster-1" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol                                                           name
+## 1     KLRB1                            killer cell lectin like receptor B1
+## 2     NEAT1 nuclear paraspeckle assembly transcript 1 (non-protein coding)
+## 3    TBC1D4                                    TBC1 domain family member 4
+## 4       LTB                                               lymphotoxin beta
+## 5      CD84                                                  CD84 molecule
+## 6     TXNIP                                thioredoxin interacting protein
+## 7      PASK                  PAS domain containing serine/threonine kinase
+## 8       MAF                                  MAF bZIP transcription factor
+## 9      BTG1                                BTG anti-proliferation factor 1
+## 10     PIM2                  Pim-2 proto-oncogene, serine/threonine kinase
+## 11    ASH1L                     ASH1 like histone lysine methyltransferase
+## 12 TRAF3IP3                                    TRAF3 interacting protein 3
+## 13    SATB1                                                SATB homeobox 1</code></pre>
+</div>
+<div id="cluster-2" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol                                                 name
+## 1     STMN1                                           stathmin 1
+## 2      TUBB                                 tubulin beta class I
+## 3     MKI67                        marker of proliferation Ki-67
+## 4     TOP2A                         topoisomerase (DNA) II alpha
+## 5      MCM4       minichromosome maintenance complex component 4
+## 6    CXCL13                      C-X-C motif chemokine ligand 13
+## 7  HIST1H4C                 histone cluster 1 H4 family member c
+## 8    NUSAP1           nucleolar and spindle associated protein 1
+## 9      TYMS                               thymidylate synthetase
+## 10    CLSPN                                              claspin
+## 11    HMGB2                            high mobility group box 2
+## 12    CHEK1                                  checkpoint kinase 1
+## 13     PCNA                   proliferating cell nuclear antigen
+## 14     RRM2       ribonucleotide reductase regulatory subunit M2
+## 15    CENPF                                 centromere protein F
+## 16  FAM111B         family with sequence similarity 111 member B
+## 17    FANCI               Fanconi anemia complementation group I
+## 18     FEN1               flap structure-specific endonuclease 1
+## 19  HLA-DRA major histocompatibility complex, class II, DR alpha
+## 20    CENPN                                 centromere protein N
+## 21    MS4A1                       membrane spanning 4-domains A1
+## 22     MCM2       minichromosome maintenance complex component 2
+## 23     ACTB                                           actin beta
+## 24      TK1                                   thymidine kinase 1
+## 25    H2AFZ                          H2A histone family member Z
+## 26   NCAPH2              non-SMC condensin II complex subunit H2
+## 27     CDK2                            cyclin dependent kinase 2
+## 28     PFN1                                           profilin 1
+## 29    BIRC5                  baculoviral IAP repeat containing 5
+## 30    BRCA2                         BRCA2, DNA repair associated
+## 31  HNRNPAB          heterogeneous nuclear ribonucleoprotein A/B
+## 32     DHFR                              dihydrofolate reductase
+## 33      PKM                              pyruvate kinase, muscle
+## 34     ASPM                abnormal spindle microtubule assembly
+## 35    ZWINT                 ZW10 interacting kinetochore protein
+## 36     ORC6                 origin recognition complex subunit 6
+## 37     CDT1     chromatin licensing and DNA replication factor 1
+## 38    NCAPG                non-SMC condensin I complex subunit G
+## 39 HSP90AA1  heat shock protein 90 alpha family class A member 1
+## 40   CKAP2L               cytoskeleton associated protein 2 like</code></pre>
+</div>
+</div>
+<div id="k2-t-sne-gene-expression" class="section level2">
+<h2>K=2 t-SNE gene expression</h2>
+<div id="cluster-1-imp-genes" class="section level3">
+<h3>cluster 1 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="cluster-2-imp-genes" class="section level3">
+<h3>cluster 2 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+</div>
+<div id="k3-driving-genes" class="section level2">
+<h2>K=3 driving genes</h2>
+<div id="cluster-1-1" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##     symbol
+## 1    ACTG1
+## 2    ATP5E
+## 3  ARHGDIB
+## 4     BTF3
+## 5    SNHG5
+## 6    COX6C
+## 7   S100A4
+## 8   MYL12A
+## 9    ARPC5
+## 10  ARPC1B
+## 11   ATP5L
+## 12 SLC25A6
+## 13   ARPC3
+## 14    RHOA
+## 15  COX4I1
+## 16  SNRPD2
+##                                                                        name
+## 1                                                             actin gamma 1
+## 2  ATP synthase, H+ transporting, mitochondrial F1 complex, epsilon subunit
+## 3                                       Rho GDP dissociation inhibitor beta
+## 4                                              basic transcription factor 3
+## 5                                           small nucleolar RNA host gene 5
+## 6                                           cytochrome c oxidase subunit 6C
+## 7                                           S100 calcium binding protein A4
+## 8                                                    myosin light chain 12A
+## 9                               actin related protein 2/3 complex subunit 5
+## 10                             actin related protein 2/3 complex subunit 1B
+## 11        ATP synthase, H+ transporting, mitochondrial Fo complex subunit G
+## 12                                        solute carrier family 25 member 6
+## 13                              actin related protein 2/3 complex subunit 3
+## 14                                              ras homolog family member A
+## 15                                         cytochrome c oxidase subunit 4I1
+## 16                           small nuclear ribonucleoprotein D2 polypeptide</code></pre>
+</div>
+<div id="cluster-2-1" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##     symbol                                                           name
+## 1     BTG1                                BTG anti-proliferation factor 1
+## 2     RGS1                             regulator of G protein signaling 1
+## 3     PASK                  PAS domain containing serine/threonine kinase
+## 4    ASH1L                     ASH1 like histone lysine methyltransferase
+## 5     CD84                                                  CD84 molecule
+## 6      MAF                                  MAF bZIP transcription factor
+## 7    NEAT1 nuclear paraspeckle assembly transcript 1 (non-protein coding)
+## 8   TRIM22                                 tripartite motif containing 22
+## 9  RASGRP1                                 RAS guanyl releasing protein 1
+## 10  TBC1D4                                    TBC1 domain family member 4
+## 11 ANKRD12                                       ankyrin repeat domain 12
+## 12    IL7R                                         interleukin 7 receptor</code></pre>
+</div>
+<div id="cluster-3" class="section level3">
+<h3>cluster 3</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##     symbol
+## 1     ACTB
+## 2     PFN1
+## 3     MYL6
+## 4    GAPDH
+## 5     CFL1
+## 6     PPIA
+## 7    H2AFZ
+## 8    STMN1
+## 9     YBX1
+## 10   ARPC2
+## 11    TUBB
+## 12    TPI1
+## 13    PCNA
+## 14   MKI67
+## 15     MIF
+## 16 SLC25A5
+## 17   COX7B
+## 18    CAP1
+##                                                                        name
+## 1                                                                actin beta
+## 2                                                                profilin 1
+## 3                                                      myosin light chain 6
+## 4                                  glyceraldehyde-3-phosphate dehydrogenase
+## 5                                                                 cofilin 1
+## 6                                                peptidylprolyl isomerase A
+## 7                                               H2A histone family member Z
+## 8                                                                stathmin 1
+## 9                                                   Y-box binding protein 1
+## 10                              actin related protein 2/3 complex subunit 2
+## 11                                                     tubulin beta class I
+## 12                                              triosephosphate isomerase 1
+## 13                                       proliferating cell nuclear antigen
+## 14                                            marker of proliferation Ki-67
+## 15 macrophage migration inhibitory factor (glycosylation-inhibiting factor)
+## 16                                        solute carrier family 25 member 5
+## 17                                          cytochrome c oxidase subunit 7B
+## 18               cyclase associated actin cytoskeleton regulatory protein 1</code></pre>
+</div>
+</div>
+<div id="k3-t-sne-gene-expression" class="section level2">
+<h2>K=3 t-SNE gene expression</h2>
+<div id="cluster-1-imp-genes-1" class="section level3">
+<h3>cluster 1 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+</div>
+<div id="cluster-2-imp-genes-1" class="section level3">
+<h3>cluster 2 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+<div id="cluster-3-imp-genes" class="section level3">
+<h3>cluster 3 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+</div>
+</div>
+<div id="pbmc-cells" class="section level2">
+<h2>PBMC cells</h2>
 <pre class="r"><code>###--- tSNE
-labels &lt;- unlist(str_split(rownames(seuratObj_LiveCells_global@tsne.rot), &#39;_&#39;))[seq(2, length(unlist(str_split(rownames(seuratObj_LiveCells_global@tsne.rot), &#39;_&#39;))), 2)]
-nUMI &lt;- seuratObj_LiveCells_global@data.info$nUMI
-nGene &lt;- seuratObj_LiveCells_global@data.info$nGene
+labels &lt;- unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), &#39;_&#39;))[seq(2, length(unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), &#39;_&#39;))), 2)]
+nUMI &lt;- seuratObj_TFH_global@data.info$nUMI
+nGene &lt;- seuratObj_TFH_global@data.info$nGene
 
-data_ggplot &lt;- data.frame(labels = labels,
-                          nUMI = nUMI,
-                          nGene = nGene,
-                          tSNE_1 = seuratObj_LiveCells_global@tsne.rot[, 1],
-                          tSNE_2 = seuratObj_LiveCells_global@tsne.rot[, 2])
+data_ggplot &lt;- data.frame(labels = labels[labels==&quot;PBMC&quot;],
+                          nUMI = nUMI[labels == &quot;PBMC&quot;],
+                          nGene = nGene[labels == &quot;PBMC&quot;],
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[which(labels == &quot;PBMC&quot;), 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[which(labels == &quot;PBMC&quot;), 2])
 
 plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
                                      panel.grid.major = element_blank(), 
@@ -842,22 +738,199 @@ plot3 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = nGene), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;) + scale_color_gradient2(&#39;# detected genes&#39;, low = &#39;royalblue&#39;, high = &#39;red&#39;, mid = &#39;grey80&#39;, midpoint = 1000)
 
 plot_grid(plot1, plot2, plot3, ncol = 2, align = &#39;v&#39;)</code></pre>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
-<div id="cluster-1-1" class="section level3">
-<h3>Cluster 1</h3>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-25-1.png" width="1440" /></p>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/TFH041/PBMC_Live/model2.rda&quot;))</code></pre>
+<pre class="r"><code>labels &lt;- unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), &#39;_&#39;))[seq(2, length(unlist(str_split(rownames(seuratObj_TFH_global@tsne.rot), &#39;_&#39;))), 2)]
+fac &lt;- labels[which(labels == &quot;PBMC&quot;)]
+PlotCountClust(topic_clus[[2]], fac)</code></pre>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[3]], fac)</code></pre>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-22-2.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[4]], fac)</code></pre>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-22-3.png" width="672" /></p>
 </div>
-<div id="cluster-2-1" class="section level3">
-<h3>Cluster 2</h3>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-26-1.png" width="1440" /></p>
+<div id="t-sne-projection-countclust-coloring-1" class="section level2">
+<h2>t-SNE projection + CountClust coloring</h2>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+</div>
+<div id="k2-driving-genes-1" class="section level2">
+<h2>K=2 driving genes</h2>
+<div id="cluster-1-2" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##    symbol
+## 1     FAU
+## 2  EEF1B2
+## 3   TIPIN
+## 4  COX4I1
+## 5  DUSP18
+## 6   LHCGR
+## 7  S100A4
+## 8  ATP5G2
+## 9  EEF1A1
+## 10  PSME2
+##                                                                              name
+## 1                            FAU, ubiquitin like and ribosomal protein S30 fusion
+## 2                               eukaryotic translation elongation factor 1 beta 2
+## 3                                                    TIMELESS interacting protein
+## 4                                                cytochrome c oxidase subunit 4I1
+## 5                                                 dual specificity phosphatase 18
+## 6                                 luteinizing hormone/choriogonadotropin receptor
+## 7                                                 S100 calcium binding protein A4
+## 8  ATP synthase, H+ transporting, mitochondrial Fo complex subunit C2 (subunit 9)
+## 9                              eukaryotic translation elongation factor 1 alpha 1
+## 10                                                 proteasome activator subunit 2</code></pre>
+</div>
+<div id="cluster-2-2" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol                                                           name
+## 1       LYZ                                                       lysozyme
+## 2     CENPF                                           centromere protein F
+## 3     CENPE                                           centromere protein E
+## 4      GZMK                                                     granzyme K
+## 5     MKI67                                  marker of proliferation Ki-67
+## 6    S100A8                                S100 calcium binding protein A8
+## 7     PTTG1                                 pituitary tumor-transforming 1
+## 8      GZMA                                                     granzyme A
+## 9     TOP2A                                   topoisomerase (DNA) II alpha
+## 10    NR2C1                  nuclear receptor subfamily 2 group C member 1
+## 11   ZNF639                                        zinc finger protein 639
+## 12    SNX18                                               sorting nexin 18
+## 13    TERF1                              telomeric repeat binding factor 1
+## 14     RMRP RNA component of mitochondrial RNA processing endoribonuclease
+## 15   TSPAN5                                                  tetraspanin 5
+## 16    PRMT7                           protein arginine methyltransferase 7
+## 17   MFHAS1            malignant fibrous histiocytoma amplified sequence 1
+## 18      MAF                                  MAF bZIP transcription factor
+## 19     WSB2                            WD repeat and SOCS box containing 2
+## 20   TGFBR2                     transforming growth factor beta receptor 2
+## 21  C1orf56                             chromosome 1 open reading frame 56
+## 22    SYNE2          spectrin repeat containing nuclear envelope protein 2
+## 23     VCAN                                                       versican
+## 24  C12orf4                             chromosome 12 open reading frame 4
+## 25     POMC                                            proopiomelanocortin
+## 26   ANTXR2                                       anthrax toxin receptor 2
+## 27   IMPAD1                   inositol monophosphatase domain containing 1
+## 28    PTPRC                  protein tyrosine phosphatase, receptor type C
+## 29    ROCK1         Rho associated coiled-coil containing protein kinase 1
+## 30 HIST1H4C                           histone cluster 1 H4 family member c</code></pre>
+</div>
+</div>
+<div id="k2-t-sne-gene-expression-1" class="section level2">
+<h2>K=2 t-SNE gene expression</h2>
+<div id="cluster-1-imp-genes-2" class="section level3">
+<h3>cluster 1 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+</div>
+<div id="cluster-2-imp-genes-2" class="section level3">
+<h3>cluster 2 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+</div>
+</div>
+<div id="k3-driving-genes-1" class="section level2">
+<h2>K=3 driving genes</h2>
+<div id="cluster-1-3" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##     symbol                                                   name
+## 1  TSC22D3                           TSC22 domain family member 3
+## 2      TXN                                            thioredoxin
+## 3    CCND3                                              cyclin D3
+## 4    C1QBP                         complement C1q binding protein
+## 5    RGS10                    regulator of G protein signaling 10
+## 6  BLOC1S1 biogenesis of lysosomal organelles complex 1 subunit 1
+## 7   EEF1B2      eukaryotic translation elongation factor 1 beta 2
+## 8   EEF1A1     eukaryotic translation elongation factor 1 alpha 1
+## 9    U2AF1                U2 small nuclear RNA auxiliary factor 1
+## 10    GLRX                                           glutaredoxin
+## 11    PPCS                 phosphopantothenoylcysteine synthetase
+## 12     FAU   FAU, ubiquitin like and ribosomal protein S30 fusion
+## 13   SNRPN          small nuclear ribonucleoprotein polypeptide N
+## 14  SHISA5                                  shisa family member 5
+## 15   PRDX2                                        peroxiredoxin 2</code></pre>
+</div>
+<div id="cluster-2-3" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##     symbol                                            name
+## 1     IL7R                          interleukin 7 receptor
+## 2      LYZ                                        lysozyme
+## 3    APEX1   apurinic/apyrimidinic endodeoxyribonuclease 1
+## 4    TXNIP                 thioredoxin interacting protein
+## 5     BCL2                       BCL2, apoptosis regulator
+## 6    STIM2                  stromal interaction molecule 2
+## 7     ARF6                       ADP ribosylation factor 6
+## 8  GOLGA8A                       golgin A8 family member A
+## 9     SPEN           spen family transcriptional repressor
+## 10   CCNL2                                       cyclin L2
+## 11   ITPR2    inositol 1,4,5-trisphosphate receptor type 2
+## 12  S100A8                 S100 calcium binding protein A8
+## 13    DGKE                   diacylglycerol kinase epsilon
+## 14    CHD8     chromodomain helicase DNA binding protein 8
+## 15  GALNT1 polypeptide N-acetylgalactosaminyltransferase 1</code></pre>
 </div>
 <div id="cluster-3-1" class="section level3">
-<h3>Cluster 3</h3>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-27-1.png" width="1440" /></p>
+<h3>cluster 3</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol
+## 1     CENPF
+## 2      CCL5
+## 3       NMI
+## 4  HIST1H1E
+## 5      GZMK
+## 6     CENPE
+## 7     MKI67
+## 8   EIF2AK1
+## 9     IGBP1
+## 10   SAMD9L
+## 11     GZMA
+## 12     BUB3
+## 13  C1orf56
+## 14    PTTG1
+## 15    ASNA1
+## 16 HIST1H4C
+## 17  SMARCA4
+## 18    ARRB2
+##                                                                                                 name
+## 1                                                                               centromere protein F
+## 2                                                                       C-C motif chemokine ligand 5
+## 3                                                                          N-myc and STAT interactor
+## 4                                                               histone cluster 1 H1 family member e
+## 5                                                                                         granzyme K
+## 6                                                                               centromere protein E
+## 7                                                                      marker of proliferation Ki-67
+## 8                                          eukaryotic translation initiation factor 2 alpha kinase 1
+## 9                                                                   immunoglobulin binding protein 1
+## 10                                                      sterile alpha motif domain containing 9 like
+## 11                                                                                        granzyme A
+## 12                                                                  BUB3, mitotic checkpoint protein
+## 13                                                                chromosome 1 open reading frame 56
+## 14                                                                    pituitary tumor-transforming 1
+## 15                                     arsA arsenite transporter, ATP-binding, homolog 1 (bacterial)
+## 16                                                              histone cluster 1 H4 family member c
+## 17 SWI/SNF related, matrix associated, actin dependent regulator of chromatin, subfamily a, member 4
+## 18                                                                                   arrestin beta 2</code></pre>
 </div>
-<div id="cluster-4-1" class="section level3">
-<h3>Cluster 4</h3>
-<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-28-1.png" width="1440" /></p>
+</div>
+<div id="k3-t-sne-gene-expression-1" class="section level2">
+<h2>K=3 t-SNE gene expression</h2>
+<div id="cluster-1-imp-genes-3" class="section level3">
+<h3>cluster 1 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+</div>
+<div id="cluster-2-imp-genes-3" class="section level3">
+<h3>cluster 2 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+</div>
+<div id="cluster-3-imp-genes-1" class="section level3">
+<h3>cluster 3 imp genes</h3>
+<p><img src="tsne_countclust_TFH041_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
 </div>
 </div>
 

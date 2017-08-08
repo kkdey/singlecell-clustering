@@ -1,5 +1,5 @@
 ---
-NEtitle: "t-SNE vs CountClust comparisons - TFH041 Live cells"
+title: "t-SNE vs CountClust comparisons - TFH146"
 author: "Kushal K Dey"
 date: "7/28/2017"
 output: html_document
@@ -23,7 +23,7 @@ library(CountClust)
 ## Data Loading
 
 ```{r echo=TRUE, eval=TRUE}
-seuratObj_TFH_global <- get(load("../output/TFH041/seuratLiveCells.rda"))
+seuratObj_TFH_global <- get(load("../output/TFH146/seuratLiveCells.rda"))
 ```
 
 ```{r echo=FALSE, eval=TRUE}
@@ -75,7 +75,7 @@ plot_grid(plot1, plot2, plot3, ncol = 2, align = 'v')
 
 
 ```{r echo=FALSE, eval=TRUE}
-topic_clus <- get(load("../output/TFH041/LN_Live/model2.rda"))
+topic_clus <- get(load("../output/TFH146/LN_Live/model2.rda"))
 ```
 
 
@@ -623,7 +623,7 @@ plot_grid(plot1, plot2, plot3, ncol = 2, align = 'v')
 ```
 
 ```{r}
-topic_clus <- get(load("../output/TFH041/PBMC_Live/model2.rda"))
+topic_clus <- get(load("../output/TFH146/PBMC_Live/model2.rda"))
 ```
 
 
