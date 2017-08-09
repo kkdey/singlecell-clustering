@@ -65,7 +65,7 @@ and TF sorted cells from each patient.
 
 - [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in TFH095](tsne_countclust_TFH095_Live.html)
 
-- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in MP146](tsne_countclust_MP046_Live.html)
+- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in MP046](tsne_countclust_MP046_Live.html)
 
 - [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH146](tsne_countclust_TFH146_TF.html)
 
@@ -177,5 +177,14 @@ The projections for TFH146, TFH041 and TFH095  are
 [t-SNE projection of CountClust top cluster driving genes - TFH 041](tsne_countclust_TFH041.html)
 
 
+### Summary of the results from the analysis 
+
+- For TFH146, we find that in the LN cells, there is a cluster pattern driven by CD74 and other HLA related genes. The same is not observed for the PBMC cells, but the latter shows some clustering due to myeloid markers like S100*.
+
+- For TFH095, in LN cells, we see the HLA driven cluster, as in TFH146. On the other hand for PBMCs, for $K=3$, we see a cluster driven by cytotoxic cells and NK cells and then a cluster that is driven by a mix of HLA and S100* genes. My feeling is that we will get a further split for higher $K$.
+
+- So many HLA genes driven cluster was not observed for the cancer study as is in this case.
+
+- 
 
 
