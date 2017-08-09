@@ -6,6 +6,29 @@ output:
 ---
 
 
+We explore the clustering results using Countclust on the single cell RNA seq data obtained using Dropseq method from an individual suffering from cancer across four time periods (August 2013, February 2015, February 2016 and October 2016). August 2013 is around the first onset of cancer, February 2015 is when the treatment is started, February 2016 is a time period inside of the treatment period when the treatment seems to be working. Post this, the cancer relapses and October 2016 corresponds to a time period when the cancer has relapsed.
+
+We first look at the clustering of the single cells for each of the four time periods.
+
+[CountClust + tSNE analysis of scRNA-seq data from Aug 2013 - MCC1050](pbmc_MCC1050.html)
+
+[CountClust + tSNE analysis of scRNA-seq data from Feb 2015 - GRN0304](pbmc_GRN304.html)
+
+[CountClust + tSNE analysis of scRNA-seq data from Feb 2016 - GRN0535](pbmc_GRN535.html)
+
+[CountClust + tSNE analysis of scRNA-seq data from Aug 2013 - GRN0760](pbmc_GRN760.html)
+
+We also pool the single cell data from the four time periods and perform the clustering.
+
+[CountClust + tSNE analysis of scRNA-seq data from all 4 time periods](aggregated_PBMC.html)
+
+
+## Summary of the results from the analysis 
+
+
+
+
+
 
 We check for the UMI patterns and dropout rates compared to the characteristics of the genes 
 like gene length, GC content etc.
