@@ -6,24 +6,35 @@ output:
 ---
 
 
-We explore the clustering results using CountClust on the single cell RNA seq data obtained using Dropseq method from an individual suffering from cancer across four time periods (August 2013, February 2015, February 2016 and October 2016). August 2013 is around the first onset of cancer, February 2015 is when the treatment is started, February 2016 is a time period inside of the treatment period when the treatment seems to be working. Post this, the cancer relapses and October 2016 corresponds to a time period when the cancer has relapsed.
+We explore the clustering results using CountClust on the single cell RNA seq data to identify mechanism of Merkel Cell Carcinoma response and escape from T Cell Immunotherapy [PI: Aude Chapuis]. 
 
-We first look at the clustering of the single cells for each of the four time periods.
+The data is obtained from a single MCPyV+-MCC patient with widely metastatic MCC, who was treated, and the treatment worked in the initial phase of one year, but then it relapsed. The single cell data was obtained using Drop-seq method from 10X Genomics. 10X-Genomics technology is uniquely poised to provide a detailed multidimensional view of the tumor microenvironment and cellular response. Key material from time points of response and progression including viable frozen single cell tumor digests (contain tumor & stroma & infiltrating immune cells), TIL cultures and PBMCs. 
 
-[CountClust + tSNE analysis of scRNA-seq data from Aug 2013 - MCC1050](pbmc_MCC1050.html)
+Overall the data is collected over 4 time periods (August 2013, February 2015, February 2016 and October 2016). August 2013 is around the time of cancer detection, February 2015 is when the treatment is started, which is continued for one year, February 2016 is towards the end of the treatment period when the treatment is found to be working. Post this, the cancer relapses and October 2016 corresponds to a time period by which time the cancer has relapsed.
 
-[CountClust + tSNE analysis of scRNA-seq data from Feb 2015 - GRN0304](pbmc_GRN304.html)
+We consider the clustering of the single cells for each of the four time periods.
 
-[CountClust + tSNE analysis of scRNA-seq data from Feb 2016 - GRN0535](pbmc_GRN535.html)
+- [CountClust + tSNE analysis of scRNA-seq data from Aug 2013 - MCC1050](pbmc_MCC1050.html)
 
-[CountClust + tSNE analysis of scRNA-seq data from Aug 2013 - GRN0760](pbmc_GRN760.html)
+- [CountClust + tSNE analysis of scRNA-seq data from Feb 2015 - GRN0304](pbmc_GRN304.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from Feb 2016 - GRN0535](pbmc_GRN535.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from Aug 2013 - GRN0760](pbmc_GRN760.html)
+
 
 We also pool the single cell data from the four time periods and perform the clustering.
 
-[CountClust + tSNE analysis of scRNA-seq data from all 4 time periods](aggregated_PBMC.html)
+- [CountClust + tSNE analysis of scRNA-seq data from all 4 time periods](aggregated_PBMC.html)
 
+
+Based on the above studies, we note down the summary of the results obtained.
+
+- 
 
 ## Summary of the results from the analysis 
+
+
 
 
 
