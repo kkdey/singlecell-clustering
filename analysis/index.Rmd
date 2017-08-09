@@ -5,6 +5,7 @@ output:
     toc: false
 ---
 
+## Merkel Cell Carcinoma Data Study
 
 We explore the clustering results using CountClust on the single cell RNA seq data to identify mechanism of Merkel Cell Carcinoma response and escape from T Cell Immunotherapy [PI: Aude Chapuis]. 
 
@@ -30,13 +31,78 @@ We also pool the single cell data from the four time periods and perform the clu
 
 Based on the above studies, we note down the summary of the results obtained.
 
-- 
 
-## Summary of the results from the analysis 
-
+### Summary of the results from the analysis 
 
 
+- A common pattern observed for each of the individual CountClust analysis done at each of the 4 time periods is that for $K=3$, one cluster seems to be driven by the myeloid markers like the S100* group, another by the hemoglobin expressed genes and finally a cluster that is driven by the cancer related genes. We however see the proportional representation of these clusters to vary from one time period to the other.
 
+-  For higher order clusters, we sometimes get additional clusters to be driven by the cytotoxic T cell related genes (GZMA, GZMH) and NK cell related genes (NKG7). Also for further higher order clusters, PF4 or megakaryocyte gene related clusters are also observed. Plus, higher clusters also include clusters driven by CD74, CD79 and CD79A, which are markers for B cells. We also find a close connection of known markers for different cell types with the different higher order clusters we are observing (PF4, CD79A, CD74, S100A9, S100A8 etc). 
+
+- For MCC1050, we find very low proportional representation of the hemoglobin related genes in the cells. This is at early stages of tumor progression before the T cells have been infused. Note that the samples at this stage are a combination of PBMCs, TILs and sc tumor digest. 
+
+- For GRN304, we see a clearer separation of the clusters, and the hemoglobin related cluster seems to now occur in a handful of cells (much higher proportion compared to the first time). The samples at this stage are PBMCs.
+
+- For GRN535, which is taken towards the end of the treatment period, we see a great reduction in the representation of the hemoglobin gene driven cluster. The myeloid cells cluster and the one driven by MALAT1, B2M dominate most tof the cells at this stage. It is known that radiation therapy can cause low levels of RBCs and WBCs resulting in low blood cell counts. That could be a possible reason why the hemoglobin genes are expressed in a small proportion of cells at this stage. The samples at this stage are PBMCs.
+
+- During the final stage when the cancer has relapsed, we see the proportion of hemoglobin expressed genes has increased again. The samples at this stage are a combination of PBMCss, TILs and sc tumor digests.
+
+- When we aggregate the data across the 4 time points, we fortunately do not see much bias due to batch effects resulting from cell collection and sequencing at these different time points. Because the data is clean, a lot of the features we see in the clusters in each of these time periods, is also visible for the pooled data across the 4 time periods.
+
+- Even for the combined data, for $K=3$, the groups are similar to the individual time period data. For $K=6$, we get a cluster determined by CD79A, CD79B and CD74. This could be the B cell receptor cells. Also the 1st cluster seems to be driven by cancer related genes and markers for NK cells.Also, other clusters include myeloid lineage cells (S100*) and the hemoglobin related cells (likely RBCs).
+
+
+## HIV Data study
+
+We next apply countClust and project the results on tSNE plot for three HIV+ and one HIV- patients. The single cell data were collected from Live cells and TF sorted cells. Also, for each case, the cells were obtained either from lymph node (LN) or from PBMCs. 
+
+We first look at results from application of CountClust separately on the LN and PBMC data from Live cells
+and TF sorted cells from each patient. 
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in TFH146](tsne_countclust_TFH146_Live.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in TFH041](tsne_countclust_TFH041_Live.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in TFH095](tsne_countclust_TFH095_Live.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in MP146](tsne_countclust_MP046_Live.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH146](tsne_countclust_TFH146_TF.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH041](tsne_countclust_TFH041_TF.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH095](tsne_countclust_TFH095_TF.html)
+
+
+We next combine the LN and PBMC data and apply CountClust and visualize by tSNE the results.
+
+First we do it for the Live cells
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in Live cells in TFH095](tsne_countclust_TFH095_Live_pooled.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in Live cells in TFH146](tsne_countclust_TFH146_Live_pooled.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in Live cells in TFH041](tsne_countclust_TFH041_Live_pooled.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in Live cells in MP046](tsne_countclust_MP046_Live_pooled.html)
+
+
+Next we do the same for the TF sorted cells
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in TF sorted cells in TFH146](tsne_countclust_TFH146_TF_pooled.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in TF sorted cells in TFH041](tsne_countclust_TFH041_TF_pooled.html)
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in TF sorted cells in MP046](tsne_countclust_MP046_TF_pooled.html)
+
+We also check for the individual specific effects in driving the clusters by merging the TF sorted cells from two individuals together and then running CountClust on the merged data.
+
+- [CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in TF sorted cells in TFH041+TFH146](tsne_countclust_TF_TFH041_TFH146.html)
+
+
+The summary of the results from above study are as follows
+
+### Summary of the results from the analysis 
 
 
 
