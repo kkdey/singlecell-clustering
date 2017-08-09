@@ -6,7 +6,7 @@ output:
 ---
 
 
-We explore the clustering results using Countclust on the single cell RNA seq data obtained using Dropseq method from an individual suffering from cancer across four time periods (August 2013, February 2015, February 2016 and October 2016). August 2013 is around the first onset of cancer, February 2015 is when the treatment is started, February 2016 is a time period inside of the treatment period when the treatment seems to be working. Post this, the cancer relapses and October 2016 corresponds to a time period when the cancer has relapsed.
+We explore the clustering results using CountClust on the single cell RNA seq data obtained using Dropseq method from an individual suffering from cancer across four time periods (August 2013, February 2015, February 2016 and October 2016). August 2013 is around the first onset of cancer, February 2015 is when the treatment is started, February 2016 is a time period inside of the treatment period when the treatment seems to be working. Post this, the cancer relapses and October 2016 corresponds to a time period when the cancer has relapsed.
 
 We first look at the clustering of the single cells for each of the four time periods.
 
