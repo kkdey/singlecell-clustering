@@ -246,7 +246,7 @@ $(document).ready(function () {
 <li><p><a href="tsne_countclust_TFH146_Live.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in TFH146</a></p></li>
 <li><p><a href="tsne_countclust_TFH041_Live.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in TFH041</a></p></li>
 <li><p><a href="tsne_countclust_TFH095_Live.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in TFH095</a></p></li>
-<li><p><a href="tsne_countclust_MP046_Live.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in MP146</a></p></li>
+<li><p><a href="tsne_countclust_MP046_Live.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in MP046</a></p></li>
 <li><p><a href="tsne_countclust_TFH146_TF.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH146</a></p></li>
 <li><p><a href="tsne_countclust_TFH041_TF.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH041</a></p></li>
 <li><p><a href="tsne_countclust_TFH095_TF.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH095</a></p></li>
@@ -269,50 +269,40 @@ $(document).ready(function () {
 <ul>
 <li><a href="tsne_countclust_TF_TFH041_TFH146.html">CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in TF sorted cells in TFH041+TFH146</a></li>
 </ul>
-<p>The summary of the results from above study are as follows</p>
 <div id="summary-of-the-results-from-the-analysis-1" class="section level3">
 <h3>Summary of the results from the analysis</h3>
-<p>We check for the UMI patterns and dropout rates compared to the characteristics of the genes like gene length, GC content etc.</p>
+<ul>
+<li><p>For TFH146, we find that in the LN cells, there is a cluster pattern driven by CD74 and other HLA related genes. The same is not observed for the PBMC cells, but the latter shows some clustering due to myeloid markers like S100*.</p></li>
+<li><p>For TFH095, in LN cells, we see the HLA driven cluster, as in TFH146. On the other hand for PBMCs, for <span class="math inline">\(K=3\)</span>, we see a cluster driven by cytotoxic cells and NK cells and then a cluster that is driven by a mix of HLA and S100* genes. My feeling is that we will get a further split for higher <span class="math inline">\(K\)</span>.</p></li>
+<li><p>So many HLA genes driven cluster was not observed for the cancer study as is in this case.</p></li>
+<li><p>For TF sorted cells in TFH146, no clear clustering pattern is observed from the t-sne plot in case of the LN cells and PBMC cells.</p></li>
+<li><p>For TF sorted cells in LN in TFH041, one cluster is dominated by HLA genes, anotherby CD3D, CCL5, CD48 etc. These are the two clear clusters observed in this data.</p></li>
+<li><p>When we combine the LN and PBMC cells, the first distinct grouping is between the LN cells and the PBMC cells.</p></li>
+<li><p>In TFH095, for <span class="math inline">\(K=3\)</span>, the three clusters are formed as follows - one by HLA genes, one by NK related genes, GZMA, GZMH, GNLY etc, and the third by markers like CD3D,CD2, CM1 etc</p></li>
+<li><p>Also when cells from two individuals are mixed (TF sorted cells in this case from TFH041 and TFH146), then the first clustering is at the level of the individual as checked by the last script.</p></li>
+</ul>
 </div>
 </div>
-<div id="exploration-of-scrna-seq-data---umi-dropouts-etc." class="section level2">
-<h2>Exploration of scRNA-seq data - UMI, dropouts etc.</h2>
-<p><a href="umi_study_TFH.html">UMI study for TFH146</a></p>
-<p><a href="dropout_study.html">Dropout rates versus position of the genes along chromosome and pathway groups</a></p>
-<p><a href="dropout_gc_study.html">Dropout rates versus GC content of the genes</a></p>
+<div id="exploration-of-the-umis" class="section level2">
+<h2>Exploration of the UMIs</h2>
+<p>The data in both the MCC and the HIV studies are UMI data. We checked for possible biases in the UMI assignment which would affect the counts of the UMIs and may require further normalization. We look first at how the number of UMIs assigned to a gene changes based on the properties of the gene - namely, the number of TSS, the GC content, the length of the gene etc.</p>
+<p>Previous studies tend to indicate that unlike the read counts, the UMI counts are stable with respect to the gene length. This is good for CountClust, as the latter does not notmalize the data by gene lengths and only performs the library size normalization. This would suggest that CountClust should adapt better in handling UMI data compared to non UMI data for single cell studies.</p>
+<ul>
+<li><p><a href="umi_study_TFH.html">UMI study for TFH146</a></p></li>
+<li><p><a href="umi_study_2.html">UMI versus Transcription Start Sites of the genes</a></p></li>
+<li><p><a href="umi_study_3.html">UMI versus Transcript count and Transcript length of the genes</a></p></li>
+<li><p><a href="dropout_study.html">Dropout rates versus position of the genes along chromosome and pathway groups</a></p></li>
+<li><p><a href="dropout_gc_study.html">Dropout rates versus GC content of the genes</a></p></li>
+</ul>
 <p>We next perform an analysis of the dispersion of genes against the average expression using Seurat and do a pathway based enrichment analysis of the genes that seem to be outliers in this plot.</p>
-<p><a href="cvplot_analysis.html">Dispersion versus Average expression analysis</a></p>
-</div>
-<div id="countclust-analysis-of-the-joint-ln-and-pbmc-cells-for-live-cells-and-tfh-sorted-cells" class="section level2">
-<h2>CountClust analysis of the joint LN and PBMC cells for Live cells and TFH sorted cells</h2>
-<p>We apply CountClust Grade of Membership (GoM) model for clustering the single cell data from lymph node (LN) and peripheral blood mononuclear cells (PBMC) of three HIV- and one HIV+ patients.</p>
-<p>An example of countclust fit on single cell data from one patient (TFH146) on just the Live cells.</p>
-<p><a href="ex_countclust.html">Example application of CountClust</a></p>
-<p><a href="test_script.html">CountClust on TFH146 scRNA-seq data</a></p>
-<p><a href="tfh041Explore.html">CountClust on TFH041 scRNA-seq data</a></p>
-<p><a href="tfh095Explore.html">CountClust on TFH095 scRNA-seq data</a></p>
-<p><a href="mp046Explore.html">CountClust on MP046 scRNA-seq data</a></p>
-</div>
-<div id="separate-countclust-analysis-of-the-ln-and-pbmc-cells" class="section level2">
-<h2>Separate CountClust analysis of the LN and PBMC cells</h2>
-<p>Separate Grade of Membership model fit and subsequent gene annotations and gene set enrichment analysis of the clusters, for the different patients</p>
-<p>First, we perform this analysis for TFH146</p>
-<p><a href="separate_countclust_LN_PBMC_Live_TFH146.html">CountClust application separately on LN and PBMC Live cells for TFH146</a></p>
-<p><a href="separate_countclust_LN_PBMC_TFH_TFH146.html">CountClust application separately on LN and PBMC TFH cells for TFH146</a></p>
-<p>Next we perform the analysis for TFH041</p>
-<p><a href="separate_countclust_LN_PBMC_Live_TFH041.html">CountClust application separately on LN and PBMC Live cells for TFH041</a></p>
-<p><a href="separate_countclust_LN_PBMC_TFH_TFH041.html">CountClust application separately on LN and PBMC TFH cells for TFH041</a></p>
-<p>Finally the analysis on the Live cells for the TFH095 and MP046</p>
-<p><a href="separate_countclust_LN_PBMC_Live_TFH095.html">CountClust application separately on LN and PBMC Live cells for TFH095</a></p>
-<p><a href="separate_countclust_LN_PBMC_Live_MP046.html">CountClust application separately on LN and PBMC Live cells for MP046</a></p>
-</div>
-<div id="comparison-of-countclust-results-with-t-sne" class="section level2">
-<h2>Comparison of CountClust results with t-SNE</h2>
-<p>We projected the expression of top driving genes from fitting the CountClust model on the t-SNE space obtained using the Seurat package by Satijalab.</p>
-<p>The projections for TFH146, TFH041 and TFH095 are</p>
-<p><a href="tsne_countclust_TFH146.html">t-SNE projection of CountClust top cluster driving genes - TFH 146</a></p>
-<p><a href="tsne_countclust_TFH095.html">t-SNE projection of CountClust top cluster driving genes - TFH 095</a></p>
-<p><a href="tsne_countclust_TFH041.html">t-SNE projection of CountClust top cluster driving genes - TFH 041</a></p>
+<ul>
+<li><a href="cvplot_analysis.html">Dispersion versus Average expression analysis</a></li>
+</ul>
+<p>Finally, we have seen that usually there is a bias in the base composition of the UMIs that get added to the reads which are finally mapped. This seemed to be a big issue in the Fluidigm data we looked at before, but we wanted to check if they indeed play a role even for this data. The results summarized below suggest that the UMI bias is not appreciable for this data.</p>
+<ul>
+<li><a href="umi_composition.html">UMI base composition study : 10X Genomics vs Fluidigm</a></li>
+</ul>
+<p>Overall we did not see a relationship between the UMI patterns and the gene structure, we found very little compositional bias specially at the first few sites.</p>
 </div>
 
 <hr>
