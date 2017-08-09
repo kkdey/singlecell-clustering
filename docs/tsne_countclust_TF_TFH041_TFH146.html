@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>Pantaleo exploratory analysis - TFH041 + TFH146 pooled</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Pantaleo exploratory analysis - TFH041 + TFH146 pooled</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>8/8/2017</em></h4>
+
+</div>
+
+
+<div id="t-sne-projection" class="section level2">
+<h2>t-SNE projection</h2>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+</div>
+<div id="cluster-analysis" class="section level2">
+<h2>Cluster analysis</h2>
+<pre class="r"><code>PlotCountClust(topic_clus[[2]], fac)</code></pre>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[3]], fac)</code></pre>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-23-2.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[4]], fac)</code></pre>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-23-3.png" width="672" /></p>
+</div>
+<div id="t-sne-projection-countclust-coloring" class="section level2">
+<h2>t-SNE projection + CountClust coloring</h2>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+</div>
+<div id="k2-driving-genes" class="section level2">
+<h2>K=2 driving genes</h2>
+<div id="cluster-1" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##    symbol                                          name
+## 1    CD3D                                 CD3d molecule
+## 2    IL32                                interleukin 32
+## 3     CD2                                  CD2 molecule
+## 4  GIMAP7                  GTPase, IMAP family member 7
+## 5    CD3G                                 CD3g molecule
+## 6    IL7R                        interleukin 7 receptor
+## 7  HSPA1A heat shock protein family A (Hsp70) member 1A
+## 8   ITM2A                  integral membrane protein 2A
+## 9   KLRB1           killer cell lectin like receptor B1
+## 10   CD3E                                 CD3e molecule
+## 11    MAF                 MAF bZIP transcription factor
+## 12 GIMAP4                  GTPase, IMAP family member 4
+## 13   GBP2                   guanylate binding protein 2
+## 14 SH2D1A                      SH2 domain containing 1A</code></pre>
+</div>
+<div id="cluster-2" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol
+## 1     MS4A1
+## 2   HLA-DRA
+## 3     BANK1
+## 4  HLA-DQA1
+## 5     MEF2C
+## 6     CD79A
+## 7    MALAT1
+## 8      CD74
+## 9      TCF4
+## 10     IRF8
+## 11     CD19
+## 12     CYBB
+## 13    TLR10
+## 14   ADAM28
+## 15   MARCH1
+## 16 HLA-DRB1
+## 17    FCRLA
+## 18    TCL1A
+## 19     CD83
+## 20   VPREB3
+## 21     PAX5
+## 22    FCRL1
+## 23   BCL11A
+## 24    FCRL3
+## 25 HLA-DPA1
+## 26      SYK
+## 27      BTK
+## 28     BLNK
+## 29      LYN
+## 30      BLK
+## 31  HLA-DOA
+## 32    CXCR4
+## 33   FCGR2B
+## 34   MARCKS
+## 35      CR2
+## 36  HLA-DOB
+##                                                                           name
+## 1                                               membrane spanning 4-domains A1
+## 2                         major histocompatibility complex, class II, DR alpha
+## 3                               B-cell scaffold protein with ankyrin repeats 1
+## 4                       major histocompatibility complex, class II, DQ alpha 1
+## 5                                                   myocyte enhancer factor 2C
+## 6                                                               CD79a molecule
+## 7  metastasis associated lung adenocarcinoma transcript 1 (non-protein coding)
+## 8                                                                CD74 molecule
+## 9                                                       transcription factor 4
+## 10                                              interferon regulatory factor 8
+## 11                                                               CD19 molecule
+## 12                                                 cytochrome b-245 beta chain
+## 13                                                       toll like receptor 10
+## 14                                             ADAM metallopeptidase domain 28
+## 15                                   membrane associated ring-CH-type finger 1
+## 16                       major histocompatibility complex, class II, DR beta 1
+## 17                                                          Fc receptor like A
+## 18                                                 T-cell leukemia/lymphoma 1A
+## 19                                                               CD83 molecule
+## 20                                    V-set pre-B cell surrogate light chain 3
+## 21                                                                paired box 5
+## 22                                                          Fc receptor like 1
+## 23                                                     B-cell CLL/lymphoma 11A
+## 24                                                          Fc receptor like 3
+## 25                      major histocompatibility complex, class II, DP alpha 1
+## 26                                           spleen associated tyrosine kinase
+## 27                                                      Bruton tyrosine kinase
+## 28                                                               B-cell linker
+## 29                              LYN proto-oncogene, Src family tyrosine kinase
+## 30                              BLK proto-oncogene, Src family tyrosine kinase
+## 31                        major histocompatibility complex, class II, DO alpha
+## 32                                            C-X-C motif chemokine receptor 4
+## 33                                             Fc fragment of IgG receptor IIb
+## 34                       myristoylated alanine rich protein kinase C substrate
+## 35                                                   complement C3d receptor 2
+## 36                         major histocompatibility complex, class II, DO beta</code></pre>
+</div>
+</div>
+<div id="k2-t-sne-gene-expression" class="section level2">
+<h2>K=2 t-SNE gene expression</h2>
+<div id="cluster-1-imp-genes" class="section level3">
+<h3>cluster 1 imp genes</h3>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+</div>
+<div id="cluster-2-imp-genes" class="section level3">
+<h3>cluster 2 imp genes</h3>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+</div>
+</div>
+<div id="k3-driving-genes" class="section level2">
+<h2>K=3 driving genes</h2>
+<div id="cluster-1-1" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol
+## 1     MS4A1
+## 2   HLA-DRA
+## 3     TXNIP
+## 4  HLA-DRB1
+## 5     BANK1
+## 6  HLA-DQA1
+## 7    MALAT1
+## 8     MEF2C
+## 9  HLA-DQB1
+## 10    CD79A
+##                                                                           name
+## 1                                               membrane spanning 4-domains A1
+## 2                         major histocompatibility complex, class II, DR alpha
+## 3                                              thioredoxin interacting protein
+## 4                        major histocompatibility complex, class II, DR beta 1
+## 5                               B-cell scaffold protein with ankyrin repeats 1
+## 6                       major histocompatibility complex, class II, DQ alpha 1
+## 7  metastasis associated lung adenocarcinoma transcript 1 (non-protein coding)
+## 8                                                   myocyte enhancer factor 2C
+## 9                        major histocompatibility complex, class II, DQ beta 1
+## 10                                                              CD79a molecule</code></pre>
+</div>
+<div id="cluster-2-1" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##    symbol                                name
+## 1  S100A4     S100 calcium binding protein A4
+## 2    IL32                      interleukin 32
+## 3  GIMAP7        GTPase, IMAP family member 7
+## 4  S100A6     S100 calcium binding protein A6
+## 5     CD2                        CD2 molecule
+## 6    HAP1     huntingtin associated protein 1
+## 7     VIM                            vimentin
+## 8   ITGB1             integrin subunit beta 1
+## 9    CD3D                       CD3d molecule
+## 10   CD3G                       CD3g molecule
+## 11   IL7R              interleukin 7 receptor
+## 12 GIMAP4        GTPase, IMAP family member 4
+## 13  ANXA1                          annexin A1
+## 14  KLRB1 killer cell lectin like receptor B1
+## 15 LGALS1                          galectin 1</code></pre>
+</div>
+<div id="cluster-3" class="section level3">
+<h3>cluster 3</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##    symbol                                                       name
+## 1  DNAJB1           DnaJ heat shock protein family (Hsp40) member B1
+## 2  HSPA1B              heat shock protein family A (Hsp70) member 1B
+## 3  HSPA1A              heat shock protein family A (Hsp70) member 1A
+## 4   ITM2A                               integral membrane protein 2A
+## 5     MAF                              MAF bZIP transcription factor
+## 6  SH2D1A                                   SH2 domain containing 1A
+## 7   TIGIT             T-cell immunoreceptor with Ig and ITIM domains
+## 8  TBC1D4                                TBC1 domain family member 4
+## 9  NBEAL2                                        neurobeachin like 2
+## 10  PDCD1                                    programmed cell death 1
+## 11   CCL5                               C-C motif chemokine ligand 5
+## 12   ICA1                                   islet cell autoantigen 1
+## 13   CD3E                                              CD3e molecule
+## 14 CXCL13                            C-X-C motif chemokine ligand 13
+## 15  ZAP70 zeta chain of T-cell receptor associated protein kinase 70</code></pre>
+</div>
+</div>
+<div id="k3-t-sne-gene-expression" class="section level2">
+<h2>K=3 t-SNE gene expression</h2>
+<div id="cluster-1-imp-genes-1" class="section level3">
+<h3>cluster 1 imp genes</h3>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+</div>
+<div id="cluster-2-imp-genes-1" class="section level3">
+<h3>cluster 2 imp genes</h3>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+</div>
+<div id="cluster-3-imp-genes" class="section level3">
+<h3>cluster 3 imp genes</h3>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+</div>
+</div>
+<div id="k4-driving-genes" class="section level2">
+<h2>K=4 driving genes</h2>
+<div id="cluster-1-2" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol
+## 1     MS4A1
+## 2   HLA-DRA
+## 3     TXNIP
+## 4  HLA-DRB1
+## 5     BANK1
+## 6  HLA-DPB1
+## 7  HLA-DQA1
+## 8    NAP1L1
+## 9    MALAT1
+## 10  ZFP36L1
+## 11    MEF2C
+## 12 HLA-DQB1
+## 13     CD48
+## 14    BIRC3
+## 15  SLC25A6
+## 16    CD79A
+##                                                                           name
+## 1                                               membrane spanning 4-domains A1
+## 2                         major histocompatibility complex, class II, DR alpha
+## 3                                              thioredoxin interacting protein
+## 4                        major histocompatibility complex, class II, DR beta 1
+## 5                               B-cell scaffold protein with ankyrin repeats 1
+## 6                        major histocompatibility complex, class II, DP beta 1
+## 7                       major histocompatibility complex, class II, DQ alpha 1
+## 8                                         nucleosome assembly protein 1 like 1
+## 9  metastasis associated lung adenocarcinoma transcript 1 (non-protein coding)
+## 10                                            ZFP36 ring finger protein like 1
+## 11                                                  myocyte enhancer factor 2C
+## 12                       major histocompatibility complex, class II, DQ beta 1
+## 13                                                               CD48 molecule
+## 14                                         baculoviral IAP repeat containing 3
+## 15                                           solute carrier family 25 member 6
+## 16                                                              CD79a molecule</code></pre>
+</div>
+<div id="cluster-2-2" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##    symbol                                       name
+## 1  S100A4            S100 calcium binding protein A4
+## 2    CD3D                              CD3d molecule
+## 3    IL32                             interleukin 32
+## 4  GIMAP7               GTPase, IMAP family member 7
+## 5    IL7R                     interleukin 7 receptor
+## 6     CD2                               CD2 molecule
+## 7  TMSB4X                  thymosin beta 4, X-linked
+## 8  S100A6            S100 calcium binding protein A6
+## 9    HAP1            huntingtin associated protein 1
+## 10   ETS1 ETS proto-oncogene 1, transcription factor
+## 11    VIM                                   vimentin
+## 12   LCP1             lymphocyte cytosolic protein 1
+## 13  ITGB1                    integrin subunit beta 1
+## 14   CD3G                              CD3g molecule</code></pre>
+</div>
+<div id="cluster-3-1" class="section level3">
+<h3>cluster 3</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##    symbol                                             name
+## 1  DNAJB1 DnaJ heat shock protein family (Hsp40) member B1
+## 2  HSPA1B    heat shock protein family A (Hsp70) member 1B
+## 3  HSPA1A    heat shock protein family A (Hsp70) member 1A
+## 4   ITM2A                     integral membrane protein 2A
+## 5     MAF                    MAF bZIP transcription factor
+## 6  SH2D1A                         SH2 domain containing 1A
+## 7   TIGIT   T-cell immunoreceptor with Ig and ITIM domains
+## 8  TBC1D4                      TBC1 domain family member 4
+## 9   PDCD1                          programmed cell death 1
+## 10 NBEAL2                              neurobeachin like 2
+## 11   ICA1                         islet cell autoantigen 1
+## 12   CD3E                                    CD3e molecule
+## 13 CXCL13                  C-X-C motif chemokine ligand 13
+## 14   TCF7                           transcription factor 7
+## 15   ACTB                                       actin beta</code></pre>
+</div>
+<div id="cluster-4" class="section level3">
+<h3>cluster 4</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##   symbol                         name
+## 1   CCL5 C-C motif chemokine ligand 5
+## 2   GNLY                   granulysin
+## 3   CCL4 C-C motif chemokine ligand 4</code></pre>
+</div>
+</div>
+<div id="k4-t-sne-gene-expression" class="section level2">
+<h2>K=4 t-SNE gene expression</h2>
+<div id="cluster-1-imp-genes-2" class="section level3">
+<h3>cluster 1 imp genes</h3>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
+</div>
+<div id="cluster-2-imp-genes-2" class="section level3">
+<h3>cluster 2 imp genes</h3>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+</div>
+<div id="cluster-3-imp-genes-1" class="section level3">
+<h3>cluster 3 imp genes</h3>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+</div>
+<div id="cluster-4-imp-genes" class="section level3">
+<h3>cluster 4 imp genes</h3>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-42-1.png" width="672" /></p>
+</div>
+</div>
+<div id="t-sne-projection-of-common-marker-genes" class="section level2">
+<h2>t-SNE projection of common marker genes</h2>
+<p>We take some markers for T-cells, B cells and NK cells next, and see which cluster they correspond to ? We use markers CD3D (T cell receptor complex), CD79A (B cells), CD4 (B cells), CLEC4C (B cells), NKG7 (Natural killer cells), FCER1A (dendritic), CD16, S100A8 (myeloid cells) and S100A9 (myeloid cells), CCR10 (memory T cells), TNFRSF18 (memory T cells), PF4 (megakaryocytes), SIGLEC7 (NK cells), GZMK, CD8A (CD8+ T cells) as per Zheng et al paper.</p>
+<p><img src="tsne_countclust_TF_TFH041_TFH146_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
