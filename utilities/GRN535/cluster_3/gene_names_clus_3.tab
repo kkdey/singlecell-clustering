@@ -1,0 +1,18 @@
+p-value	q-value	pathway	source	external_id	members_input_overlap	members_input_overlap_geneids	size	effective_size
+9.32178974773e-12	4.38124118143e-10	Erythrocytes take up oxygen and release carbon dioxide	Reactome	R-HSA-1247673	HBA1; CA1; HBA2; SLC4A1; HBB	3043; 3040; 6521; 3039; 759	9	9
+9.45397449364e-11	1.110842003e-09	hemoglobins chaperone	BioCarta	ahsppathway	HBA1; ALAS2; HBA2; AHSP; HBB	212; 3043; 3040; 3039; 51327	13	13
+9.45397449364e-11	1.110842003e-09	Erythrocytes take up carbon dioxide and release oxygen	Reactome	R-HSA-1237044	HBA1; CA1; HBA2; SLC4A1; HBB	3043; 3040; 6521; 759; 3039	13	13
+9.45397449364e-11	1.110842003e-09	O2/CO2 exchange in erythrocytes	Reactome	R-HSA-1480926	HBA1; CA1; HBA2; SLC4A1; HBB	3043; 3040; 6521; 759; 3039	13	13
+2.06142253546e-09	1.93773718334e-08	Malaria - Homo sapiens (human)	KEGG	path:hsa05144	HBA2; HBB; HBA1; GYPA; GYPB; GYPC	2993; 2994; 2995; 3039; 3040; 3043	49	49
+3.18162058119e-06	2.49226945526e-05	Scavenging of heme from plasma	Reactome	R-HSA-2168880	HBA1; HBA2; HBB	3040; 3043; 3039	12	12
+8.33287539414e-05	0.000559493062178	African trypanosomiasis - Homo sapiens (human)	KEGG	path:hsa05143	HBA1; HBA2; HBB	3039; 3040; 3043	35	34
+0.000157680578037	0.000926373395969	Binding and Uptake of Ligands by Scavenger Receptors	Reactome	R-HSA-2173782	HBA1; HBA2; HBB	3043; 3039; 3040	42	42
+0.0010312206917	0.0053852636122	Metabolism of porphyrins	Reactome	R-HSA-189445	BLVRB; ALAS2	212; 645	19	19
+0.00210998341527	0.00991692205176	Cell surface interactions at the vascular wall	Reactome	R-HSA-202733	BSG; GYPA; GYPB; GYPC	2994; 2993; 2995; 682	219	218
+0.00262533337541	0.0112173335131	Metabolism	Reactome	R-HSA-1430728	HBA2; BPGM; CA1; ALAS2; HBB; SLC25A37; SLC4A1; PHOSPHO1; HBA1; BLVRB; BSG; GMPR	3040; 2766; 759; 162466; 3043; 682; 669; 51312; 212; 6521; 645; 3039	2035	2021
+0.00330405935423	0.0129408991374	Porphyrin metabolism	EHMN	Porphyrin metabolism	SLC38A5; ALAS2	212; 92745	34	34
+0.00430667594194	0.0152773255686	Transmembrane transport of small molecules	Reactome	R-HSA-382551	SLC38A5; SLC14A1; DMTN; SLC4A1; UBB; BSG	2039; 92745; 6563; 682; 7314; 6521	628	626
+0.00455069272257	0.0152773255686	Glycine, serine and threonine metabolism - Homo sapiens (human)	KEGG	path:hsa00260	ALAS2; BPGM	669; 212	40	40
+0.00500748305196	0.0156901135628	Porphyrin and chlorophyll metabolism - Homo sapiens (human)	KEGG	path:hsa00860	BLVRB; ALAS2	645; 212	42	42
+0.00551162058556	0.0161903854701	SLC-mediated transmembrane transport	Reactome	R-HSA-425407	SLC38A5; BSG; SLC4A1; SLC14A1	6521; 6563; 92745; 682	286	285
+0.0073110848175	0.0202129992013	Vitamin B12 Metabolism	Wikipathways	WP1533	HBA1; HBB	3043; 3039	51	51

@@ -1,0 +1,431 @@
+---
+title: 'Gene Set Enrichment Analysis : GRN545 MCC data'
+author: "Kushal K Dey"
+date: "8/10/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(Seurat)
+library(plyr)
+library(dplyr)
+library(Matrix)
+library(cowplot)
+library(stringr)
+library(MAST)
+library(doMC)
+library(pheatmap)
+library(grid)
+library(stringr)
+library(CountClust)
+```
+
+We perform gene set enrichment analysis of the driving genes in the HIV dataset.
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_GRN535.rda"))
+```
+
+Countlust output.
+
+```{r}
+topic_clus <- get(load("../output/maptpx_GS_PBMC_2_2016_GRN0535_tpx.rda"))
+```
+
+```{r}
+indices <- ExtractTopFeatures(topic_clus[[2]]$theta, top_features = 50, method = "poisson", options = "max")
+imp_genes <- apply(indices, 1, function(x) return(rownames(topic_clus[[2]]$theta)[x]))
+```
+
+We save the results 
+
+```{r echo=FALSE, eval=TRUE}
+for(l in 1:dim(imp_genes)[2]){
+  write.table(imp_genes[,l], quote = FALSE, file = paste0("../utilities/GRN535/cluster_2/gene_names_clus_", l, ".txt"), row.names = FALSE, col.names = FALSE)
+}
+```
+
+## GRN535 - [K=2]
+
+
+### pathway analysis (cluster 1)
+
+
+```{r echo=FALSE, eval=TRUE}
+l <- 1
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_2/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+### pathway analysis (cluster 2)
+
+
+```{r echo=FALSE, eval=TRUE}
+l <- 2
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_2/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+
+
+## GRN535 - [K=3]
+
+```{r}
+indices <- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 50, method = "poisson", options = "max")
+imp_genes <- apply(indices, 1, function(x) return(rownames(topic_clus[[3]]$theta)[x]))
+```
+
+We save the results 
+
+```{r echo=FALSE, eval=TRUE}
+for(l in 1:dim(imp_genes)[2]){
+  write.table(imp_genes[,l], quote = FALSE, file = paste0("../utilities/GRN535/cluster_3/gene_names_clus_", l, ".txt"), row.names = FALSE, col.names = FALSE)
+}
+```
+
+### pathway analysis (cluster 1)
+
+
+```{r echo=FALSE, eval=TRUE}
+l <- 1
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_3/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+### pathway analysis (cluster 2)
+
+
+```{r echo=FALSE,eval=TRUE}
+l <- 2
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_3/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+### pathway analysis (cluster 3)
+
+
+```{r eco=FALSE, eval=TRUE}
+l <- 3
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_3/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+
+
+## GRN535 - [K=6]
+
+```{r}
+indices <- ExtractTopFeatures(topic_clus[[6]]$theta, top_features = 50, method = "poisson", options = "max")
+imp_genes <- apply(indices, 1, function(x) return(rownames(topic_clus[[6]]$theta)[x]))
+```
+
+We save the results 
+
+```{r echo=FALSE, eval=TRUE}
+for(l in 1:dim(imp_genes)[2]){
+  write.table(imp_genes[,l], quote = FALSE, file = paste0("../utilities/GRN535/cluster_6/gene_names_clus_", l, ".txt"), row.names = FALSE, col.names = FALSE)
+}
+```
+
+### pathway analysis (cluster 1)
+
+
+```{r echo=FALSE, eval=TRUE}
+l <- 1
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_6/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+### pathway analysis (cluster 2)
+
+
+```{r echo=FALSE, eval=TRUE}
+l <- 2
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_6/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+### pathway analysis (cluster 3)
+
+
+```{r echo=FALSE, eval=TRUE}
+l <- 3
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_6/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+### pathway analysis (cluster 4)
+
+
+```{r echo=FALSE, eval=TRUE}
+l <- 4
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_6/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+### pathway analysis (cluster 5)
+
+
+```{r echo=FALSE, eval=TRUE}
+l <- 5
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_6/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+### pathway analysis (cluster 6)
+
+
+```{r echo=FALSE, eval=TRUE}
+l <- 6
+pathway2 <- read.delim(paste0("../utilities/GRN535/cluster_6/gene_names_clus_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```

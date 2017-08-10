@@ -21,12 +21,23 @@ We consider the clustering of the single cells for each of the four time periods
 
 - [CountClust + tSNE analysis of scRNA-seq data from Feb 2016 - GRN0535](pbmc_GRN535.html)
 
-- [CountClust + tSNE analysis of scRNA-seq data from Aug 2013 - GRN0760](pbmc_GRN760.html)
+- [CountClust + tSNE analysis of scRNA-seq data from Oct 2016 - GRN0760](pbmc_GRN760.html)
 
 
 We also pool the single cell data from the four time periods and perform the clustering.
 
 - [CountClust + tSNE analysis of scRNA-seq data from all 4 time periods](aggregated_PBMC.html)
+
+We perform Gene Set Enrichment Analysis (GSEA) of the cluster driving gene sets obtained from the cluster
+model fits from each time period and also for aggregated data from 4 periods.
+
+- [GSEA of CountClust clusters from Aug 2013 - MCC1050](gsea_MCC1050.html)
+
+- [GSEA of CountClust clusters from Feb 2015 - GRN0304](gsea_GRN304.html)
+
+- [GSEA of CountClust clusters from Feb 2016 - GRN0535](gsea_GRN535.html)
+
+- [GSEA of CountClust clusters from Oct 2016 - GRN0760](gsea_GRN760.html)
 
 
 Based on the above studies, we note down the summary of the results obtained.
