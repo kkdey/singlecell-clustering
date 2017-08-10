@@ -1,0 +1,29 @@
+p-value	q-value	pathway	source	external_id	members_input_overlap	members_input_overlap_geneids	size	effective_size
+9.7946635722e-06	0.000572957387139	Th1 and Th2 cell differentiation - Homo sapiens (human)	KEGG	path:hsa04658	IL2RB; NFATC3; CD3D; GATA3; MAF	2625; 4775; 915; 3560; 4094	92	92
+1.20622607819e-05	0.000572957387139	Hematopoietic cell lineage - Homo sapiens (human)	KEGG	path:hsa04640	IL7R; CD5; CD3D; CD2; IL6R	914; 915; 921; 3570; 3575	97	96
+2.04530379103e-05	0.000647679533827	Th17 cell differentiation - Homo sapiens (human)	KEGG	path:hsa04659	IL2RB; NFATC3; CD3D; GATA3; IL6R	2625; 4775; 915; 3560; 3570	107	107
+0.000194310741401	0.00461488010827	Primary immunodeficiency - Homo sapiens (human)	KEGG	path:hsa05340	IL7R; PTPRC; CD3D	915; 5788; 3575	37	36
+0.000487334467865	0.00819071477402	Calcineurin-regulated NFAT-dependent transcription in lymphocytes	PID	nfat_tfpathway	NFATC3; GATA3; MAF	2625; 4775; 4094	49	49
+0.000517308301517	0.00819071477402	JAK STAT MolecularVariation 2	INOH	None	IL7R; IL2RB; IL6R	3570; 3575; 3560	50	50
+0.000743299837336	0.0100876406496	lck and fyn tyrosine kinases in initiation of tcr activation	BioCarta	tcrapathway	PTPRC; CD3D	915; 5788	13	13
+0.00100608421387	0.0109257765577	TCR	NetPath	Pathway_TCR	FYB; CD5; PTPRC; CD2; CD3D	914; 5788; 921; 915; 2533	247	246
+0.00127170805864	0.0109257765577	Downstream signaling in na&#xef;ve CD8+ T cells	PID	cd8tcrdownstreampathway	IL2RB; NFATC3; CD3D	4775; 915; 3560	68	68
+0.00132661338118	0.0109257765577	TCR signaling	Reactome	R-HSA-202403	FYB; PTPRC; CD3D	915; 5788; 2533	69	69
+0.00138299144113	0.0109257765577	TCR signaling in na&#xef;ve CD4+ T cells	PID	tcr_pathway	FYB; PTPRC; CD3D	915; 2533; 5788	70	70
+0.00150668939913	0.0109257765577	Jak-STAT signaling pathway - Homo sapiens (human)	KEGG	path:hsa04630	IL7R; IL2RB; IL6R; PIM1	5292; 3560; 3570; 3575	158	158
+0.00161011444008	0.0109257765577	gata3 participate in activating the th2 cytokine genes expression	BioCarta	gata3pathway	GATA3; MAF	2625; 4094	19	19
+0.00161011444008	0.0109257765577	T helper 17 (Th17) targets (ROYAN institute)	Wikipathways	WP3536	GATA3; IL6R	3570; 2625	19	19
+0.0017854458918	0.0113078239814	Olfactory bulb development and olfactory learning	Wikipathways	WP3609	AGTPBP1; ID2	3398; 23287	20	20
+0.00249690526122	0.0148253749885	C-MYB transcription factor network	PID	cmyb_pathway	MAF; GATA3; PIM1	5292; 2625; 4094	86	86
+0.00279112430929	0.0155974593755	stathmin and breast cancer resistance to antimicrotubule agents	BioCarta	stathminpathway	STMN1; CD2	3925; 914	25	25
+0.0030241175419	0.01596062036	T-Cell antigen Receptor (TCR) Signaling Pathway	Wikipathways	WP69	FYB; CD3D; GATA3	915; 2625; 2533	92	92
+0.00325261127481	0.0162630563741	Phosphorylation of CD3 and TCR zeta chains	Reactome	R-HSA-202427	PTPRC; CD3D	915; 5788	27	27
+0.00361510337643	0.017171741038	JAK STAT MolecularVariation 1	INOH	None	IL7R; IL2RB; IL6R	3560; 3570; 3575	98	98
+0.00427218822985	0.0184592993714	T cell receptor signaling pathway - Homo sapiens (human)	KEGG	path:hsa04660	PTPRC; NFATC3; CD3D	4775; 915; 5788	105	104
+0.00427478511759	0.0184592993714	role of mef2d in t-cell apoptosis	BioCarta	mef2dpathway	PTPRC; CD3D	915; 5788	31	31
+0.00455069272257	0.0187963395063	Development and heterogeneity of the ILC family	Wikipathways	WP3893	ID2; GATA3	2625; 3398	32	32
+0.00637326169949	0.0252274942271	Generation of second messenger molecules	Reactome	R-HSA-202433	FYB; CD3D	915; 2533	38	38
+0.00867173342251	0.0317487036991	HTLV-I infection - Homo sapiens (human)	KEGG	path:hsa05166	IL2RB; NFATC3; CD3D; XBP1	4775; 7494; 915; 3560	258	258
+0.00885105694889	0.0317487036991	activation of csk by camp-dependent protein kinase inhibits signaling through the t cell receptor	BioCarta	cskpathway	PTPRC; CD3D	915; 5788	45	45
+0.00902331578818	0.0317487036991	GPCRs, Class A Rhodopsin-like	Wikipathways	WP455	GPR171; LPAR6; CCR4; RGL4	29909; 1233; 266747; 10161	261	261
+0.00950649005494	0.0322541626864	Cytokine-cytokine receptor interaction - Homo sapiens (human)	KEGG	path:hsa04060	IL7R; IL2RB; CCR4; IL6R	1233; 3560; 3570; 3575	265	265

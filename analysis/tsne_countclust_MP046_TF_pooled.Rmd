@@ -22,7 +22,7 @@ library(CountClust)
 ```
 
 
-```{r}
+```{r echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
 TFH_LN_UMI <- read.table('../data/MP046/TFH Sorted/LN/reads.MP046_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt', header = TRUE, row.names = 1)
 TFH_LN_reads <- read.table('../data/MP046/TFH Sorted/LN/reads.MP046_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.txt', header = TRUE, row.names = 1)
 TFH_LN_UMI_summary <- read.table('../data/MP046/TFH Sorted/LN/reads.MP046_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt', header = TRUE, row.names = 1)
@@ -45,7 +45,7 @@ TFH_PBMC_UMI_summary <- TFH_PBMC_UMI_summary[colnames(TFH_PBMC_UMI), ]
 TFH_PBMC_reads_summary <- TFH_PBMC_reads_summary[colnames(TFH_PBMC_reads), ]
 ```
 
-```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
 ###--- Filtering datasets and merging
 #- LN
 identical(colnames(TFH_LN_UMI), rownames(TFH_LN_UMI_summary)) # TRUE
@@ -64,17 +64,17 @@ TFH_UMI[is.na(TFH_UMI)] <- 0 # NAs - replace NA by 0
 TFH_UMI <- as.data.frame(t(TFH_UMI))
 ```
 
-```{r}
+```{r echo=FALSE, eval=FALSE}
 TFH_fac <- c(rep("TFH_LN", dim(TFH_LN_UMI_filtered)[2]),
                    rep("TFH_PBMC", dim(TFH_PBMC_UMI_filtered)[2]))
 length(TFH_fac)
 ```
 
-```{r}
+```{r echo=FALSE, eval=FALSE}
 counts <- t(TFH_UMI)
 ```
 
-```{r}
+```{r echo=FALSE, eval=FALSE}
 idx <- which(!is.na(match(substring(colnames(counts), 1, 2), c("RP", "MT", "RN"))))
 counts2 <- counts[, -idx]
 ```

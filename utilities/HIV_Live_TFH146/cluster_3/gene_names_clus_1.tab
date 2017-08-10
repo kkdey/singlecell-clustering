@@ -1,0 +1,15 @@
+p-value	q-value	pathway	source	external_id	members_input_overlap	members_input_overlap_geneids	size	effective_size
+0.000182638942913	0.00631039640457	Oxidative Stress Regulatory Pathway (Erythrocyte)	PharmGKB	PA165980399	TXN; SOD1	6647; 7295	7	7
+0.000188370041927	0.00631039640457	Hematopoietic cell lineage - Homo sapiens (human)	KEGG	path:hsa04640	IL7R; CD5; CD3D; CD2	914; 915; 921; 3575	97	96
+0.000652477207704	0.0132670535497	Oxidative phosphorylation - Homo sapiens (human)	KEGG	path:hsa00190	COX7B; COX6A1; NDUFS5; PPA1	4725; 1337; 1349; 5464	133	133
+0.000792062898492	0.0132670535497	TCR	NetPath	Pathway_TCR	CD5; TRAT1; CD3D; CD2; SIT1	914; 50852; 921; 915; 27240	247	246
+0.0020820912416	0.0269640842783	TP53 Regulates Metabolic Genes	Reactome	R-HSA-5628897	COX6A1; TXN; COX7B	7295; 1349; 1337	86	85
+0.00258074413909	0.0269640842783	Huntington,s disease - Homo sapiens (human)	KEGG	path:hsa05016	COX6A1; COX7B; NDUFS5; SOD1	4725; 1349; 1337; 6647	193	193
+0.00349479288856	0.0269640842783	Respiratory electron transport	Reactome	R-HSA-611105	COX6A1; COX7B; NDUFS5	4725; 1349; 1337	103	102
+0.00359222767268	0.0269640842783	Electron Transport Chain	Wikipathways	WP111	COX7B; COX6A1; NDUFS5	4725; 1337; 1349	103	103
+0.00362204117172	0.0269640842783	Prostaglandin Synthesis and Regulation	Wikipathways	WP98	S100A10; S100A6	6281; 6277	30	30
+0.00490773058834	0.0315912487108	Detoxification of Reactive Oxygen Species	Reactome	R-HSA-3299685	TXN; SOD1	6647; 7295	36	35
+0.00518662292266	0.0315912487108	Primary immunodeficiency - Homo sapiens (human)	KEGG	path:hsa05340	IL7R; CD3D	915; 3575	37	36
+0.00616844481104	0.0344404835283	Respiratory electron transport, ATP synthesis by chemiosmotic coupling, and heat production by uncoupling proteins.	Reactome	R-HSA-163200	COX6A1; COX7B; NDUFS5	4725; 1349; 1337	126	125
+0.00875798049724	0.0387439775802	Parkinson,s disease - Homo sapiens (human)	KEGG	path:hsa05012	COX7B; COX6A1; NDUFS5	4725; 1337; 1349	142	142
+0.00907882381119	0.0387439775802	Downstream TCR signaling	Reactome	R-HSA-202424	TRAT1; CD3D	50852; 915	48	48

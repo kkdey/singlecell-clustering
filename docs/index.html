@@ -249,7 +249,6 @@ $(document).ready(function () {
 <li><p><a href="tsne_countclust_MP046_Live.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in Live cells in MP046</a></p></li>
 <li><p><a href="tsne_countclust_TFH146_TF.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH146</a></p></li>
 <li><p><a href="tsne_countclust_TFH041_TF.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH041</a></p></li>
-<li><p><a href="tsne_countclust_TFH095_TF.html">CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH095</a></p></li>
 </ul>
 <p>We next combine the LN and PBMC data and apply CountClust and visualize by tSNE the results.</p>
 <p>First we do it for the Live cells</p>
@@ -268,6 +267,10 @@ $(document).ready(function () {
 <p>We also check for the individual specific effects in driving the clusters by merging the TF sorted cells from two individuals together and then running CountClust on the merged data.</p>
 <ul>
 <li><a href="tsne_countclust_TF_TFH041_TFH146.html">CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in TF sorted cells in TFH041+TFH146</a></li>
+</ul>
+<p>We perform Gene Set Enrichment Analysis (GSEA) of the cluster driving gene sets obtained from the cluster model fits in some of the studies above.</p>
+<ul>
+<li><a href="gsea_HIV.html">GSEA of the clustr driving gene sets in HIV studies</a></li>
 </ul>
 <div id="summary-of-the-results-from-the-analysis-1" class="section level3">
 <h3>Summary of the results from the analysis</h3>

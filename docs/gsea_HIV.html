@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>Gene Set Enrichment Analysis : HIV data</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Gene Set Enrichment Analysis : HIV data</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>8/10/2017</em></h4>
+
+</div>
+
+
+<p>We perform gene set enrichment analysis of the driving genes in the HIV dataset.</p>
+<p>Countlust output.</p>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/TFH146/LN_Live/model2.rda&quot;))</code></pre>
+<pre class="r"><code>indices &lt;- ExtractTopFeatures(topic_clus[[2]]$theta, top_features = 50, method = &quot;poisson&quot;, options = &quot;max&quot;)
+imp_genes &lt;- apply(indices, 1, function(x) return(rownames(topic_clus[[2]]$theta)[x]))</code></pre>
+<p>We save the results</p>
+<div id="live-cells-ln---tfh146-k2" class="section level2">
+<h2>Live Cells (LN) - TFH146 [K=2]</h2>
+<div id="pathway-analysis-cluster-1" class="section level3">
+<h3>pathway analysis (cluster 1)</h3>
+<pre class="r"><code>l &lt;- 1
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_LN_TFH146/cluster_2/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Th1 and Th2 cell differentiation - Homo sapiens (human)          
+##  [2] Hematopoietic cell lineage - Homo sapiens (human)                
+##  [3] Th17 cell differentiation - Homo sapiens (human)                 
+##  [4] Primary immunodeficiency - Homo sapiens (human)                  
+##  [5] Calcineurin-regulated NFAT-dependent transcription in lymphocytes
+##  [6] JAK STAT MolecularVariation 2                                    
+##  [7] lck and fyn tyrosine kinases in initiation of tcr activation     
+##  [8] TCR                                                              
+##  [9] Downstream signaling in na&amp;#xef;ve CD8+ T cells                  
+## [10] TCR signaling                                                    
+## 28 Levels: activation of csk by camp-dependent protein kinase inhibits signaling through the t cell receptor ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="pathway-analysis-cluster-2" class="section level3">
+<h3>pathway analysis (cluster 2)</h3>
+<pre class="r"><code>l &lt;- 2
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_LN_TFH146/cluster_2/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+</div>
+<div id="live-cells-ln---tfh095-k2" class="section level2">
+<h2>Live Cells (LN) - TFH095 [K=2]</h2>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/TFH095/LN_Live/model2.rda&quot;))</code></pre>
+<pre class="r"><code>indices &lt;- ExtractTopFeatures(topic_clus[[2]]$theta, top_features = 50, method = &quot;poisson&quot;, options = &quot;max&quot;)
+imp_genes &lt;- apply(indices, 1, function(x) return(rownames(topic_clus[[2]]$theta)[x]))</code></pre>
+<p>We save the results</p>
+<div id="pathway-analysis-cluster-1-1" class="section level3">
+<h3>pathway analysis (cluster 1)</h3>
+<pre class="r"><code>l &lt;- 1
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_LN_TFH095/cluster_2/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] T-Cell antigen Receptor (TCR) Signaling Pathway   
+##  [2] Hematopoietic cell lineage - Homo sapiens (human) 
+##  [3] TCR signaling                                     
+##  [4] Generation of second messenger molecules          
+##  [5] TCR                                               
+##  [6] the co-stimulatory signal during t-cell activation
+##  [7] Th17 cell differentiation - Homo sapiens (human)  
+##  [8] IL12-mediated signaling events                    
+##  [9] Primary immunodeficiency - Homo sapiens (human)   
+## [10] CD4 T cell receptor signaling-ERK cascade         
+## 63 Levels: activation of csk by camp-dependent protein kinase inhibits signaling through the t cell receptor ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="pathway-analysis-cluster-2-1" class="section level3">
+<h3>pathway analysis (cluster 2)</h3>
+<pre class="r"><code>l &lt;- 2
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_LN_TFH095/cluster_2/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] MHC class II antigen presentation                                  
+##  [2] Allograft rejection - Homo sapiens (human)                         
+##  [3] Adaptive Immune System                                             
+##  [4] Graft-versus-host disease - Homo sapiens (human)                   
+##  [5] Type I diabetes mellitus - Homo sapiens (human)                    
+##  [6] Asthma - Homo sapiens (human)                                      
+##  [7] Hematopoietic cell lineage - Homo sapiens (human)                  
+##  [8] Autoimmune thyroid disease - Homo sapiens (human)                  
+##  [9] Antigen processing and presentation - Homo sapiens (human)         
+## [10] Intestinal immune network for IgA production - Homo sapiens (human)
+## 90 Levels: Adaptive Immune System ... Viral myocarditis - Homo sapiens (human)</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+</div>
+<div id="live-cells-pbmc---tfh095-k3" class="section level2">
+<h2>Live Cells (PBMC) - TFH095 [K=3]</h2>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/TFH095/PBMC_Live/model2.rda&quot;))</code></pre>
+<pre class="r"><code>indices &lt;- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 50, method = &quot;poisson&quot;, options = &quot;max&quot;)
+imp_genes &lt;- apply(indices, 1, function(x) return(rownames(topic_clus[[2]]$theta)[x]))</code></pre>
+<p>We save the results</p>
+<div id="pathway-analysis-cluster-1-2" class="section level3">
+<h3>pathway analysis (cluster 1)</h3>
+<pre class="r"><code>l &lt;- 1
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_PBMC_TFH095/cluster_3/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] TCR signaling                                     
+##  [2] Generation of second messenger molecules          
+##  [3] CD4 T cell receptor signaling-ERK cascade         
+##  [4] Downstream TCR signaling                          
+##  [5] the co-stimulatory signal during t-cell activation
+##  [6] CD4 T cell receptor signaling-JNK cascade         
+##  [7] Translocation of ZAP-70 to Immunological synapse  
+##  [8] Phosphorylation of CD3 and TCR zeta chains        
+##  [9] PD-1 signaling                                    
+## [10] Costimulation by the CD28 family                  
+## 82 Levels: activation of csk by camp-dependent protein kinase inhibits signaling through the t cell receptor ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+</div>
+<div id="pathway-analysis-cluster-2-2" class="section level3">
+<h3>pathway analysis (cluster 2)</h3>
+<pre class="r"><code>l &lt;- 2
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_PBMC_TFH095/cluster_3/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Natural killer cell mediated cytotoxicity - Homo sapiens (human)        
+##  [2] IL12-mediated signaling events                                          
+##  [3] Graft-versus-host disease - Homo sapiens (human)                        
+##  [4] Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell
+##  [5] ras-independent pathway in nk cell-mediated cytotoxicity                
+##  [6] Downstream signaling in na&amp;#xef;ve CD8+ T cells                         
+##  [7] granzyme a mediated apoptosis pathway                                   
+##  [8] TCR                                                                     
+##  [9] T-Cell antigen Receptor (TCR) Signaling Pathway                         
+## [10] TCR signaling in na&amp;#xef;ve CD8+ T cells                                
+## 70 Levels: activation of csk by camp-dependent protein kinase inhibits signaling through the t cell receptor ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+<div id="pathway-analysis-cluster-3" class="section level3">
+<h3>pathway analysis (cluster 3)</h3>
+<pre class="r"><code>l &lt;- 3
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_PBMC_TFH095/cluster_3/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Immune System                                             
+##  [2] Neutrophil degranulation                                  
+##  [3] Innate Immune System                                      
+##  [4] Adaptive Immune System                                    
+##  [5] Phagosome - Homo sapiens (human)                          
+##  [6] Staphylococcus aureus infection - Homo sapiens (human)    
+##  [7] MHC class II antigen presentation                         
+##  [8] Antigen processing and presentation - Homo sapiens (human)
+##  [9] Tuberculosis - Homo sapiens (human)                       
+## [10] Macrophage markers                                        
+## 102 Levels: Activated TLR4 signalling ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+</div>
+</div>
+<div id="tfh-sorted-cells-ln---tfh041-k3" class="section level2">
+<h2>TFH sorted Cells (LN) - TFH041 [K=3]</h2>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/TFH041/LN_TFH/model2.rda&quot;))</code></pre>
+<pre class="r"><code>indices &lt;- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 50, method = &quot;poisson&quot;, options = &quot;max&quot;)
+imp_genes &lt;- apply(indices, 1, function(x) return(rownames(topic_clus[[3]]$theta)[x]))</code></pre>
+<p>We save the results</p>
+<div id="pathway-analysis-cluster-1-3" class="section level3">
+<h3>pathway analysis (cluster 1)</h3>
+<pre class="r"><code>l &lt;- 1
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_TFH_LN_TFH041/cluster_3/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Hematopoietic cell lineage - Homo sapiens (human)                  
+##  [2] Asthma - Homo sapiens (human)                                      
+##  [3] MHC class II antigen presentation                                  
+##  [4] Allograft rejection - Homo sapiens (human)                         
+##  [5] Graft-versus-host disease - Homo sapiens (human)                   
+##  [6] Type I diabetes mellitus - Homo sapiens (human)                    
+##  [7] Translocation of ZAP-70 to Immunological synapse                   
+##  [8] Intestinal immune network for IgA production - Homo sapiens (human)
+##  [9] Antigen processing and presentation - Homo sapiens (human)         
+## [10] Phosphorylation of CD3 and TCR zeta chains                         
+## 74 Levels: activation of csk by camp-dependent protein kinase inhibits signaling through the t cell receptor ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+</div>
+<div id="pathway-analysis-cluster-2-3" class="section level3">
+<h3>pathway analysis (cluster 2)</h3>
+<pre class="r"><code>l &lt;- 2
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_TFH_LN_TFH041/cluster_3/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] TCR signaling                                                                                    
+##  [2] Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell                         
+##  [3] Phosphorylation of CD3 and TCR zeta chains                                                       
+##  [4] IL12-mediated signaling events                                                                   
+##  [5] lck and fyn tyrosine kinases in initiation of tcr activation                                     
+##  [6] Generation of second messenger molecules                                                         
+##  [7] activation of csk by camp-dependent protein kinase inhibits signaling through the t cell receptor
+##  [8] Downstream TCR signaling                                                                         
+##  [9] TCR                                                                                              
+## [10] Translocation of ZAP-70 to Immunological synapse                                                 
+## 59 Levels: activation of csk by camp-dependent protein kinase inhibits signaling through the t cell receptor ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+</div>
+<div id="pathway-analysis-cluster-3-1" class="section level3">
+<h3>pathway analysis (cluster 3)</h3>
+<pre class="r"><code>l &lt;- 3
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_TFH_LN_TFH041/cluster_3/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Classical antibody-mediated complement activation                                 
+##  [2] FCGR activation                                                                   
+##  [3] Creation of C4 and C2 activators                                                  
+##  [4] Initial triggering of complement                                                  
+##  [5] Role of phospholipids in phagocytosis                                             
+##  [6] Complement cascade                                                                
+##  [7] Regulation of actin dynamics for phagocytic cup formation                         
+##  [8] CD22 mediated BCR regulation                                                      
+##  [9] Fcgamma receptor (FCGR) dependent phagocytosis                                    
+## [10] Antigen activates B Cell Receptor (BCR) leading to generation of second messengers
+## 27 Levels: Adaptive Immune System ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+</div>
+</div>
+<div id="lnpbmc-live-cells---tfh146-k3" class="section level2">
+<h2>LN+PBMC Live cells - TFH146 [K=3]</h2>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../data/TFH146/CountClust_Models_filtered.rda&quot;))</code></pre>
+<pre class="r"><code>indices &lt;- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 50, method = &quot;poisson&quot;, options = &quot;max&quot;)
+imp_genes &lt;- apply(indices, 1, function(x) return(rownames(topic_clus[[3]]$theta)[x]))</code></pre>
+<p>We save the results</p>
+<div id="pathway-analysis-cluster-1-4" class="section level3">
+<h3>pathway analysis (cluster 1)</h3>
+<pre class="r"><code>l &lt;- 1
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_TFH146/cluster_3/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Oxidative Stress Regulatory Pathway (Erythrocyte)
+##  [2] Hematopoietic cell lineage - Homo sapiens (human)
+##  [3] Oxidative phosphorylation - Homo sapiens (human) 
+##  [4] TCR                                              
+##  [5] TP53 Regulates Metabolic Genes                   
+##  [6] Huntington,s disease - Homo sapiens (human)      
+##  [7] Respiratory electron transport                   
+##  [8] Electron Transport Chain                         
+##  [9] Prostaglandin Synthesis and Regulation           
+## [10] Detoxification of Reactive Oxygen Species        
+## 14 Levels: Detoxification of Reactive Oxygen Species ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+</div>
+<div id="pathway-analysis-cluster-2-4" class="section level3">
+<h3>pathway analysis (cluster 2)</h3>
+<pre class="r"><code>l &lt;- 2
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_TFH146/cluster_3/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell
+##  [2] granzyme a mediated apoptosis pathway                                   
+##  [3] Natural killer cell mediated cytotoxicity - Homo sapiens (human)        
+##  [4] Adaptive Immune System                                                  
+##  [5] ras-independent pathway in nk cell-mediated cytotoxicity                
+##  [6] IL12-mediated signaling events                                          
+##  [7] tsp-1 induced apoptosis in microvascular endothelial cell               
+##  [8] Hemostasis                                                              
+##  [9] Graft-versus-host disease - Homo sapiens (human)                        
+## [10] apoptotic dna-fragmentation and tissue homeostasis                      
+## 34 Levels: Adaptive Immune System ... Type I diabetes mellitus - Homo sapiens (human)</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+</div>
+<div id="pathway-analysis-cluster-3-2" class="section level3">
+<h3>pathway analysis (cluster 3)</h3>
+<pre class="r"><code>l &lt;- 3
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_Live_TFH146/cluster_3/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Antigen processing and presentation - Homo sapiens (human)
+##  [2] Hematopoietic cell lineage - Homo sapiens (human)         
+##  [3] Asthma - Homo sapiens (human)                             
+##  [4] Allograft rejection - Homo sapiens (human)                
+##  [5] Rheumatoid arthritis - Homo sapiens (human)               
+##  [6] MHC class II antigen presentation                         
+##  [7] Influenza A - Homo sapiens (human)                        
+##  [8] Graft-versus-host disease - Homo sapiens (human)          
+##  [9] Inflammatory bowel disease (IBD) - Homo sapiens (human)   
+## [10] Type I diabetes mellitus - Homo sapiens (human)           
+## 114 Levels: activation of csk by camp-dependent protein kinase inhibits signaling through the t cell receptor ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+</div>
+</div>
+<div id="lnpbmc-tf-sorted-cells---tfh146-k2" class="section level2">
+<h2>LN+PBMC TF sorted cells - TFH146 [K=2]</h2>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../data/TFH146/CountClust_Models_filtered_TFH.rda&quot;))</code></pre>
+<pre class="r"><code>indices &lt;- ExtractTopFeatures(topic_clus[[2]]$theta, top_features = 50, method = &quot;poisson&quot;, options = &quot;max&quot;)
+imp_genes &lt;- apply(indices, 1, function(x) return(rownames(topic_clus[[2]]$theta)[x]))</code></pre>
+<p>We save the results</p>
+<div id="pathway-analysis-cluster-1-5" class="section level3">
+<h3>pathway analysis (cluster 1)</h3>
+<pre class="r"><code>l &lt;- 1
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_TF_TFH146/cluster_2/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Prostaglandin Synthesis and Regulation                    
+##  [2] NOD-like receptor signaling pathway - Homo sapiens (human)
+##  [3] TRAIL  signaling                                          
+##  [4] Dimerization of procaspase-8                              
+##  [5] Regulation by c-FLIP                                      
+##  [6] CASP8 activity is inhibited                               
+##  [7] Regulation of necroptotic cell death                      
+##  [8] FoxO signaling pathway - Homo sapiens (human)             
+##  [9] Caspase Cascade in Apoptosis                              
+## [10] Dissolution of Fibrin Clot                                
+## 38 Levels: Apoptosis ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+</div>
+<div id="pathway-analysis-cluster-2-5" class="section level3">
+<h3>pathway analysis (cluster 2)</h3>
+<pre class="r"><code>l &lt;- 2
+pathway2 &lt;- read.delim(paste0(&quot;../utilities/HIV_TF_TFH146/cluster_2/gene_names_clus_&quot;, l, &quot;.tab&quot;))
+head(pathway2$pathway, 10)</code></pre>
+<pre><code>##  [1] Attenuation phase                                                 
+##  [2] HSF1 activation                                                   
+##  [3] HSF1-dependent transactivation                                    
+##  [4] Cellular response to heat stress                                  
+##  [5] Estrogen signaling pathway - Homo sapiens (human)                 
+##  [6] Antigen processing and presentation - Homo sapiens (human)        
+##  [7] Regulation of HSF1-mediated heat shock response                   
+##  [8] Protein processing in endoplasmic reticulum - Homo sapiens (human)
+##  [9] Influenza A - Homo sapiens (human)                                
+## [10] Cellular responses to stress                                      
+## 69 Levels: Activated TLR4 signalling ...</code></pre>
+<pre class="r"><code>if(length(which(pathway2$q.value &lt; 0.005)) &gt; 2){
+  pathway2 &lt;- pathway2[which(pathway2$q.value &lt; 0.005),]
+}
+maxpath &lt;- 75
+pathway &lt;- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes &lt;- pathway$members_input_overlap
+pathway_list_genes &lt;- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), &quot;; &quot;)))
+all_genes &lt;- Reduce(union, pathway_list_genes)
+pathway_mat &lt;- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] &lt;- 1
+}
+
+pathway_bimat &lt;- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop &lt;- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = &quot;none&quot;, margins = c(5, 5))</code></pre>
+<p><img src="gsea_HIV_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+</div>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

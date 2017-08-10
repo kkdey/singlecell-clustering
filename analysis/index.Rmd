@@ -71,8 +71,6 @@ and TF sorted cells from each patient.
 
 - [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH041](tsne_countclust_TFH041_TF.html)
 
-- [CountClust + tSNE analysis of scRNA-seq data from LN and PBMC data in TF sorted cells in TFH095](tsne_countclust_TFH095_TF.html)
-
 
 We next combine the LN and PBMC data and apply CountClust and visualize by tSNE the results.
 
@@ -98,6 +96,13 @@ Next we do the same for the TF sorted cells
 We also check for the individual specific effects in driving the clusters by merging the TF sorted cells from two individuals together and then running CountClust on the merged data.
 
 - [CountClust + tSNE analysis of scRNA-seq data from LN + PBMC data in TF sorted cells in TFH041+TFH146](tsne_countclust_TF_TFH041_TFH146.html)
+
+
+We perform Gene Set Enrichment Analysis (GSEA) of the cluster driving gene sets obtained from the cluster
+model fits in some of the studies above.
+
+- [GSEA of the clustr driving gene sets in HIV studies](gsea_HIV.html)
+
 
 
 ### Summary of the results from the analysis 

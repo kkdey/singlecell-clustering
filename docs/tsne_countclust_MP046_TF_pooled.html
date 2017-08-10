@@ -308,53 +308,6 @@ div.tocify {
 </div>
 
 
-<pre class="r"><code>TFH_LN_UMI &lt;- read.table(&#39;../data/MP046/TFH Sorted/LN/reads.MP046_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt&#39;, header = TRUE, row.names = 1)
-TFH_LN_reads &lt;- read.table(&#39;../data/MP046/TFH Sorted/LN/reads.MP046_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.txt&#39;, header = TRUE, row.names = 1)
-TFH_LN_UMI_summary &lt;- read.table(&#39;../data/MP046/TFH Sorted/LN/reads.MP046_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-TFH_LN_reads_summary &lt;- read.table(&#39;../data/MP046/TFH Sorted/LN/reads.MP046_TFH_LN_S1_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-#- First filtering - remove cells with less than 10 genes
-TFH_LN_UMI &lt;- TFH_LN_UMI[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES &gt; 10)]]
-TFH_LN_reads &lt;- TFH_LN_reads[, rownames(TFH_LN_reads_summary)[which(TFH_LN_reads_summary$NUM_GENES &gt; 10)]]
-TFH_LN_UMI_summary &lt;- TFH_LN_UMI_summary[colnames(TFH_LN_UMI), ]
-TFH_LN_reads_summary &lt;- TFH_LN_reads_summary[colnames(TFH_LN_reads), ]
-
-##- PBMC
-TFH_PBMC_UMI &lt;- read.table(&#39;../data/MP046/TFH Sorted/PBMC/reads.MP046_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.txt&#39;, header = TRUE, row.names = 1)
-TFH_PBMC_reads &lt;- read.table(&#39;../data/MP046/TFH Sorted/PBMC/reads.MP046_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.txt&#39;, header = TRUE, row.names = 1)
-TFH_PBMC_UMI_summary &lt;- read.table(&#39;../data/MP046/TFH Sorted/PBMC/reads.MP046_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.umi.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-TFH_PBMC_reads_summary &lt;- read.table(&#39;../data/MP046/TFH Sorted/PBMC/reads.MP046_TFH_PBMC_S2_R1_001.fastq_bq10_star_corrected.reads.dge.summary.txt&#39;, header = TRUE, row.names = 1)
-#- First filtering - remove cells with less than 10 genes
-TFH_PBMC_UMI &lt;- TFH_PBMC_UMI[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES &gt; 10)]]
-TFH_PBMC_reads &lt;- TFH_PBMC_reads[, rownames(TFH_PBMC_reads_summary)[which(TFH_PBMC_reads_summary$NUM_GENES &gt; 10)]]
-TFH_PBMC_UMI_summary &lt;- TFH_PBMC_UMI_summary[colnames(TFH_PBMC_UMI), ]
-TFH_PBMC_reads_summary &lt;- TFH_PBMC_reads_summary[colnames(TFH_PBMC_reads), ]</code></pre>
-<pre class="r"><code>###--- Filtering datasets and merging
-#- LN
-identical(colnames(TFH_LN_UMI), rownames(TFH_LN_UMI_summary)) # TRUE</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<pre class="r"><code>TFH_LN_UMI_filtered &lt;- TFH_LN_UMI[, which(TFH_LN_UMI_summary$NUM_GENES &gt;= 400 &amp; TFH_LN_UMI_summary$NUM_TRANSCRIPTS &gt;= 750)] # 417 cells
-TFH_LN_UMI_filtered &lt;- TFH_LN_UMI_filtered[which(apply(TFH_LN_UMI_filtered, 1, sum) != 0), ] # 14,946 genes and 417 cells
-#- PBMC
-identical(colnames(TFH_PBMC_UMI), rownames(TFH_PBMC_UMI_summary)) # TRUE</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<pre class="r"><code>TFH_PBMC_UMI_filtered &lt;- TFH_PBMC_UMI[, which(TFH_PBMC_UMI_summary$NUM_GENES &gt;= 400 &amp; TFH_PBMC_UMI_summary$NUM_TRANSCRIPTS &gt;= 750)] # 409 cells
-TFH_PBMC_UMI_filtered &lt;- TFH_PBMC_UMI_filtered[which(apply(TFH_PBMC_UMI_filtered, 1, sum) != 0), ] # 12,391 genes and 409 cells
-#- Merging
-TFH_UMI &lt;- rbind.fill(as.data.frame(t(TFH_LN_UMI_filtered)), as.data.frame(t(TFH_PBMC_UMI_filtered)))
-rownames(TFH_UMI) &lt;- c(paste(colnames(TFH_LN_UMI_filtered), &#39;LN&#39;, sep = &#39;_&#39;), paste(colnames(TFH_PBMC_UMI_filtered), &#39;PBMC&#39;, sep = &#39;_&#39;))
-dim(TFH_UMI) # 705 cells and 17,772 genes</code></pre>
-<pre><code>## [1]  1730 19806</code></pre>
-<pre class="r"><code>length(unique(c(rownames(TFH_LN_UMI_filtered), rownames(TFH_PBMC_UMI_filtered)))) # 17,772 genes</code></pre>
-<pre><code>## [1] 19806</code></pre>
-<pre class="r"><code>TFH_UMI[is.na(TFH_UMI)] &lt;- 0 # NAs - replace NA by 0
-TFH_UMI &lt;- as.data.frame(t(TFH_UMI))</code></pre>
-<pre class="r"><code>TFH_fac &lt;- c(rep(&quot;TFH_LN&quot;, dim(TFH_LN_UMI_filtered)[2]),
-                   rep(&quot;TFH_PBMC&quot;, dim(TFH_PBMC_UMI_filtered)[2]))
-length(TFH_fac)</code></pre>
-<pre><code>## [1] 1730</code></pre>
-<pre class="r"><code>counts &lt;- t(TFH_UMI)</code></pre>
-<pre class="r"><code>idx &lt;- which(!is.na(match(substring(colnames(counts), 1, 2), c(&quot;RP&quot;, &quot;MT&quot;, &quot;RN&quot;))))
-counts2 &lt;- counts[, -idx]</code></pre>
 <div id="t-sne-projection" class="section level2">
 <h2>t-SNE projection</h2>
 <p><img src="tsne_countclust_MP046_TF_pooled_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
