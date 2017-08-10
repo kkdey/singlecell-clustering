@@ -101,7 +101,7 @@ We also check for the individual specific effects in driving the clusters by mer
 We perform Gene Set Enrichment Analysis (GSEA) of the cluster driving gene sets obtained from the cluster
 model fits in some of the studies above.
 
-- [GSEA of the clustr driving gene sets in HIV studies](gsea_HIV.html)
+- [GSEA of the cluster driving gene sets in HIV studies](gsea_HIV.html)
 
 
 
