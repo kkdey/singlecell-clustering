@@ -65,6 +65,9 @@ Based on the above studies, we note down the summary of the results obtained.
 - Even for the combined data, for $K=3$, the groups are similar to the individual time period data. For $K=6$, we get a cluster determined by CD79A, CD79B and CD74. This could be the B cell receptor cells. Also the 1st cluster seems to be driven by cancer related genes and markers for NK cells.Also, other clusters include myeloid lineage cells (S100*) and the hemoglobin related cells (likely RBCs).
 
 
+- The GSEA analysis (done using [Consensus pathDB database](http://cpdb.molgen.mpg.de/)) seems to identify heme related pathways for the hemoglobin driving genes cluster and an immunity genes driven cluster for smaller clusters. But for larger clusters $K=6$, we do get clusters that are driven by T cell pathways, NK cell related pathways, toll like receptors and myeloid cell pathways and B cell pathways.
+
+
 ## HIV Data study
 
 We next apply countClust and project the results on tSNE plot for three HIV+ and one HIV- patients. The single cell data were collected from Live cells and TF sorted cells. Also, for each case, the cells were obtained either from lymph node (LN) or from PBMCs. 
@@ -136,6 +139,8 @@ These are the two clear clusters observed in this data.
 - In TFH095, for $K=3$, the three clusters are formed as follows - one by HLA genes, one by NK related genes, GZMA, GZMH, GNLY etc, and the third by markers like CD3D,CD2, CM1 etc
 
 - Also when cells from two individuals are mixed (TF sorted cells in this case from TFH041 and TFH146), then the first clustering is at the level of the individual as checked by the last script.
+
+- The GSEA analysis (done using [Consensus pathDB database](http://cpdb.molgen.mpg.de/)) of the clustering analysis of seprate CountClust application on LN and PBMC cells for Live cells or PBMC cells, seems to segregate for K=2 two clusters driven by APCs (antigen presenting cells) and T cells driven cluster, while ofr K=3, it seems to pick up NK cell related clusters in most cases.
 
 
 ## Exploration of the UMIs

@@ -243,6 +243,7 @@ $(document).ready(function () {
 <li><p>During the final stage when the cancer has relapsed, we see the proportion of hemoglobin expressed genes has increased again. The samples at this stage are a combination of PBMCss, TILs and sc tumor digests.</p></li>
 <li><p>When we aggregate the data across the 4 time points, we fortunately do not see much bias due to batch effects resulting from cell collection and sequencing at these different time points. Because the data is clean, a lot of the features we see in the clusters in each of these time periods, is also visible for the pooled data across the 4 time periods.</p></li>
 <li><p>Even for the combined data, for <span class="math inline">\(K=3\)</span>, the groups are similar to the individual time period data. For <span class="math inline">\(K=6\)</span>, we get a cluster determined by CD79A, CD79B and CD74. This could be the B cell receptor cells. Also the 1st cluster seems to be driven by cancer related genes and markers for NK cells.Also, other clusters include myeloid lineage cells (S100*) and the hemoglobin related cells (likely RBCs).</p></li>
+<li><p>The GSEA analysis (done using <a href="http://cpdb.molgen.mpg.de/">Consensus pathDB database</a>) seems to identify heme related pathways for the hemoglobin driving genes cluster and an immunity genes driven cluster for smaller clusters. But for larger clusters <span class="math inline">\(K=6\)</span>, we do get clusters that are driven by T cell pathways, NK cell related pathways, toll like receptors and myeloid cell pathways and B cell pathways.</p></li>
 </ul>
 </div>
 </div>
@@ -291,6 +292,7 @@ $(document).ready(function () {
 <li><p>When we combine the LN and PBMC cells, the first distinct grouping is between the LN cells and the PBMC cells.</p></li>
 <li><p>In TFH095, for <span class="math inline">\(K=3\)</span>, the three clusters are formed as follows - one by HLA genes, one by NK related genes, GZMA, GZMH, GNLY etc, and the third by markers like CD3D,CD2, CM1 etc</p></li>
 <li><p>Also when cells from two individuals are mixed (TF sorted cells in this case from TFH041 and TFH146), then the first clustering is at the level of the individual as checked by the last script.</p></li>
+<li><p>The GSEA analysis (done using <a href="http://cpdb.molgen.mpg.de/">Consensus pathDB database</a>) of the clustering analysis of seprate CountClust application on LN and PBMC cells for Live cells or PBMC cells, seems to segregate for K=2 two clusters driven by APCs (antigen presenting cells) and T cells driven cluster, while ofr K=3, it seems to pick up NK cell related clusters in most cases.</p></li>
 </ul>
 </div>
 </div>
