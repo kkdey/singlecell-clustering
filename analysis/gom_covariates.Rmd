@@ -44,9 +44,7 @@ So, we can update
 
 $$ \hat{\theta}_{nkj} : = \frac{\hat{c}_{nkg} + \alpha_{kg}}{\hat{c}_{nk+} + \sum_{g=1}^{G} \alpha_{kg}} $$
 
-If we find an estimate of  $\hat{c}_{nkg}$  at each step of the iteration, we can try to see if the following is true 
-
-$$ (c_{n1g}, c_{n2g}, \cdots, c_{nKg}) \sim Mult \left(c_{ng}, \theta_{n1g}, \theta_{n2g}, \cdots, \theta_{nKg} \right) $$
+If we find an estimate of  $\hat{c}_{nkg}$  at each step of the iteration, we can try to see if the following is true.
 
 
 
