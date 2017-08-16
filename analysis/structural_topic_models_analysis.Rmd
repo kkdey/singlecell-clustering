@@ -1,0 +1,71 @@
+---
+title: 'Structural Topic Models : Trials'
+author: "Kushal K Dey"
+date: "8/15/2017"
+output: html_document
+---
+
+In this package, we investigate the `stm` package which performs Structural topic models 
+that take into account the sample metadata.
+
+```{r}
+library(stm)
+library(igraph)
+```
+
+```{r}
+samp_data <- read.csv("../data/poliblogs2008.csv")
+length(samp_data)
+```
+
+
+```{r}
+library(tm)
+processed <- textProcessor(samp_data$documents, metadata=samp_data)
+```
+
+```{r}
+out <- prepDocuments(processed$documents, processed$vocab, processed$meta)
+```
+
+```{r}
+docs <- out$documents
+vocab <- out$vocab
+meta <- out$meta
+length(docs)
+length(vocab)
+dim(meta)
+```
+
+```{r}
+ out <- prepDocuments(processed$documents, processed$vocab,processed$meta, lower.thresh = 15)
+```
+
+
+```{r message = FALSE, results = "hide"}
+poliblogPrevFit <- stm(documents = out$documents, vocab = out$vocab,
+                        K = 20, prevalence =~ rating + s(day),
+                        max.em.its = 10, data = out$meta,
+                        init.type = "Spectral")
+```
+
+```{r}
+poliblogPrevFit
+```
+
+```{r}
+labelTopics(poliblogPrevFit, c(1, 7, 10))
+```
+
+```{r}
+cloud(poliblogPrevFit, topic=7)
+```
+
+```{r}
+plot(poliblogPrevFit, type="summary", xlim=c(0,.4))
+```
+
+```{r}
+poliblogPrevFit$settings$covariates$X
+```
+

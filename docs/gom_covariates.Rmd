@@ -1,0 +1,57 @@
+---
+title: 'Grade of Membership Model : with covariates'
+author: "Kushal K Dey"
+date: "8/16/2017"
+output: html_document
+---
+
+We discuss here a possible framework to fit a Grade of Membership (GoM) model 
+with covariates - accounting for batch effects, time stamp effects, 
+GC content etc - that can be used to model both the technical effects as well as 
+the biological effects.
+
+$$ (c_{n1}, c_{n2}, \cdots, c_{nG}) \sim Mult (c_{n+}, p_{n1}, p_{n2}, \cdots, p_{nG})  $$
+
+Now we assume here that 
+
+$$ p_{ng} = \sum_{k=1}^{K} \omega_{nk} \theta_{nkg} \hspace{1 cm} \sum_{k} \omega_{nk} =1 \hspace{0.5 cm} \forall n \hspace{1 cm} \sum_{g} \theta_{nkg} =1 \hspace{0.5 cm} \forall k$$
+
+
+The above model can be reduced in the following form. Let us define a latent random variable $Z_{nr}$ correspondng to sample $n$ and read $r$ that takes the value in the range from $1$ to $K$. 
+
+$$ Pr (Z_{nr} = k) = \omega_{nk}  $$
+
+We define $T_{nr}$ to be the name of the genes that the $r$ th read from $n$ th sample
+correspond to if it is coming from the cluster $k$. We note here that the content of this distribution is driven both by the biological effects as well as technical and other continuous or discrete effects.
+
+$$ Pr (T_{nr} = g | Z_{nr} = k) = \theta_{nkg} $$
+
+Now we assume the following form for $\theta_{nkg}$
+
+$$ \theta_{nkg} \propto exp \left ( \mu_{g} + \tau^{1}_{kg} + \tau^{2}_{b(n):g} \right) $$
+
+where $b(n)$ denotes the batch label for sample $n$. Here $\mu_{g}$ denotes the mean expression profile of gene $g$ selected here as background, $\tau^{1}_{kg}$ the deviation effect of cluster $k$ on gene $g$ from the mean profile and $\tau^{2}_{b(n):g}$ denotes the deviation of the effect of the batch $b(n)$ on gene $g$ from the mean profile.
+
+The usual EM update will give 
+
+$$ \hat{c}_{nkg} : = c_{ng} \frac{\hat{\theta}_{nkg} \hat{\omega}_{nk}}{\sum_{h=1}^{K} \hat{\theta}_{nhg} \hat{\omega}_{nh}} $$
+
+We get 
+
+$$ \hat{c}_{nk+} = \sum_{g=1}^{G} \hat{c}_{nkg}  $$
+
+So, we can update 
+
+$$ \hat{\theta}_{nkj} : = \frac{\hat{c}_{nkg} + \alpha_{kg}}{\hat{c}_{nk+} + \sum_{g=1}^{G} \alpha_{kg}} $$
+
+If we find an estimate of  $\hat{c}_{nkg}$  at each step of the iteration, we can try to see if the following is true 
+
+$$ (c_{n1g}, c_{n2g}, \cdots, c_{nKg}) \sim Mult \left(c_{ng}, \theta_{n1g}, \theta_{n2g}, \cdots, \theta_{nKg} \right) $$
+
+
+
+
+
+
+
+
