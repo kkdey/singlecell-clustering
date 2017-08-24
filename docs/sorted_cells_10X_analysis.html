@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>Cluster analysis of the sorted cells (10X Genomics)</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Cluster analysis of the sorted cells (10X Genomics)</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>8/23/2017</em></h4>
+
+</div>
+
+
+<div id="cluster-analysis" class="section level2">
+<h2>Cluster analysis</h2>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/10X_genomics_evan_maptpx.rda&quot;))</code></pre>
+<pre class="r"><code>fac &lt;- sapply(rownames(topic_clus[[5]]$omega), function(x) return(paste0(head(strsplit(x, &quot;[_]&quot;)[[1]], -1), collapse=&quot;_&quot;)))</code></pre>
+<pre class="r"><code>PlotCountClust &lt;- function(topic_clus, fac){
+  omega &lt;- topic_clus$omega
+  theta &lt;- topic_clus$theta
+  
+  annotation &lt;- data.frame(
+    sample_id = paste0(&quot;X&quot;, 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) &lt;- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = c(RColorBrewer::brewer.pal(8, &quot;Accent&quot;), RColorBrewer::brewer.pal(8,&quot;Set3&quot;)[c(1,3,4,5)]),
+                  yaxis_label = &quot;Types&quot;,
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = &quot;bold&quot;))
+}</code></pre>
+<pre class="r"><code>PlotCountClust(topic_clus[[5]], fac)</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[6]], fac)</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[7]], fac)</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-5-3.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[8]], fac)</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-5-4.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[9]], fac)</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-5-5.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus[[10]], fac)</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-5-6.png" width="672" /></p>
+<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/seurat_10X_genomics_sorted_with_tsne.rda&quot;))</code></pre>
+</div>
+<div id="t-sne-projection" class="section level2">
+<h2>t-SNE projection</h2>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="t-sne-projection-countclust-coloring" class="section level2">
+<h2>t-SNE projection + CountClust coloring</h2>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="k8-driving-genes" class="section level2">
+<h2>K=8 driving genes</h2>
+<div id="cluster-1" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##    symbol                                       name
+## 1   RPS27                      ribosomal protein S27
+## 2   RPL32                      ribosomal protein L32
+## 3   RPS12                      ribosomal protein S12
+## 4   RPS18                      ribosomal protein S18
+## 5   RPLP2 ribosomal protein lateral stalk subunit P2
+## 6   RPS14                      ribosomal protein S14
+## 7   RPS19                      ribosomal protein S19
+## 8   RPL21                      ribosomal protein L21
+## 9   RPL41                      ribosomal protein L41
+## 10  RPL34                      ribosomal protein L34
+## 11  RPLP1 ribosomal protein lateral stalk subunit P1
+## 12  RPL31                      ribosomal protein L31
+## 13 RPS15A                     ribosomal protein S15a
+## 14  RPS23                      ribosomal protein S23
+## 15 RPL18A                     ribosomal protein L18a
+## 16 RPS27A                     ribosomal protein S27a
+## 17 RPL23A                     ribosomal protein L23a
+## 18  RPL28                      ribosomal protein L28
+## 19  RPS28                      ribosomal protein S28
+## 20  RPS25                      ribosomal protein S25</code></pre>
+</div>
+<div id="cluster-2" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##    symbol                                               name
+## 1    RPL3                               ribosomal protein L3
+## 2   RPL13                              ribosomal protein L13
+## 3  EEF1A1 eukaryotic translation elongation factor 1 alpha 1
+## 4    RPS2                               ribosomal protein S2
+## 5    RPS6                               ribosomal protein S6
+## 6   RPL10                              ribosomal protein L10
+## 7    RPL8                               ribosomal protein L8
+## 8   RPS3A                              ribosomal protein S3A
+## 9  RPL13A                             ribosomal protein L13a
+## 10   RPS3                               ribosomal protein S3
+## 11   RPL4                               ribosomal protein L4
+## 12  RPS4X                     ribosomal protein S4, X-linked
+## 13   RPS5                               ribosomal protein S5
+## 14  RPLP0         ribosomal protein lateral stalk subunit P0
+## 15   RPL5                               ribosomal protein L5
+## 16   LDHB                            lactate dehydrogenase B
+## 17   CD3E                                      CD3e molecule
+## 18   RPSA                               ribosomal protein SA</code></pre>
+</div>
+<div id="cluster-3" class="section level3">
+<h3>cluster 3</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##     symbol                                                  name
+## 1      LTB                                      lymphotoxin beta
+## 2     IL32                                        interleukin 32
+## 3     CD3D                                         CD3d molecule
+## 4    DUSP1                        dual specificity phosphatase 1
+## 5      JUN Jun proto-oncogene, AP-1 transcription factor subunit
+## 6      VIM                                              vimentin
+## 7  S100A10                      S100 calcium binding protein A10
+## 8      FOS Fos proto-oncogene, AP-1 transcription factor subunit
+## 9    ANXA1                                            annexin A1
+## 10 TSC22D3                          TSC22 domain family member 3
+## 11    CD99                        CD99 molecule (Xg blood group)
+## 12 ZFP36L2                      ZFP36 ring finger protein like 2
+## 13   FXYD5      FXYD domain containing ion transport regulator 5</code></pre>
+</div>
+<div id="cluster-4" class="section level3">
+<h3>cluster 4</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##     symbol
+## 1   S100A8
+## 2   S100A9
+## 3   S100A4
+## 4   TYROBP
+## 5   S100A6
+## 6      FTL
+## 7     CYBA
+## 8     AIF1
+## 9     RPS9
+## 10    GPX1
+## 11  LGALS1
+## 12    FCN1
+## 13    LST1
+## 14    TYMP
+## 15   ATP5E
+## 16     CFD
+## 17    FTH1
+## 18    CD14
+## 19 S100A11
+##                                                                        name
+## 1                                           S100 calcium binding protein A8
+## 2                                           S100 calcium binding protein A9
+## 3                                           S100 calcium binding protein A4
+## 4                              TYRO protein tyrosine kinase binding protein
+## 5                                           S100 calcium binding protein A6
+## 6                                                      ferritin light chain
+## 7                                              cytochrome b-245 alpha chain
+## 8                                           allograft inflammatory factor 1
+## 9                                                      ribosomal protein S9
+## 10                                                 glutathione peroxidase 1
+## 11                                                               galectin 1
+## 12                                                                ficolin 1
+## 13                                          leukocyte specific transcript 1
+## 14                                                  thymidine phosphorylase
+## 15 ATP synthase, H+ transporting, mitochondrial F1 complex, epsilon subunit
+## 16                                                      complement factor D
+## 17                                                   ferritin heavy chain 1
+## 18                                                            CD14 molecule
+## 19                                         S100 calcium binding protein A11</code></pre>
+</div>
+<div id="cluster-5" class="section level3">
+<h3>cluster 5</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##    symbol                                     name
+## 1  TMSB4X                thymosin beta 4, X-linked
+## 2    ACTB                               actin beta
+## 3    PFN1                               profilin 1
+## 4   ACTG1                            actin gamma 1
+## 5    MYL6                     myosin light chain 6
+## 6    EMP3            epithelial membrane protein 3
+## 7    PPIA               peptidylprolyl isomerase A
+## 8    RAC2                Rac family small GTPase 2
+## 9   CLIC1         chloride intracellular channel 1
+## 10   UCP2                     uncoupling protein 2
+## 11   GYPC      glycophorin C (Gerbich blood group)
+## 12  PSMA7               proteasome subunit alpha 7
+## 13  PSME2           proteasome activator subunit 2
+## 14 NDUFA4 NDUFA4, mitochondrial complex associated
+## 15 MYL12A                   myosin light chain 12A</code></pre>
+</div>
+<div id="cluster-6" class="section level3">
+<h3>cluster 6</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##    symbol
+## 1  MALAT1
+## 2    GNLY
+## 3    CCL5
+## 4    GZMA
+## 5    GZMB
+## 6    HCST
+## 7    CST7
+## 8  FCER1G
+## 9    CTSW
+## 10    CD7
+## 11  CLIC3
+## 12 FGFBP2
+## 13   HOPX
+## 14  KLRB1
+## 15   PRF1
+## 16   GZMM
+##                                                                           name
+## 1  metastasis associated lung adenocarcinoma transcript 1 (non-protein coding)
+## 2                                                                   granulysin
+## 3                                                 C-C motif chemokine ligand 5
+## 4                                                                   granzyme A
+## 5                                                                   granzyme B
+## 6                                         hematopoietic cell signal transducer
+## 7                                                                   cystatin F
+## 8                                               Fc fragment of IgE receptor Ig
+## 9                                                                  cathepsin W
+## 10                                                                CD7 molecule
+## 11                                            chloride intracellular channel 3
+## 12                                  fibroblast growth factor binding protein 2
+## 13                                                                HOP homeobox
+## 14                                         killer cell lectin like receptor B1
+## 15                                                                  perforin 1
+## 16                                                                  granzyme M</code></pre>
+</div>
+<div id="cluster-7" class="section level3">
+<h3>cluster 7</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##    symbol                                     name
+## 1    CD74                            CD74 molecule
+## 2   CD79A                           CD79a molecule
+## 3   CD79B                           CD79b molecule
+## 4   RPS11                    ribosomal protein S11
+## 5   MS4A1           membrane spanning 4-domains A1
+## 6   TCL1A              T-cell leukemia/lymphoma 1A
+## 7    NCF1            neutrophil cytosolic factor 1
+## 8  VPREB3 V-set pre-B cell surrogate light chain 3
+## 9    CD37                            CD37 molecule
+## 10  P2RX5                purinergic receptor P2X 5
+## 11  FCER2           Fc fragment of IgE receptor II</code></pre>
+</div>
+<div id="cluster-8" class="section level3">
+<h3>cluster 8</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol                                                   name
+## 1   HLA-DRA   major histocompatibility complex, class II, DR alpha
+## 2  HLA-DRB1  major histocompatibility complex, class II, DR beta 1
+## 3  HLA-DPB1  major histocompatibility complex, class II, DP beta 1
+## 4      CST3                                             cystatin C
+## 5  HLA-DPA1 major histocompatibility complex, class II, DP alpha 1
+## 6       LYZ                                               lysozyme
+## 7  HLA-DRB5  major histocompatibility complex, class II, DR beta 5
+## 8  HLA-DQA1 major histocompatibility complex, class II, DQ alpha 1
+## 9  HLA-DQB1  major histocompatibility complex, class II, DQ beta 1
+## 10 HLA-DQA2 major histocompatibility complex, class II, DQ alpha 2
+## 11    COTL1               coactosin like F-actin binding protein 1
+## 12   ARPC1B           actin related protein 2/3 complex subunit 1B
+## 13  HLA-DMA   major histocompatibility complex, class II, DM alpha
+## 14     CPVL                    carboxypeptidase, vitellogenic like
+## 15    ANXA2                                             annexin A2
+## 16  HLA-DMB    major histocompatibility complex, class II, DM beta
+## 17    FCGRT            Fc fragment of IgG receptor and transporter
+## 18      GRN                                     granulin precursor
+## 19     SPI1                                   Spi-1 proto-oncogene
+## 20      PKM                                pyruvate kinase, muscle</code></pre>
+</div>
+</div>
+<div id="k6-t-sne-gene-expression" class="section level2">
+<h2>K=6 t-SNE gene expression</h2>
+<div id="cluster-1-imp-genes" class="section level3">
+<h3>cluster 1 imp genes</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+</div>
+<div id="cluster-2-imp-genes" class="section level3">
+<h3>cluster 2 imp genes</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+</div>
+<div id="cluster-3-imp-genes" class="section level3">
+<h3>cluster 3 imp genes</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+</div>
+<div id="cluster-4-imp-genes" class="section level3">
+<h3>cluster 4 imp genes</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+</div>
+<div id="cluster-5-imp-genes" class="section level3">
+<h3>cluster 5 imp genes</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+</div>
+<div id="cluster-6-imp-genes" class="section level3">
+<h3>cluster 6 imp genes</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+</div>
+<div id="cluster-7-imp-genes" class="section level3">
+<h3>cluster 7 imp genes</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+</div>
+<div id="cluster-8-imp-genes" class="section level3">
+<h3>cluster 8 imp genes</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+</div>
+</div>
+<div id="t-sne-projection-of-common-marker-genes" class="section level2">
+<h2>t-SNE projection of common marker genes</h2>
+<p>We take some markers for T-cells, B cells and NK cells next, and see which cluster they correspond to ? We use markers CD3D (T cell receptor complex), CD79A (B cells), CD4 (B cells), CLEC4C (B cells), NKG7 (Natural killer cells), FCER1A (dendritic), CD16, S100A8 (myeloid cells) and S100A9 (myeloid cells), CCR10 (memory T cells), TNFRSF18 (memory T cells), PF4 (megakaryocytes), SIGLEC7 (NK cells), GZMK, CD8A (CD8+ T cells) as per Zheng et al paper.</p>
+<pre><code>## Finished</code></pre>
+<pre><code>##  [1] 18684  8898  3996 31455 20309 20346  1900  1898 27767    44  7711
+## [12] 31867 31854  2101</code></pre>
+<p><img src="sorted_cells_10X_analysis_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

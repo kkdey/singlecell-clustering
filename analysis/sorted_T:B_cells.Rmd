@@ -1,0 +1,21 @@
+---
+title: "Cluster analysis of the sorted cells (10X Genomics)"
+author: "Kushal K Dey"
+date: "8/23/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+```
+
+## Cluster analysis
+
+```{r}
+topic_clus <- get(load("../output/pbmc_68K_evan_maptpx.rda"))
+```

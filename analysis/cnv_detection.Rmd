@@ -1,0 +1,127 @@
+---
+title: 'CNV detection algorithms : Literature Review'
+author: "Kushal K Dey"
+date: "8/18/2017"
+output: html_document
+---
+
+In this script, we perform a literature review of the CNV detection algorithms. Traditional methods such as fluorescence in situ hybridization (FISH) and array comparative genomic hybridization (aCGH) suffer from low resolution of genomic regions. Following the emergence of next generation sequencing (NGS) technologies, CNV detection methods based on the short read data have recently been developed.
+
+
+There are already plenty of CNV detection algorithms in the literature. Comparative studies are needed to help users choose suitable methods. Some of thses methods purely for NGS data are the following 
+
+- CNV-seq
+- FREEC
+- readDepth
+- CNVnator
+- Segseq
+- event wise testing (EWT)
+
+
+CNV usually refers to duplication or deletion of DNA segments larger than 1kbp. In an
+individual genome, the average size of a CNV is usually $3.5 \pm 0.5$ Mbp. CNVs are associated with complex diseases like autism, cancer, schizophrenia etc. short CNVs are difficult to detect in FISH and aCGH because the standard length of probes used is high.
+NGS solves that problem. 
+
+The most popular approach to detecting CNVs is the depth of coverage (DOC) method. DOC methods first pile up the aligned reads at the genomic co-ordinate, and then calculate read counts across sliding or non-overlapping windows (bins), yielding a read depth signal per window/bin. 
+
+In CNV-seq or Segseq, the ratios of the read counts do not require further normalization due to the requirement of a control sample. Otherwise one needs to do GC content and mappability normalization (higher GC content regions have less read depth). 
+
+The normalized read depth signal can be processed in two ways. 
+
+- First carry out segmentation by local change point algorithms along with a subsequent merge procedure (**readDepth**, **CNVnator** and **FREEC**).
+
+- Statistical hypothesis testing per window (EWT) or across several consecutive windows.
+
+readDepth uses CBS (Circular Binary Segmentation), CNVnator uses mean shift and FREEC uses LASSO based method for segmentation.
+
+A CNV is characterized by the break point loci (starting and ending points), single copy length and the number of copies. It is desirable to estimate precisely the break point loci and the copy number. Shorter CNVs are easier to detect than the longer ones. Also it is easier to detect copy number for greatly deviated CNVs (e.g - homozygous deltion) tha slightly deviated ones (e.g. - heterozygous delections). In addition, higher coverage can provide higher resolution of break point detection. 
+
+By copy number, we mean how many copies of the DNA segment are present in the cell studied. Ideally copy number should be 2 for diploid genome, but a copy number of 4 may mean two copies are added/inserted. A copy number of 1 would mean 1 deletion.
+
+The coverage can be calculated by 
+
+$$ coverage : = \frac{NL}{G}  $$
+
+where $N$ is the number of reads, $L$ average length of a read and $G$ is the length of the genome.
+
+These methods are applicable to single samples, which is distinct for methods developed for multiple cells or samples like **cn.MOPS** and **JointSLM**.
+
+In a landmark study in 2006, Redon and colleagues found that 1447 CNV regions cover at 
+least $12 \%$ of the human genome, with no large stretches exempt from CNV. The CNV regiosn cover more nucleotide content per genome than SNPs. aCGH or microarray based approaches have the problem that different probes have different hybridization efficiency.
+
+The microarray based procedure (aCGH) involves a whole genome microarray where two sets of labeled genomic fragements are hybridized (one for treatment and another for control). The intensities are measured for the same fragment in the two sets and log ratio of the intensities is computed between the target and the reference. 
+
+
+In the sequencing case, two sets of shotgun reads are mapped to the genome.  We use a sliding window approach to analyze the mapped regions and CNVs are detected by computing the number of reads for each individual in each of the windows, yielding ratios. Check Figure 1 [here](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2667514/).
+
+This is the reason why log ratio is devoid of the GC content biases, because the hope is they are scaled out by the ratio. 
+
+## CNV-seq
+
+The predicted copy number ratio $r$ in each sliding window is computed by the following
+
+$$ r = z \times \frac{N_y}{N_x}  $$
+
+where $z$ is the ratio of the read counts in the window and $N_x$ and $N_y$ are the total number of reads in the genomes X and Y respectively. We want a distribution on the read count ratio $z$. The distribution is given by the Gaussian ratio distribution, which can be transformed to $t$ distribution by Geary Hinkley transformation
+
+$$ t = \frac{\mu_y z - \mu_x}{\sqrt{\sigma^2_{y} z^2 +  \sigma^2_{x}}}  $$
+
+I find this model to be extremely basic and usually $N_y$ and $N_x$ would both be pretty big, so I see no point in taking account of this ratio, as ideally it would be close to 1.
+
+## Control-FREEC
+
+This is a tool to detect control-free copy number alterations in deep NGS data.
+The authors deal with two pertinent problems - absence of a control sample and 
+possible polyploidy of cancer cells. FREEC automatically normalizes and segments
+copy number profiles and calls CNAs. If ploidy is known, it assigns absolute copy 
+number to each predicted CNA. GC content is used for normalization.
+
+There exist two frequent obstacles in the analysis of cancer genomes: absence of an appropriate control sample for normal tissue and possible polyploidy.
+
+We need a bioinformatics tool that can detect CNAs without control samples. Both CNV-seq
+and Segseq require datasets for given tumor and its paired normal DNA samples. The 
+authors propose an algorithm called FREEC (written in C++). FREEC uses a sliding window approach to calculate read count (RC) in non-overlapping windows (raw CNP). Then, if a control sample is available, the program normalizes raw CNP using the control profile. Otherwise, the program calculates GC content in the same set of windows and performs normalization by GC content. 
+
+The resulting normalized profile becomes sufficiently smooth to apply segmentation. *I
+would also suggest that besides the GC content, we normalize by the average mappability score for that window*. This is followed by the analysis of predicted regions of gains and losses in order to assign copy numbers to these regions.
+
+First, it calculates the raw CNP by counting reads in non-overlapping windows. If not provided by the user, window size can be automatically selected using depth of coverage information to optimize accuracy of CNA prediction. The second step is profile normalization. If a control is not provided by the user, we compute the GC-content profile. The normalization procedure of RC by GC content (or by control RC) is described below. The third step is segmentation of the normalized CNP. To do this, we implemented a LASSO-based algorithm.
+
+One can catch changepoints using LASSO, see the paper [here](https://papers.nips.cc/paper/3188-catching-change-points-with-lasso). It explains how the LAR algorithm can be combined with a reduced version of dynamic programming to
+detect changepoints.
+
+We focus on a reformulation of the change point estimation in a variable selection framework. Lasso provides us with a very efficient method for selecting potential change-point locations. This selection is then refined by using the DP algorithm to estimate the change-point locations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

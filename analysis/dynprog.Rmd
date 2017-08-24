@@ -1,0 +1,38 @@
+---
+title: "Dynamic Programming"
+author: "Kushal K Dey"
+date: "8/18/2017"
+output: html_document
+---
+
+Dynamic programming states that break up a problem into a series of overlapping 
+sub-problems and build up solutions to larger and larger sub-problems. 
+If you are given a problem, which can be broken down into smaller sub-problems, 
+and these smaller sub-problems can still be broken into smaller ones - and if 
+you manage to find out that there are some over-lappping sub-problems, then you've encountered a DP problem.
+
+The core idea of Dynamic Programming is to avoid repeated work by remembering partial results and this concept finds it application in a lot of real life situations.
+
+This lets you solve problems in $O(n^2)$ or $O(n^3)$ time that may otherwise be 
+exponential in time complexity.
+
+Dynamic programming = Recursion + Common sense 
+
+Recursion allows to express the value of the function in terms of other values 
+of that function. It memorizes the results of some specific states which can
+be accessed later to solve other subproblems.
+
+Majority of DP problems can be classified into optimization problems and 
+combinatorial problems. 
+
+The optimization problems expect you to select a feasible solution, so that the value of the required function is minimized or maximized. Combinatorial problems expect you to figure out the number of ways to do something, or the probability of some event happening.
+
+The schema for a DP problem 
+
+- Show that the problem can be broken down into sub-problems.
+- Recursively define the value of the solution by expressing it in terms of the 
+  optimal solutions for smaller sub-problems.
+- Compute the value of the optimal solution in bottom-up fashion.
+- Construct an optimal solution from the computed information.
+
+
