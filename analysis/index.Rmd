@@ -172,6 +172,32 @@ Overall we did not see a relationship between the UMI patterns and the gene stru
 
 
 
+## 10X genomics PBMC(sorted + unsorted data)
+
+We applied CountClust on the sorted immune cells data and unsorted PBMC data from 10X genomics. The results for the sorted cells alone study is the following
+
+- [sorted immune cells CountClust study](sorted_cells_10X_analysis.html)
+
+The results from applying countClust on just the unsorted PBMC data are 
+
+- [unsorted PBMC cells CountClust study](pbmc_68k.html)
+
+The results from applying CountClust on the sorted cells + unsorted PBMC cells is the 
+following
+
+- [CountClust study on sorted immune cells + unsorted PBMC cells](pooled_sorted_unsorted_pbmc_10X_analysis.html)
+
+
+
+## Extras
+
+The model for applying CountClust with covariates information is below
+
+- [CountClust with covariate information : EM algorithm ](gom-cov.pdf)
+
+The results of plotting the divergence measure $D$ for the *ExtractTopFeatures()* function in **CountClust** is the following
+
+- [Divergence measure steepness study in CountClust](score_analysis_countclust.html)
 
 
 

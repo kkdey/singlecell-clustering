@@ -1,0 +1,113 @@
+---
+title: "Score analysis in ExtractTopFeatures in CountClust"
+author: "Kushal K Dey"
+date: "8/24/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+```
+
+## PBMC 68K data analysis
+
+```{r}
+topic_clus <- get(load("../output/pbmc_68K_evan_maptpx.rda"))
+```
+
+
+### K=5
+
+```{r}
+out <- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 100, method = "poisson", options = "max")
+indices <- out$indices
+scores <- out$scores
+```
+
+```{r}
+par(mfrow = c(3,3))
+for(m in 1:5){
+  plot(scores[m,], col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+       main = paste0("cluster-", m))
+}
+```
+
+
+### K=8
+
+```{r}
+out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = "poisson", options = "max")
+indices <- out$indices
+scores <- out$scores
+```
+
+```{r}
+par(mfrow = c(3,3))
+for(m in 1:8){
+  plot(scores[m,], col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+       main = paste0("cluster-", m))
+}
+```
+
+
+
+### K=10
+
+```{r}
+out <- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 100, method = "poisson", options = "max")
+indices <- out$indices
+scores <- out$scores
+```
+
+```{r fig.height = 8}
+par(mfrow = c(4, 3))
+for(m in 1:10){
+  plot(scores[m,], col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+       main = paste0("cluster-", m))
+}
+```
+
+
+## Aggregated MCC analysis
+
+```{r echo=FALSE, eval=TRUE}
+topic_clus <- get(load("../output/maptpx_aggregated_MCC.rda"))
+```
+
+### K=3
+
+```{r}
+out <- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 100, method = "poisson", options = "max")
+indices <- out$indices
+scores <- out$scores
+```
+
+```{r}
+par(mfrow = c(2,2))
+for(m in 1:3){
+  plot(scores[m,], col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+       main = paste0("cluster-", m))
+}
+```
+
+
+### K=6
+
+```{r}
+out <- ExtractTopFeatures(topic_clus[[6]]$theta, top_features = 100, method = "poisson", options = "max")
+indices <- out$indices
+scores <- out$scores
+```
+
+```{r}
+par(mfrow = c(3,2))
+for(m in 1:6){
+  plot(scores[m,], col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+       main = paste0("cluster-", m))
+}
+```

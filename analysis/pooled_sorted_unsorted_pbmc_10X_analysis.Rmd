@@ -1,0 +1,60 @@
+---
+title: "Pooled sorted + unsorted PBMC data Countclust"
+author: "Kushal K Dey"
+date: "8/24/2017"
+output: html_document
+---
+
+We look at the cluster patterns of the PBMC cluster data.
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+```
+
+## Cluster analysis
+
+```{r}
+topic_clus <- get(load("../output/10X_genomics_pooled_sort_unsort_maptpx.rda"))
+```
+
+```{r}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(1,3,4,5)]),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+```{r}
+fac1 <- sapply(rownames(topic_clus[[5]]$omega)[1:5000], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+fac <- c(fac1, rep("unsorted_PBMC", 4500))
+PlotCountClust(topic_clus[[5]], fac)
+PlotCountClust(topic_clus[[6]], fac)
+PlotCountClust(topic_clus[[7]], fac)
+PlotCountClust(topic_clus[[8]], fac)
+PlotCountClust(topic_clus[[9]], fac)
+PlotCountClust(topic_clus[[10]], fac)
+```
+

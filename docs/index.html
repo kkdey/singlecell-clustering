@@ -317,6 +317,32 @@ $(document).ready(function () {
 </ul>
 <p>Overall we did not see a relationship between the UMI patterns and the gene structure, we found very little compositional bias specially at the first few sites.</p>
 </div>
+<div id="x-genomics-pbmcsorted-unsorted-data" class="section level2">
+<h2>10X genomics PBMC(sorted + unsorted data)</h2>
+<p>We applied CountClust on the sorted immune cells data and unsorted PBMC data from 10X genomics. The results for the sorted cells alone study is the following</p>
+<ul>
+<li><a href="sorted_cells_10X_analysis.html">sorted immune cells CountClust study</a></li>
+</ul>
+<p>The results from applying countClust on just the unsorted PBMC data are</p>
+<ul>
+<li><a href="pbmc_68k.html">unsorted PBMC cells CountClust study</a></li>
+</ul>
+<p>The results from applying CountClust on the sorted cells + unsorted PBMC cells is the following</p>
+<ul>
+<li><a href="pooled_sorted_unsorted_pbmc_10X_analysis.html">CountClust study on sorted immune cells + unsorted PBMC cells</a></li>
+</ul>
+</div>
+<div id="extras" class="section level2">
+<h2>Extras</h2>
+<p>The model for applying CountClust with covariates information is below</p>
+<ul>
+<li><a href="gom-cov.pdf">CountClust with covariate information : EM algorithm</a></li>
+</ul>
+<p>The results of plotting the divergence measure <span class="math inline">\(D\)</span> for the <em>ExtractTopFeatures()</em> function in <strong>CountClust</strong> is the following</p>
+<ul>
+<li><a href="score_analysis_countclust.html">Divergence measure steepness study in CountClust</a></li>
+</ul>
+</div>
 
 <hr>
 <p>

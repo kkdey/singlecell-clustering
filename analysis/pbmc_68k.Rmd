@@ -153,7 +153,9 @@ plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
 ### cluster 1
 
 ```{r echo=FALSE, eval=TRUE}
-indices <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = "poisson", options = "max")
+indices <- out$indices
+scores <- out$scores
 imp_genes <- apply(indices, 1, function(x) return(rownames(topic_clus[[8]]$theta)[x]))
 
 out <- mygene::queryMany(imp_genes[1:20,1],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
