@@ -1,0 +1,7 @@
+---
+title: "Classification Grade of Membership model on PBMC data"
+author: "Kushal K Dey"
+date: "8/25/2017"
+output: html_document
+---
+

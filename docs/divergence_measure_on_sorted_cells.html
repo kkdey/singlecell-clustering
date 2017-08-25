@@ -369,6 +369,15 @@ counts_mat_prop_3 &lt;- counts_mat_prop_2[, -idx2]</code></pre>
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 </div>
+<div id="qqplot" class="section level2">
+<h2>QQplot</h2>
+<pre class="r"><code>par(mfrow = c(3,3))
+for(m in 1:dim(scores)[1]){
+  qqnorm(log(scores[m,]+1), col=&quot;red&quot;, pch=20, cex = 1, main = paste0(&quot;QQplot: cluster - &quot;, m))
+  qqline(log(scores[m,]+1))
+}</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
 <div id="scores-plot" class="section level2">
 <h2>Scores plot</h2>
 <pre class="r"><code>par(mfrow = c(3,3))
@@ -376,7 +385,7 @@ for(m in 1:dim(scores)[1]){
   plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 </div>
 <div id="gene-annotations" class="section level2">
 <h2>Gene Annotations</h2>
@@ -629,51 +638,51 @@ tab</code></pre>
 <div id="cd14-monocytes---tsne" class="section level3">
 <h3>CD14 monocytes - tsne</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
 </div>
 <div id="cd19-b-cells---tsne" class="section level3">
 <h3>CD19 B cells - tsne</h3>
 <pre><code>## Finished
 ## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
 </div>
 <div id="cd4-helper---tsne" class="section level3">
 <h3>CD4 helper - tsne</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
 </div>
 <div id="cd4-memory---tsne" class="section level3">
 <h3>CD4 memory - tsne</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
 </div>
 <div id="cd4-naive---tsne" class="section level3">
 <h3>CD4 Naive - tsne</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
 </div>
 <div id="cd4-regulatory---tsne" class="section level3">
 <h3>CD4 regulatory - tsne</h3>
 <pre><code>## Finished
 ## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
 </div>
 <div id="cd56-nk-cells---tsne" class="section level3">
 <h3>CD56 NK cells - tsne</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
 </div>
 <div id="cd8-cytotoxic---tsne" class="section level3">
 <h3>CD8 cytotoxic - tsne</h3>
 <pre><code>## Finished
 ## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
 </div>
 <div id="cd8-naive-cytotoxic---tsne" class="section level3">
 <h3>CD8 Naive cytotoxic - tsne</h3>
 <pre><code>## Finished
 ## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
-<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
 </div>
 </div>
 

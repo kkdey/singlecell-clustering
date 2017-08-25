@@ -69,6 +69,17 @@ scores <- out$scores
 ```
 
 
+
+## QQplot 
+
+```{r}
+par(mfrow = c(3,3))
+for(m in 1:dim(scores)[1]){
+  qqnorm(log(scores[m,]+1), col="red", pch=20, cex = 1, main = paste0("QQplot: cluster - ", m))
+  qqline(log(scores[m,]+1))
+}
+```
+
 ## Scores plot
 
 ```{r fig.height = 8}
