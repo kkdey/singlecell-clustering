@@ -308,9 +308,9 @@ div.tocify {
 </div>
 
 
-<div id="pbmc-68k-data-analysis" class="section level2">
-<h2>PBMC 68K data analysis</h2>
-<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/pbmc_68K_evan_maptpx.rda&quot;))</code></pre>
+<div id="pbmc-sorted-unsorted-68k-data-analysis" class="section level2">
+<h2>PBMC (sorted + unsorted) 68K data analysis</h2>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/10X_genomics_pooled_sort_unsort_maptpx.rda&quot;))</code></pre>
 <div id="k5" class="section level3">
 <h3>K=5</h3>
 <pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
@@ -318,7 +318,7 @@ indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:5){
-  plot(scores[m,], col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
@@ -330,7 +330,7 @@ indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:8){
-  plot(scores[m,], col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
@@ -340,12 +340,52 @@ for(m in 1:8){
 <pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
-<pre class="r"><code>par(mfrow = c(4, 3))
+<pre class="r"><code>par(mfrow = c(4,3))
 for(m in 1:10){
-  plot(scores[m,], col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+</div>
+<div id="pbmc-68k-data-analysis" class="section level2">
+<h2>PBMC 68K data analysis</h2>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/pbmc_68K_evan_maptpx.rda&quot;))</code></pre>
+<div id="k5-1" class="section level3">
+<h3>K=5</h3>
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+indices &lt;- out$indices
+scores &lt;- out$scores</code></pre>
+<pre class="r"><code>par(mfrow = c(3,3))
+for(m in 1:5){
+  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+       main = paste0(&quot;cluster-&quot;, m))
+}</code></pre>
+<p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="k8-1" class="section level3">
+<h3>K=8</h3>
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+indices &lt;- out$indices
+scores &lt;- out$scores</code></pre>
+<pre class="r"><code>par(mfrow = c(3,3))
+for(m in 1:8){
+  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+       main = paste0(&quot;cluster-&quot;, m))
+}</code></pre>
+<p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+<div id="k10-1" class="section level3">
+<h3>K=10</h3>
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+indices &lt;- out$indices
+scores &lt;- out$scores</code></pre>
+<pre class="r"><code>par(mfrow = c(4, 3))
+for(m in 1:10){
+  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+       main = paste0(&quot;cluster-&quot;, m))
+}</code></pre>
+<p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 </div>
 </div>
 <div id="aggregated-mcc-analysis" class="section level2">
@@ -357,10 +397,10 @@ indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(2,2))
 for(m in 1:3){
-  plot(scores[m,], col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
-<p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 </div>
 <div id="k6" class="section level3">
 <h3>K=6</h3>
@@ -369,10 +409,10 @@ indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(3,2))
 for(m in 1:6){
-  plot(scores[m,], col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
-<p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 </div>
 </div>
 
