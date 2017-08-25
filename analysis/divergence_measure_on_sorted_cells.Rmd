@@ -184,7 +184,7 @@ tab
 
 ## t-SNE expression pattern for cell subsets 
 
-### CD14 monocytes
+### CD14 monocytes - tsne
 
 ```{r echo=FALSE, eval=TRUE}
 cex.size = 2
@@ -254,7 +254,7 @@ plot_grid(plot1, plot2, plot3, plot4, plot5, plot6,  ncol = 2, align = 'v')
 ```
 
 
-### CD19 B cells
+### CD19 B cells - tsne
 
 ```{r echo=FALSE, eval=TRUE}
 cex.size = 2
@@ -322,7 +322,7 @@ plot_grid(plot1, plot3, plot4, plot5, plot6,  ncol = 2, align = 'v')
 ```
 
 
-### CD4 helper
+### CD4 helper - tsne
 
 ```{r echo=FALSE, eval=TRUE}
 cex.size = 2
@@ -392,7 +392,7 @@ plot_grid(plot1, plot2, plot3, plot4, plot5, plot6,  ncol = 2, align = 'v')
 ```
 
 
-### CD4 memory
+### CD4 memory - tsne
 
 ```{r echo=FALSE, eval=TRUE}
 cex.size = 2
@@ -459,7 +459,7 @@ plot_grid(plot1, plot3, plot4, plot5, plot6,  ncol = 2, align = 'v')
 ```
 
 
-### CD4 Naive 
+### CD4 Naive - tsne
 
 ```{r echo=FALSE, eval=TRUE}
 cex.size = 2
@@ -529,7 +529,7 @@ plot_grid(plot1, plot2, plot3, plot4, plot5, plot6,  ncol = 2, align = 'v')
 ```
 
 
-### CD4 regulatory
+### CD4 regulatory - tsne
 
 ```{r echo=FALSE, eval=TRUE}
 cex.size = 2
@@ -591,7 +591,7 @@ plot_grid(plot1, plot2, plot3, plot5, plot6,  ncol = 2, align = 'v')
 ```
 
 
-### CD56 NK cells 
+### CD56 NK cells - tsne
 
 ```{r echo=FALSE, eval=TRUE}
 cex.size = 2
@@ -668,7 +668,7 @@ plot_grid(plot1, plot2, plot3, plot4, plot5, plot6,  ncol = 2, align = 'v')
 
 
 
-### CD8 cytotoxic
+### CD8 cytotoxic - tsne
 
 ```{r echo=FALSE, eval=TRUE}
 cex.size = 2
@@ -730,7 +730,7 @@ plot6 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "b
 plot_grid(plot1, plot2, plot3, plot5, plot6,  ncol = 2, align = 'v')
 ```
 
-### CD8 Naive cytotoxic
+### CD8 Naive cytotoxic - tsne
 
 ```{r echo=FALSE, eval=TRUE}
 cex.size = 2
