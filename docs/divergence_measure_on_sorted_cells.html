@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>Checking divergence measure on cellular subsets</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Checking divergence measure on cellular subsets</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>8/24/2017</em></h4>
+
+</div>
+
+
+<div id="processing-data" class="section level2">
+<h2>Processing Data</h2>
+<p>In this script, we check how the divergence measure performance on the sorted immune cells subsets.</p>
+<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/seurat_10X_genomics_sorted_with_tsne.rda&quot;))</code></pre>
+<pre class="r"><code>data &lt;- seuratObj_TFH_global@raw.data</code></pre>
+<pre class="r"><code>fac &lt;- sapply(colnames(data), function(x) return(paste0(head(strsplit(x, &quot;[_]&quot;)[[1]], -1), collapse=&quot;_&quot;)))</code></pre>
+<pre class="r"><code>counts_mat &lt;- apply(data, 1, function(x) return(tapply(x, fac, sum)))</code></pre>
+<pre class="r"><code>counts_mat_prop &lt;- t(apply(counts_mat, 1, function(x)
+                         {
+                           y &lt;- (x+1e-07)
+                           z &lt;- y/sum(y)
+                           return(z)
+                          }))</code></pre>
+<pre class="r"><code>tab &lt;- mygene::queryMany(colnames(counts_mat_prop),  scopes=&quot;ensembl.gene&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Querying chunk 1</code></pre>
+<pre><code>## Querying chunk 2</code></pre>
+<pre><code>## Querying chunk 3</code></pre>
+<pre><code>## Querying chunk 4</code></pre>
+<pre><code>## Querying chunk 5</code></pre>
+<pre><code>## Querying chunk 6</code></pre>
+<pre><code>## Querying chunk 7</code></pre>
+<pre><code>## Querying chunk 8</code></pre>
+<pre><code>## Querying chunk 9</code></pre>
+<pre><code>## Querying chunk 10</code></pre>
+<pre><code>## Querying chunk 11</code></pre>
+<pre><code>## Querying chunk 12</code></pre>
+<pre><code>## Querying chunk 13</code></pre>
+<pre><code>## Querying chunk 14</code></pre>
+<pre><code>## Querying chunk 15</code></pre>
+<pre><code>## Querying chunk 16</code></pre>
+<pre><code>## Querying chunk 17</code></pre>
+<pre><code>## Querying chunk 18</code></pre>
+<pre><code>## Querying chunk 19</code></pre>
+<pre><code>## Querying chunk 20</code></pre>
+<pre><code>## Querying chunk 21</code></pre>
+<pre><code>## Querying chunk 22</code></pre>
+<pre><code>## Querying chunk 23</code></pre>
+<pre><code>## Querying chunk 24</code></pre>
+<pre><code>## Querying chunk 25</code></pre>
+<pre><code>## Querying chunk 26</code></pre>
+<pre><code>## Querying chunk 27</code></pre>
+<pre><code>## Querying chunk 28</code></pre>
+<pre><code>## Querying chunk 29</code></pre>
+<pre><code>## Querying chunk 30</code></pre>
+<pre><code>## Querying chunk 31</code></pre>
+<pre><code>## Querying chunk 32</code></pre>
+<pre><code>## Querying chunk 33</code></pre>
+<pre><code>## Querying chunk 34</code></pre>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre class="r"><code>idx &lt;- match(tab$query, colnames(counts_mat_prop))
+counts_mat_prop_2 &lt;- counts_mat_prop[, idx]</code></pre>
+<pre class="r"><code>symbols &lt;- tab$symbol
+colnames(counts_mat_prop_2) &lt;- symbols
+idx2 &lt;- which(!is.na(match(substring(symbols, 1, 2), c(&quot;RP&quot;, &quot;MT&quot;, &quot;RN&quot;))))
+counts_mat_prop_3 &lt;- counts_mat_prop_2[, -idx2]</code></pre>
+<p>We now perform ExtractTopFeatures() on these as theta matrices.</p>
+<pre class="r"><code>out &lt;- ExtractTopFeatures(t(counts_mat_prop_3), top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+indices &lt;- out$indices
+scores &lt;- out$scores</code></pre>
+</div>
+<div id="scores-plot" class="section level2">
+<h2>Scores plot</h2>
+<pre class="r"><code>par(mfrow = c(3,3))
+for(m in 1:dim(scores)[1]){
+  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+       main = paste0(&quot;cluster-&quot;, m))
+}</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+<div id="gene-annotations" class="section level2">
+<h2>Gene Annotations</h2>
+<p>The top driving genes</p>
+<div id="cd14_monocytes" class="section level3">
+<h3>CD14_Monocytes</h3>
+<pre class="r"><code>imp_genes &lt;- apply(indices, 1, function(x) return(colnames(counts_mat_prop_3)[x]))
+
+out &lt;- mygene::queryMany(imp_genes[1:20,1],  scopes=&quot;symbol&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Finished</code></pre>
+<pre class="r"><code>tab &lt;- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) &lt;- c(&quot;symbol&quot;, &quot;name&quot;)
+rownames(tab) &lt;- NULL
+tab</code></pre>
+<pre><code>##      symbol                                                   name
+## 1    S100A8                        S100 calcium binding protein A8
+## 2    S100A9                        S100 calcium binding protein A9
+## 3      CST3                                             cystatin C
+## 4       LYZ                                               lysozyme
+## 5    TYROBP           TYRO protein tyrosine kinase binding protein
+## 6      FCN1                                              ficolin 1
+## 7  HLA-DRB1  major histocompatibility complex, class II, DR beta 1
+## 8  HLA-DQA1 major histocompatibility complex, class II, DQ alpha 1
+## 9  HLA-DQB1  major histocompatibility complex, class II, DQ beta 1
+## 10      CFD                                    complement factor D
+## 11      FTL                                   ferritin light chain
+## 12    CEBPD                   CCAAT/enhancer binding protein delta
+## 13     CD14                                          CD14 molecule
+## 14   LGALS2                                             galectin 2
+## 15     AIF1                        allograft inflammatory factor 1
+## 16   S100A4                        S100 calcium binding protein A4
+## 17 HLA-DRB5  major histocompatibility complex, class II, DR beta 5
+## 18 HLA-DPB1  major histocompatibility complex, class II, DP beta 1
+## 19      CFP                            complement factor properdin</code></pre>
+</div>
+<div id="cd19_b-cells" class="section level3">
+<h3>CD19_B cells</h3>
+<pre class="r"><code>out &lt;- mygene::queryMany(imp_genes[1:20,2],  scopes=&quot;symbol&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre class="r"><code>tab &lt;- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) &lt;- c(&quot;symbol&quot;, &quot;name&quot;)
+rownames(tab) &lt;- NULL
+tab</code></pre>
+<pre><code>##      symbol                                                   name
+## 1   HLA-DRA   major histocompatibility complex, class II, DR alpha
+## 2     CD79A                                         CD79a molecule
+## 3      CD74                                          CD74 molecule
+## 4  HLA-DQA2 major histocompatibility complex, class II, DQ alpha 2
+## 5     MS4A1                         membrane spanning 4-domains A1
+## 6     TCL1A                            T-cell leukemia/lymphoma 1A
+## 7    VPREB3               V-set pre-B cell surrogate light chain 3
+## 8     CD79B                                         CD79b molecule
+## 9      IRF8                         interferon regulatory factor 8
+## 10    P2RX5                              purinergic receptor P2X 5
+## 11    FCER2                         Fc fragment of IgE receptor II
+## 12    BANK1         B-cell scaffold protein with ankyrin repeats 1
+## 13   PDLIM1                                   PDZ and LIM domain 1</code></pre>
+</div>
+<div id="cd4-helper" class="section level3">
+<h3>CD4 Helper</h3>
+<pre class="r"><code>out &lt;- mygene::queryMany(imp_genes[1:20,3],  scopes=&quot;symbol&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Finished</code></pre>
+<pre class="r"><code>tab &lt;- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) &lt;- c(&quot;symbol&quot;, &quot;name&quot;)
+rownames(tab) &lt;- NULL
+tab</code></pre>
+<pre><code>##      symbol                                               name
+## 1    GIMAP7                       GTPase, IMAP family member 7
+## 2    GIMAP4                       GTPase, IMAP family member 4
+## 3       CD6                                       CD6 molecule
+## 4     SIRPG                    signal regulatory protein gamma
+## 5  LGALS3BP                         galectin 3 binding protein
+## 6      EEF2         eukaryotic translation elongation factor 2
+## 7     IL2RG               interleukin 2 receptor subunit gamma
+## 8   SLC40A1                  solute carrier family 40 member 1
+## 9      NMT2                           N-myristoyltransferase 2
+## 10    MOCS2                    molybdenum cofactor synthesis 2
+## 11   INPP4B     inositol polyphosphate-4-phosphatase type II B
+## 12    CMTM8 CKLF like MARVEL transmembrane domain containing 8
+## 13    GCSAM  germinal center associated signaling and motility
+## 14    CMPK1            cytidine/uridine monophosphate kinase 1</code></pre>
+</div>
+<div id="cd4-memory" class="section level3">
+<h3>CD4 Memory</h3>
+<pre class="r"><code>out &lt;- mygene::queryMany(imp_genes[1:20,4],  scopes=&quot;symbol&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre class="r"><code>tab &lt;- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) &lt;- c(&quot;symbol&quot;, &quot;name&quot;)
+rownames(tab) &lt;- NULL
+tab</code></pre>
+<pre><code>##        symbol                                                      name
+## 1        CD3D                                             CD3d molecule
+## 2         LTB                                          lymphotoxin beta
+## 3     TNFRSF4                         TNF receptor superfamily member 4
+## 4      PTGER2                                prostaglandin E receptor 2
+## 5        IL7R                                    interleukin 7 receptor
+## 6    TNFRSF25                        TNF receptor superfamily member 25
+## 7       RDH11         retinol dehydrogenase 11 (all-trans/9-cis/11-cis)
+## 8      CCDC65                          coiled-coil domain containing 65
+## 9      CORO1B                                                coronin 1B
+## 10       CD84                                             CD84 molecule
+## 11       TAB2      TGF-beta activated kinase 1/MAP3K7 binding protein 2
+## 12 ST6GALNAC1 ST6 N-acetylgalactosaminide alpha-2,6-sialyltransferase 1</code></pre>
+</div>
+<div id="cd4-naive" class="section level3">
+<h3>CD4 Naive</h3>
+<pre class="r"><code>out &lt;- mygene::queryMany(imp_genes[1:20,5],  scopes=&quot;symbol&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Finished</code></pre>
+<pre class="r"><code>tab &lt;- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) &lt;- c(&quot;symbol&quot;, &quot;name&quot;)
+rownames(tab) &lt;- NULL
+tab</code></pre>
+<pre><code>##    symbol                                               name
+## 1    CD3E                                      CD3e molecule
+## 2  EEF1A1 eukaryotic translation elongation factor 1 alpha 1
+## 3    LEF1                 lymphoid enhancer binding factor 1
+## 4     MAL                mal, T-cell differentiation protein
+## 5    CCR7                     C-C motif chemokine receptor 7
+## 6    FYB1                              FYN binding protein 1
+## 7   ITM2A                       integral membrane protein 2A
+## 8    CD27                                      CD27 molecule
+## 9   STMN3                                         stathmin 3
+## 10   BTG1                    BTG anti-proliferation factor 1
+## 11 CD40LG                                        CD40 ligand
+## 12   LDHB                            lactate dehydrogenase B
+## 13  EPHX2                                epoxide hydrolase 2
+## 14  ACTN1                                    actinin alpha 1
+## 15  NOSIP          nitric oxide synthase interacting protein</code></pre>
+</div>
+<div id="cd4-regulatory" class="section level3">
+<h3>CD4 Regulatory</h3>
+<pre class="r"><code>out &lt;- mygene::queryMany(imp_genes[1:20,6],  scopes=&quot;symbol&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre class="r"><code>tab &lt;- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) &lt;- c(&quot;symbol&quot;, &quot;name&quot;)
+rownames(tab) &lt;- NULL
+tab</code></pre>
+<pre><code>##     symbol                                                          name
+## 1     IL32                                                interleukin 32
+## 2      LAT                              linker for activation of T-cells
+## 3      CD2                                                  CD2 molecule
+## 4     AQP3                                aquaporin 3 (Gill blood group)
+## 5   SPOCK2 SPARC/osteonectin, cwcv and kazal like domains proteoglycan 2
+## 6  TMEM173                                     transmembrane protein 173
+## 7    TIGIT                T-cell immunoreceptor with Ig and ITIM domains
+## 8      LCK                LCK proto-oncogene, Src family tyrosine kinase
+## 9      CD5                                                  CD5 molecule
+## 10    OPTN                                                    optineurin
+## 11     ID3                       inhibitor of DNA binding 3, HLH protein
+## 12    ACTB                                                    actin beta
+## 13   CCR10                               C-C motif chemokine receptor 10</code></pre>
+</div>
+<div id="cd56-nk" class="section level3">
+<h3>CD56 NK</h3>
+<pre class="r"><code>out &lt;- mygene::queryMany(imp_genes[1:20,7],  scopes=&quot;symbol&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre class="r"><code>tab &lt;- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) &lt;- c(&quot;symbol&quot;, &quot;name&quot;)
+rownames(tab) &lt;- NULL
+tab</code></pre>
+<pre><code>##    symbol
+## 1    GNLY
+## 2    CCL5
+## 3    GZMB
+## 4    GZMA
+## 5  FCER1G
+## 6    CST7
+## 7     CD7
+## 8    CTSW
+## 9   KLRB1
+## 10 FGFBP2
+## 11 MALAT1
+## 12   PRF1
+## 13   GZMM
+## 14   GZMH
+## 15 FCGR3A
+## 16  KLRD1
+## 17  KLRF1
+## 18  PTGDS
+##                                                                           name
+## 1                                                                   granulysin
+## 2                                                 C-C motif chemokine ligand 5
+## 3                                                                   granzyme B
+## 4                                                                   granzyme A
+## 5                                               Fc fragment of IgE receptor Ig
+## 6                                                                   cystatin F
+## 7                                                                 CD7 molecule
+## 8                                                                  cathepsin W
+## 9                                          killer cell lectin like receptor B1
+## 10                                  fibroblast growth factor binding protein 2
+## 11 metastasis associated lung adenocarcinoma transcript 1 (non-protein coding)
+## 12                                                                  perforin 1
+## 13                                                                  granzyme M
+## 14                                                                  granzyme H
+## 15                                            Fc fragment of IgG receptor IIIa
+## 16                                         killer cell lectin like receptor D1
+## 17                                         killer cell lectin like receptor F1
+## 18                                                   prostaglandin D2 synthase</code></pre>
+</div>
+<div id="cd8-cytotoxic" class="section level3">
+<h3>CD8 Cytotoxic</h3>
+<pre class="r"><code>out &lt;- mygene::queryMany(imp_genes[1:20,8],  scopes=&quot;symbol&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre class="r"><code>tab &lt;- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) &lt;- c(&quot;symbol&quot;, &quot;name&quot;)
+rownames(tab) &lt;- NULL
+tab</code></pre>
+<pre><code>##     symbol                                                          name
+## 1     GZMK                                                    granzyme K
+## 2     CD8A                                                 CD8a molecule
+## 3     CD3G                                                 CD3g molecule
+## 4     RGL4         ral guanine nucleotide dissociation stimulator like 4
+## 5  ZCCHC11                           zinc finger CCHC-type containing 11
+## 6    NUCB2                                                nucleobindin 2
+## 7   B3GNT2 UDP-GlcNAc:betaGal beta-1,3-N-acetylglucosaminyltransferase 2
+## 8     NBL1                    neuroblastoma 1, DAN family BMP antagonist
+## 9     SVIP                                 small VCP interacting protein
+## 10   PROCR                                            protein C receptor</code></pre>
+</div>
+<div id="cd8-naive-cytotoxic" class="section level3">
+<h3>CD8 Naive Cytotoxic</h3>
+<pre class="r"><code>out &lt;- mygene::queryMany(imp_genes[1:20,9],  scopes=&quot;symbol&quot;, fields=c(&quot;symbol&quot;, &quot;name&quot;, &quot;summary&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre class="r"><code>tab &lt;- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) &lt;- c(&quot;symbol&quot;, &quot;name&quot;)
+rownames(tab) &lt;- NULL
+tab</code></pre>
+<pre><code>##    symbol                                                    name
+## 1    CD8B                                           CD8b molecule
+## 2   S100B                          S100 calcium binding protein B
+## 3    CPA5                                     carboxypeptidase A5
+## 4    PASK           PAS domain containing serine/threonine kinase
+## 5   NELL2                                      neural EGFL like 2
+## 6  PCSK1N proprotein convertase subtilisin/kexin type 1 inhibitor
+## 7   RUNX2                     runt related transcription factor 2
+## 8  EEF1B2       eukaryotic translation elongation factor 1 beta 2
+## 9   NR4A1           nuclear receptor subfamily 4 group A member 1
+## 10 THEMIS                          thymocyte selection associated
+## 11  CRTAM                cytotoxic and regulatory T-cell molecule</code></pre>
+</div>
+</div>
+<div id="t-sne-expression-pattern-for-cell-subsets" class="section level2">
+<h2>t-SNE expression pattern for cell subsets</h2>
+<div id="cd14-monocytes" class="section level3">
+<h3>CD14 monocytes</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+</div>
+<div id="cd19-b-cells" class="section level3">
+<h3>CD19 B cells</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+</div>
+<div id="cd4-helper-1" class="section level3">
+<h3>CD4 helper</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+</div>
+<div id="cd4-memory-1" class="section level3">
+<h3>CD4 memory</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+</div>
+<div id="cd4-naive-1" class="section level3">
+<h3>CD4 Naive</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+</div>
+<div id="cd4-regulatory-1" class="section level3">
+<h3>CD4 regulatory</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+</div>
+<div id="cd56-nk-cells" class="section level3">
+<h3>CD56 NK cells</h3>
+<pre><code>## Finished</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+</div>
+<div id="cd8-cytotoxic-1" class="section level3">
+<h3>CD8 cytotoxic</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+</div>
+<div id="cd8-naive-cytotoxic-1" class="section level3">
+<h3>CD8 Naive cytotoxic</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<p><img src="divergence_measure_on_sorted_cells_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+</div>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
