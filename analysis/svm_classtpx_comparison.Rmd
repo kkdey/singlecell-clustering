@@ -141,3 +141,92 @@ omega <- topic_clus$omega
 save(omega, file = "../output/classtpx_memberships.rda")
 ```
 
+```{r echo=FALSE, eval=TRUE}
+tsne_svm_memberships <- get(load("../output/tsne_svm_memberships.rda"))
+tsne_classtpx_memberships <- get(load("../output/tsne_classtpx_memberships.rda"))
+dim(tsne_classtpx_memberships)
+dim(tsne_svm_memberships)
+```
+
+### classtpx labels on classtpx tSNE
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+known_samples <- 1:4500
+class_labs <- fac1
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = tsne_classtpx_memberships[, 1],
+                          tSNE_2 = tsne_classtpx_memberships[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+### SVM labels on classtpx tSNE
+
+```{r echo=FALSE, eval=TRUE}
+labels2_class <- as.factor(c(as.character(y), as.character(prob[1:5000])))
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = tsne_classtpx_memberships[, 1],
+                          tSNE_2 = tsne_classtpx_memberships[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+### classtpx labels on SVM tSNE
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+known_samples <- 1:4500
+class_labs <- fac1
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = tsne_svm_memberships[, 1],
+                          tSNE_2 = tsne_svm_memberships[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+### SVM labels on SVM tSNE
+
+```{r echo=FALSE, eval=TRUE}
+labels2_class <- as.factor(c(as.character(y), as.character(prob[1:5000])))
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = tsne_svm_memberships[, 1],
+                          tSNE_2 = tsne_svm_memberships[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+

@@ -197,6 +197,11 @@ The results from a supervised Countclust model fit and a partially supervised mo
 
 - [Comparison of SVM and Countclust results on sorted + unsorted PBMC data](svm_classtpx_comparison.html)
 
+We show below that the training accuracy of the hard classification from classtpx is better than that of Support Vector Machines (SVM).
+
+- [Training accuracy of classtpx and SVM on the sorted + unsorted PBMC data](train_accuracy_svm_classtpx.html)
+
+
 
 
 ## Extras

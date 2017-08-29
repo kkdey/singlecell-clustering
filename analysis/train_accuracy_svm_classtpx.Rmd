@@ -1,0 +1,242 @@
+---
+title: 'Training accuracy on sorted immune cells: SVM and classtpx'
+author: "Kushal K Dey"
+date: "8/29/2017"
+output: html_document
+---
+
+In this script, we check for the training accuracy of the classtpx and SVM. In order to 
+understand this better, we subsample some of the sorted cells in each cell type class to form a training population and keep the rest as test population.
+
+## Data Processing
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(GSEABase)
+library(Seurat)
+library(classtpx)
+library(e1071)
+library(plyr)
+```
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+data <- seuratObj_TFH_global@raw.data
+counts <- t(data)
+```
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+class_labs <- fac1
+```
+
+```{r}
+table(fac1)
+```
+
+```{r}
+net_data <- seuratObj_TFH_global@dr$pca@cell.embeddings[1:4500,]
+```
+
+
+## Subsampling rate : 0.25
+
+```{r}
+train_subsamples <- sample(1:4500, 1000, replace = FALSE)
+table(class_labs[train_subsamples])
+```
+
+```{r}
+train_data <- net_data[train_subsamples,]
+test_data <- net_data[-train_subsamples,]
+dim(train_data)
+dim(test_data)
+class_labs_train <- class_labs[train_subsamples]
+class_labs_test <- class_labs[-train_subsamples]
+dat <- cbind.data.frame(train_data, class_labs_train)
+```
+
+### SVM application 
+
+```{r}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
+
+
+model_SVM <- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,
+                                                   data=dat,
+                                                   probability=TRUE), svm.control))
+prob  = predict(model_SVM, test_data, probability=TRUE)
+length(which(prob != class_labs_test))/length(prob)
+```
+
+
+So, SVM on the PC data (first 20 components) gives a misclassification error rate of $28\%$.
+Now we compare this performance with that of classtpx.
+
+```{r}
+counts <- t(data[,1:4500])
+known_samples <- train_subsamples
+class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+```
+
+### classtpx application
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_pbmc_68K_training_testing_2.rda")
+```
+
+```{r}
+topic_clus <- get(load("../output/classtpx_pbmc_68K_training_testing_2.rda"))
+```
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```
+
+
+
+## Subsampling rate : 0.5
+
+```{r}
+train_subsamples <- sample(1:4500, 2500, replace = FALSE)
+table(class_labs[train_subsamples])
+```
+
+```{r}
+train_data <- net_data[train_subsamples,]
+test_data <- net_data[-train_subsamples,]
+dim(train_data)
+dim(test_data)
+class_labs_train <- class_labs[train_subsamples]
+class_labs_test <- class_labs[-train_subsamples]
+dat <- cbind.data.frame(train_data, class_labs_train)
+```
+
+### SVM application 
+
+```{r}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
+
+
+model_SVM <- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,
+                                                   data=dat,
+                                                   probability=TRUE), svm.control))
+prob  = predict(model_SVM, test_data, probability=TRUE)
+length(which(prob != class_labs_test))/length(prob)
+```
+
+
+So, SVM on the PC data (first 20 components) gives a misclassification error rate of $28\%$.
+Now we compare this performance with that of classtpx.
+
+```{r}
+counts <- t(data[,1:4500])
+known_samples <- train_subsamples
+class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+```
+
+### classtpx application
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_pbmc_68K_training_testing_1.rda")
+```
+
+```{r}
+topic_clus <- get(load("../output/classtpx_pbmc_68K_training_testing.rda"))
+```
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```
+
+So, the misclassification error rate is lower compared to the SVM even when considering hard classification performance.
+
+
+## Subsampling rate : 0.75
+
+```{r}
+train_subsamples <- sample(1:4500, 3500, replace = FALSE)
+table(class_labs[train_subsamples])
+```
+
+```{r}
+train_data <- net_data[train_subsamples,]
+test_data <- net_data[-train_subsamples,]
+dim(train_data)
+dim(test_data)
+class_labs_train <- class_labs[train_subsamples]
+class_labs_test <- class_labs[-train_subsamples]
+dat <- cbind.data.frame(train_data, class_labs_train)
+```
+
+### SVM application 
+
+```{r}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
+
+
+model_SVM <- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,
+                                                   data=dat,
+                                                   probability=TRUE), svm.control))
+prob  = predict(model_SVM, test_data, probability=TRUE)
+length(which(prob != class_labs_test))/length(prob)
+```
+
+
+So, SVM on the PC data (first 20 components) gives a misclassification error rate of $28\%$.
+Now we compare this performance with that of classtpx.
+
+```{r}
+counts <- t(data[,1:4500])
+known_samples <- train_subsamples
+class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+```
+
+### classtpx application
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_pbmc_68K_training_testing_3.rda")
+```
+
+```{r}
+topic_clus <- get(load("../output/classtpx_pbmc_68K_training_testing_3.rda"))
+```
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```

@@ -328,11 +328,11 @@ prob  = predict(model_SVM, testX, probability=TRUE)
 table(prob)</code></pre>
 <pre><code>## prob
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 416                 289                 893 
+##                 416                 289                 905 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                 386                 630                 227 
+##                 382                 616                 236 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 321                1617                 221</code></pre>
+##                 322                1608                 226</code></pre>
 <p><img src="svm_classtpx_comparison_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 <p>We contrast this with the picture from classtpx model fit.</p>
 </div>
@@ -356,6 +356,24 @@ for(m in 1:4500){
   mat1[m, match(y[m], colnames(mat1))] &lt;- 1
 }</code></pre>
 <pre class="r"><code>pooled_mat &lt;- rbind(mat1, probs_mat)</code></pre>
+<pre><code>## [1] 9500    2</code></pre>
+<pre><code>## [1] 9500    2</code></pre>
+<div id="classtpx-labels-on-classtpx-tsne" class="section level3">
+<h3>classtpx labels on classtpx tSNE</h3>
+<p><img src="svm_classtpx_comparison_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+</div>
+<div id="svm-labels-on-classtpx-tsne" class="section level3">
+<h3>SVM labels on classtpx tSNE</h3>
+<p><img src="svm_classtpx_comparison_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+<div id="classtpx-labels-on-svm-tsne" class="section level3">
+<h3>classtpx labels on SVM tSNE</h3>
+<p><img src="svm_classtpx_comparison_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+</div>
+<div id="svm-labels-on-svm-tsne" class="section level3">
+<h3>SVM labels on SVM tSNE</h3>
+<p><img src="svm_classtpx_comparison_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+</div>
 </div>
 
 <hr>
