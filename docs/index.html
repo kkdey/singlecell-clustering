@@ -331,6 +331,13 @@ $(document).ready(function () {
 <ul>
 <li><a href="pooled_sorted_unsorted_pbmc_10X_analysis.html">CountClust study on sorted immune cells + unsorted PBMC cells</a></li>
 </ul>
+<p>Since we have data available on sorted cells, and from the above analysis, merging the unsorted cells with the sorted ones seemed to preserve the biological structure, we decided to apply a supervised version of the Countclust method or grade of membership method and also pit it against a more standard classification algorithm like Support Vector Machines (SVM).</p>
+<p>The results from a supervised Countclust model fit and a partially supervised model fits are presented below.</p>
+<ul>
+<li><p><a href="classification_gom.html">supervised Countclust study on sorted + unsorted PBMC cells</a></p></li>
+<li><p><a href="classification_gom_2.html">partially supervised Countclust study on sorted + unsorted PBMC cells, allowing for 2 more clusters</a></p></li>
+<li><p><a href="svm_classtpx_comparison.html">Comparison of SVM and Countclust results on sorted + unsorted PBMC data</a></p></li>
+</ul>
 </div>
 <div id="extras" class="section level2">
 <h2>Extras</h2>
