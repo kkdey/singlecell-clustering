@@ -201,6 +201,12 @@ We show below that the training accuracy of the hard classification from classtp
 
 - [Training accuracy of classtpx and SVM on the sorted + unsorted PBMC data](train_accuracy_svm_classtpx.html)
 
+We next threshold the genes based on the divergence measure of the sorted cell gene expression to pick out the strongest driving genes for classification. As of now, since the divrgence measure tends to subside to 0 inside of the first 100 genes, we pick 100 strongest genes per class and so, for the 9 sorted cell types, we have a total of 900 genes, on which the thresholded analysis is done. The results are presented below
+
+- [Thresholded classtpx performance on sorted + unsorted PBMC data](thresholded_classtpx.html)
+
+- [Training accuracy comparison of the original classtpx and the thresholded classtpx](train_accuracy_svm_classtpx_2.html)
+
 
 
 

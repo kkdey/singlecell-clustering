@@ -12,7 +12,7 @@
 <meta name="author" content="Kushal K Dey" />
 
 
-<title>Training accuracy on sorted immune cells: SVM and classtpx</title>
+<title>Training accuracy of thresholded classtpx, regular classtpx and SVM</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -301,14 +301,30 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Training accuracy on sorted immune cells: SVM and classtpx</h1>
+<h1 class="title toc-ignore">Training accuracy of thresholded classtpx, regular classtpx and SVM</h1>
 <h4 class="author"><em>Kushal K Dey</em></h4>
 <h4 class="date"><em>8/29/2017</em></h4>
 
 </div>
 
 
-<p>In this script, we check for the training accuracy of the classtpx and SVM. In order to understand this better, we subsample some of the sorted cells in each cell type class to form a training population and keep the rest as test population.</p>
+<div id="finding-threshold-indices" class="section level2">
+<h2>Finding threshold indices</h2>
+<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/seurat_pooled_sorted_unsorted_PBMC.rda&quot;))</code></pre>
+<pre class="r"><code>data &lt;- seuratObj_TFH_global@raw.data[,1:4500]</code></pre>
+<pre class="r"><code>fac &lt;- sapply(colnames(data), function(x) return(paste0(head(strsplit(x, &quot;[_]&quot;)[[1]], -1), collapse=&quot;_&quot;)))</code></pre>
+<pre class="r"><code>counts_mat &lt;- apply(data, 1, function(x) return(tapply(x, fac, sum)))</code></pre>
+<pre class="r"><code>counts_mat_prop &lt;- t(apply(counts_mat, 1, function(x)
+                         {
+                           y &lt;- (x+1e-07)
+                           z &lt;- y/sum(y)
+                           return(z)
+                          }))</code></pre>
+<pre class="r"><code>out &lt;- ExtractTopFeatures(t(counts_mat_prop), top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+indices &lt;- out$indices
+scores &lt;- out$scores</code></pre>
+<pre class="r"><code>indices_vec &lt;- as.vector(indices)</code></pre>
+</div>
 <div id="data-processing" class="section level2">
 <h2>Data Processing</h2>
 <pre class="r"><code>table(fac1)</code></pre>
@@ -319,7 +335,6 @@ div.tocify {
 ##                 500                 500                 500 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
 ##                 500                 500                 500</code></pre>
-<pre class="r"><code>net_data &lt;- seuratObj_TFH_global@dr$pca@cell.embeddings[1:4500,]</code></pre>
 </div>
 <div id="subsampling-rate-0.25" class="section level2">
 <h2>Subsampling rate : 0.25</h2>
@@ -327,53 +342,34 @@ div.tocify {
 table(class_labs[train_subsamples])</code></pre>
 <pre><code>## 
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 126                 122                 107 
+##                 121                 109                 121 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                  99                 120                 114 
+##                 106                  97                 112 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 120                  96                  96</code></pre>
-<pre class="r"><code>train_data &lt;- net_data[train_subsamples,]
-test_data &lt;- net_data[-train_subsamples,]
-dim(train_data)</code></pre>
-<pre><code>## [1] 1000   20</code></pre>
-<pre class="r"><code>dim(test_data)</code></pre>
-<pre><code>## [1] 3500   20</code></pre>
+##                 126                  97                 111</code></pre>
 <pre class="r"><code>class_labs_train &lt;- class_labs[train_subsamples]
 class_labs_test &lt;- class_labs[-train_subsamples]
-dat &lt;- cbind.data.frame(train_data, class_labs_train)</code></pre>
-<div id="svm-application" class="section level3">
-<h3>SVM application</h3>
-<pre class="r"><code>svm.control.default &lt;- list(scale = TRUE, type = NULL, kernel =&quot;radial&quot;,
-                              degree = 3,
-                              coef0 = 0, cost = 1, nu = 0.5,
-                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
-                              epsilon = 0.1,
-                              shrinking = TRUE, cross = 0, fitted = TRUE)
-svm.control &lt;- list()
-svm.control &lt;- modifyList(svm.control.default, svm.control)
-
-
-model_SVM &lt;- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,
-                                                   data=dat,
-                                                   probability=TRUE), svm.control))
-prob  = predict(model_SVM, test_data, probability=TRUE)
-length(which(prob != class_labs_test))/length(prob)</code></pre>
-<pre><code>## [1] 0.3114286</code></pre>
-<p>So, SVM on the PC data (first 20 components) gives a misclassification error rate of <span class="math inline">\(28\%\)</span>. Now we compare this performance with that of classtpx.</p>
-<pre class="r"><code>counts &lt;- t(data[,1:4500])
+counts &lt;- t(data[,1:4500])
 known_samples &lt;- train_subsamples
 class_labs_train_2 &lt;- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))</code></pre>
-</div>
 <div id="classtpx-application" class="section level3">
 <h3>classtpx application</h3>
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 561.975, done.</code></pre>
-<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+## log posterior increase: 570.079, done.</code></pre>
+<pre><code>## 
+## Estimating on a 4500 document collection.
+## start the fit 
+## log posterior increase: 459.035, done.</code></pre>
+<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_1$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.2348571</code></pre>
+<pre><code>## [1] 0.2411429</code></pre>
+<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_2$omega, 1, function(x) return(which.max(x))))
+labels2_class &lt;- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
+<pre><code>## [1] 0.2257143</code></pre>
 </div>
 </div>
 <div id="subsampling-rate-0.5" class="section level2">
@@ -382,54 +378,34 @@ length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_
 table(class_labs[train_subsamples])</code></pre>
 <pre><code>## 
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 281                 266                 278 
+##                 281                 289                 300 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                 283                 269                 285 
+##                 275                 286                 265 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 262                 293                 283</code></pre>
-<pre class="r"><code>train_data &lt;- net_data[train_subsamples,]
-test_data &lt;- net_data[-train_subsamples,]
-dim(train_data)</code></pre>
-<pre><code>## [1] 2500   20</code></pre>
-<pre class="r"><code>dim(test_data)</code></pre>
-<pre><code>## [1] 2000   20</code></pre>
+##                 282                 261                 261</code></pre>
 <pre class="r"><code>class_labs_train &lt;- class_labs[train_subsamples]
 class_labs_test &lt;- class_labs[-train_subsamples]
-dat &lt;- cbind.data.frame(train_data, class_labs_train)</code></pre>
-<div id="svm-application-1" class="section level3">
-<h3>SVM application</h3>
-<pre class="r"><code>svm.control.default &lt;- list(scale = TRUE, type = NULL, kernel =&quot;radial&quot;,
-                              degree = 3,
-                              coef0 = 0, cost = 1, nu = 0.5,
-                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
-                              epsilon = 0.1,
-                              shrinking = TRUE, cross = 0, fitted = TRUE)
-svm.control &lt;- list()
-svm.control &lt;- modifyList(svm.control.default, svm.control)
-
-
-model_SVM &lt;- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,
-                                                   data=dat,
-                                                   probability=TRUE), svm.control))
-prob  = predict(model_SVM, test_data, probability=TRUE)
-length(which(prob != class_labs_test))/length(prob)</code></pre>
-<pre><code>## [1] 0.2845</code></pre>
-<p>So, SVM on the PC data (first 20 components) gives a misclassification error rate of <span class="math inline">\(28\%\)</span>. Now we compare this performance with that of classtpx.</p>
-<pre class="r"><code>counts &lt;- t(data[,1:4500])
+counts &lt;- t(data[,1:4500])
 known_samples &lt;- train_subsamples
 class_labs_train_2 &lt;- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))</code></pre>
-</div>
 <div id="classtpx-application-1" class="section level3">
 <h3>classtpx application</h3>
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 806.502, done.</code></pre>
-<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+## log posterior increase: 815.772, done.</code></pre>
+<pre><code>## 
+## Estimating on a 4500 document collection.
+## start the fit 
+## log posterior increase: 460.032, done.</code></pre>
+<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_1$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.194</code></pre>
-<p>So, the misclassification error rate is lower compared to the SVM even when considering hard classification performance.</p>
+<pre><code>## [1] 0.184</code></pre>
+<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_2$omega, 1, function(x) return(which.max(x))))
+labels2_class &lt;- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
+<pre><code>## [1] 0.205</code></pre>
 </div>
 </div>
 <div id="subsampling-rate-0.75" class="section level2">
@@ -438,53 +414,34 @@ length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_
 table(class_labs[train_subsamples])</code></pre>
 <pre><code>## 
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 381                 393                 395 
+##                 389                 393                 395 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                 373                 399                 375 
+##                 368                 400                 397 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 387                 400                 397</code></pre>
-<pre class="r"><code>train_data &lt;- net_data[train_subsamples,]
-test_data &lt;- net_data[-train_subsamples,]
-dim(train_data)</code></pre>
-<pre><code>## [1] 3500   20</code></pre>
-<pre class="r"><code>dim(test_data)</code></pre>
-<pre><code>## [1] 1000   20</code></pre>
+##                 372                 397                 389</code></pre>
 <pre class="r"><code>class_labs_train &lt;- class_labs[train_subsamples]
 class_labs_test &lt;- class_labs[-train_subsamples]
-dat &lt;- cbind.data.frame(train_data, class_labs_train)</code></pre>
-<div id="svm-application-2" class="section level3">
-<h3>SVM application</h3>
-<pre class="r"><code>svm.control.default &lt;- list(scale = TRUE, type = NULL, kernel =&quot;radial&quot;,
-                              degree = 3,
-                              coef0 = 0, cost = 1, nu = 0.5,
-                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
-                              epsilon = 0.1,
-                              shrinking = TRUE, cross = 0, fitted = TRUE)
-svm.control &lt;- list()
-svm.control &lt;- modifyList(svm.control.default, svm.control)
-
-
-model_SVM &lt;- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,
-                                                   data=dat,
-                                                   probability=TRUE), svm.control))
-prob  = predict(model_SVM, test_data, probability=TRUE)
-length(which(prob != class_labs_test))/length(prob)</code></pre>
-<pre><code>## [1] 0.296</code></pre>
-<p>So, SVM on the PC data (first 20 components) gives a misclassification error rate of <span class="math inline">\(28\%\)</span>. Now we compare this performance with that of classtpx.</p>
-<pre class="r"><code>counts &lt;- t(data[,1:4500])
+counts &lt;- t(data[,1:4500])
 known_samples &lt;- train_subsamples
 class_labs_train_2 &lt;- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))</code></pre>
-</div>
 <div id="classtpx-application-2" class="section level3">
 <h3>classtpx application</h3>
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 867.737, done.</code></pre>
-<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+## log posterior increase: 867.918, done.</code></pre>
+<pre><code>## 
+## Estimating on a 4500 document collection.
+## start the fit 
+## log posterior increase: 457.162, done.</code></pre>
+<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_1$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.198</code></pre>
+<pre><code>## [1] 0.186</code></pre>
+<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_2$omega, 1, function(x) return(which.max(x))))
+labels2_class &lt;- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
+<pre><code>## [1] 0.211</code></pre>
 </div>
 </div>
 

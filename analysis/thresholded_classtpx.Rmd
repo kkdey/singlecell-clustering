@@ -1,13 +1,12 @@
 ---
-title: "Pooled sorted + unsorted PBMC data Countclust"
+title: "Thresholded classtpx on sorted + unsorted PBMC data"
 author: "Kushal K Dey"
-date: "8/24/2017"
+date: "8/29/2017"
 output: html_document
 ---
-
-We look at the cluster patterns of the PBMC cluster data.
-
 ```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(plyr)
+library(classtpx)
 library(CountClust)
 library(maptpx)
 library(ggplot2)
@@ -16,13 +15,72 @@ library(GSEABase)
 library(Seurat)
 ```
 
-## Cluster analysis
 
 ```{r}
-topic_clus <- get(load("../output/10X_genomics_pooled_sort_unsort_maptpx.rda"))
+seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
 ```
 
 ```{r}
+data <- seuratObj_TFH_global@raw.data[,1:4500]
+```
+
+```{r}
+fac <- sapply(colnames(data), function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+```
+
+```{r}
+counts_mat <- apply(data, 1, function(x) return(tapply(x, fac, sum)))
+```
+
+```{r}
+counts_mat_prop <- t(apply(counts_mat, 1, function(x)
+                         {
+                           y <- (x+1e-07)
+                           z <- y/sum(y)
+                           return(z)
+                          }))
+```
+
+
+```{r}
+out <- ExtractTopFeatures(t(counts_mat_prop), top_features = 100, method = "poisson", options = "max")
+indices <- out$indices
+scores <- out$scores
+```
+
+```{r}
+indices_vec <- as.vector(indices)
+```
+
+## classtpx 
+
+```{r}
+data2 <- seuratObj_TFH_global@raw.data[indices_vec, ]
+```
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data2)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+known_samples <- 1:4500
+class_labs <- fac1
+```
+
+```{r echo=FALSE, eval=TRUE}
+counts <- t(data2)
+class_labs_2 <- factor(as.vector(mapvalues(class_labs, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+```
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs, method = "theta.fix", shrink = FALSE, tol = 0.00001)
+save(topic_clus, file = "../output/classtpx_pbmc_68K_thresh.rda")
+```
+
+## CountClust Structure
+
+```{r echo=FALSE, eval=TRUE}
+topic_clus <- get(load("../output/classtpx_pbmc_68K_thresh.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
 PlotCountClust <- function(topic_clus, fac){
   omega <- topic_clus$omega
   theta <- topic_clus$theta
@@ -47,23 +105,12 @@ PlotCountClust <- function(topic_clus, fac){
 }
 ```
 
-```{r}
-fac1 <- sapply(rownames(topic_clus[[5]]$omega)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+```{r echo=FALSE, eval=TRUE}
 fac <- c(fac1, rep("unsorted_PBMC", 5000))
-PlotCountClust(topic_clus[[5]], fac)
-PlotCountClust(topic_clus[[6]], fac)
-PlotCountClust(topic_clus[[7]], fac)
-PlotCountClust(topic_clus[[8]], fac)
-PlotCountClust(topic_clus[[9]], fac)
-PlotCountClust(topic_clus[[10]], fac)
+PlotCountClust(topic_clus, fac)
 ```
 
-```{r}
-seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
-```
-
-
-## t-SNE projection
+## t-SNE projection + CountClust coloring
 
 ```{r echo=FALSE, eval=TRUE}
 labels <- fac
@@ -85,20 +132,11 @@ plot1
 ```
 
 
-## t-SNE projection + CountClust coloring
-
-```{r fig.height = 6, echo=FALSE, eval=TRUE}
-labels2 <- as.factor(apply(topic_clus[[5]]$omega, 1, function(x) return(which.max(x))))
-labels3 <- as.factor(apply(topic_clus[[6]]$omega, 1, function(x) return(which.max(x))))
-labels4 <- as.factor(apply(topic_clus[[7]]$omega, 1, function(x) return(which.max(x))))
-labels5 <- as.factor(apply(topic_clus[[8]]$omega, 1, function(x) return(which.max(x))))
-labels6 <- as.factor(apply(topic_clus[[10]]$omega, 1, function(x) return(which.max(x))))
+```{r echo=FALSE, eval=TRUE}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
 
 data_ggplot <- data.frame(labels2 = labels2,
-                          labels3 = labels3,
-                          labels4 = labels4,
-                          labels5 = labels5,
-                          labels6 = labels6,
                           tSNE_1 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 1],
                           tSNE_2 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 2])
 
@@ -108,51 +146,18 @@ plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "b
                                      axis.text.y = element_blank(),
                                      axis.text.x = element_blank(),
                                      axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
-
-plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
-
-plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels4), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
-
-plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels5), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
-
-plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels6), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
-
-plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
 ```
 
 
-## K=8 driving genes
+## Driving genes
 
-### cluster 1
+### class1 1
 
 ```{r echo=FALSE, eval=TRUE}
-indices <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = "poisson", options = "max")$indices
-imp_genes <- apply(indices, 1, function(x) return(rownames(topic_clus[[8]]$theta)[x]))
+indices <- ExtractTopFeatures(topic_clus$theta, top_features = 100, method = "poisson", options = "max")$indices
+imp_genes <- apply(indices, 1, function(x) return(rownames(topic_clus$theta)[x]))
 
 out <- mygene::queryMany(imp_genes[1:20,1],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
 tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
@@ -161,7 +166,7 @@ rownames(tab) <- NULL
 tab
 ```
 
-### cluster 2
+### class 2
 
 ```{r echo=FALSE, eval=TRUE}
 out <- mygene::queryMany(imp_genes[1:20,2],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
@@ -171,7 +176,7 @@ rownames(tab) <- NULL
 tab
 ```
 
-### cluster 3
+### class 3
 
 ```{r echo=FALSE, eval=TRUE}
 out <- mygene::queryMany(imp_genes[1:20,3],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
@@ -182,7 +187,7 @@ tab
 ```
 
 
-### cluster 4
+### class 4
 
 ```{r echo=FALSE, eval=TRUE}
 out <- mygene::queryMany(imp_genes[1:20,4],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
@@ -193,7 +198,7 @@ tab
 ```
 
 
-### cluster 5
+### class 5
 
 ```{r echo=FALSE, eval=TRUE}
 out <- mygene::queryMany(imp_genes[1:20,5],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
@@ -204,7 +209,7 @@ tab
 ```
 
 
-### cluster 6
+### class 6
 
 ```{r echo=FALSE, eval=TRUE}
 out <- mygene::queryMany(imp_genes[1:20,6],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
@@ -215,7 +220,7 @@ tab
 ```
 
 
-### cluster 7
+### class 7
 
 ```{r echo=FALSE, eval=TRUE}
 out <- mygene::queryMany(imp_genes[1:20,7],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
@@ -225,7 +230,7 @@ rownames(tab) <- NULL
 tab
 ```
 
-### cluster 8
+### class 8
 
 ```{r echo=FALSE, eval=TRUE}
 out <- mygene::queryMany(imp_genes[1:20,8],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
@@ -235,7 +240,19 @@ rownames(tab) <- NULL
 tab
 ```
 
-## K=6 t-SNE gene expression
+### class 9
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:20,9],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+```
+
+
+
+## K=9 t-SNE gene expression
 
 ### cluster 1 imp genes 
 
@@ -794,14 +811,14 @@ plot_grid(plot1, plot2, plot3, plot4, plot5, plot6,  ncol = 2, align = 'v')
 ```
 
 
-```{r fig.height = 12, echo=FALSE, eval=TRUE}
+
+### cluster 9 imp genes 
+
+```{r echo=FALSE, eval=TRUE}
 cex.size = 2
-genes <- c("CD3D", "GZMK", "CD8A", "CD79A", "CD4", "CLEC4C", "S100A8", "S100A9", "CCR10",
-           "TNFRSF18", "PF4", "NKG7", "SIGLEC7", "FCER1A")
+genes <- imp_genes[1:6,9]
+genes1 <- mygene::queryMany(genes, scopes = "symbol", fields="symbol", species="human")$symbol
 
-#genes <- mygene::queryMany(genes1, scopes = "symbol", fields="ensembl.gene", species="human")$ensembl.gene
-
-match(genes, rownames(topic_clus[[5]]$theta))
 
 data_ggplot <- data.frame(tSNE_1 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 1],
                           tSNE_2 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 2],
@@ -810,16 +827,8 @@ data_ggplot <- data.frame(tSNE_1 = seuratObj_TFH_global@dr$tsne@cell.embeddings[
                           Third = seuratObj_TFH_global@data[paste0(genes[3]), ], # LiveCells marker
                           Fourth = seuratObj_TFH_global@data[paste0(genes[4]), ], # LiveCells marker
                           Fifth = seuratObj_TFH_global@data[paste0(genes[5]), ],
-                          Sixth = seuratObj_TFH_global@data[paste0(genes[6]), ],
-                          Seventh = seuratObj_TFH_global@data[paste0(genes[7]), ],
-                          Eigth = seuratObj_TFH_global@data[paste0(genes[8]), ],
-                          Ninth = seuratObj_TFH_global@data[paste0(genes[9]), ],
-                          Tenth = seuratObj_TFH_global@data[paste0(genes[10]), ],
-                          Eleventh = seuratObj_TFH_global@data[paste0(genes[11]), ],
-                          Twelfth = seuratObj_TFH_global@data[paste0(genes[12]), ],
-                          Thirteenth = seuratObj_TFH_global@data[paste0(genes[13]), ],
-                          Fourteenth = seuratObj_TFH_global@data[paste0(genes[14]), ]
- ) # effector t cell
+                          Sixth = seuratObj_TFH_global@data[paste0(genes[6]), ]
+                          ) # effector t cell
 
 plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
                                      panel.grid.major = element_blank(), 
@@ -869,71 +878,5 @@ plot6 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "b
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Sixth), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_TFH_global@data[paste0(genes[6]), ], 0.2),  name = paste0(genes1[6]))
 
-plot7 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Seventh), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_TFH_global@data[paste0(genes[7]), ], 0.2),  name = paste0(genes1[7]))
-
-plot8 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Eigth), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_TFH_global@data[paste0(genes[8]), ], 0.2),  name = paste0(genes1[8]))
-
-plot9 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Ninth), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_TFH_global@data[paste0(genes[9]), ], 0.2),  name = paste0(genes1[9]))
-
-plot10 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Tenth), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_TFH_global@data[paste0(genes[10]), ], 0.2),  name = paste0(genes1[10]))
-
-plot11 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Eleventh), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_TFH_global@data[paste0(genes[11]), ], 0.2),  name = paste0(genes1[11]))
-
-plot12 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Twelfth), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_TFH_global@data[paste0(genes[12]), ], 0.2),  name = paste0(genes1[12]))
-
-plot13 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Thirteenth), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_TFH_global@data[paste0(genes[13]), ], 0.2),  name = paste0(genes1[13]))
-
-plot14 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
-                                     panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
-                                     axis.text.y = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = Fourteenth), size = cex.size) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_colour_gradient2(low = 'royalblue', high = 'red', mid = 'grey80', midpoint = quantile(seuratObj_TFH_global@data[paste0(genes[14]), ], 0.2),  name = paste0(genes1[14]))
-
-plot_grid(plot1, plot2, plot3, plot4, plot5, plot6, 
-          plot7, plot8, plot9, plot10, plot11, plot12, plot13, plot14,
-          ncol = 2, align = 'v')
+plot_grid(plot1, plot2, plot3, plot4, plot5, plot6,  ncol = 2, align = 'v')
 ```

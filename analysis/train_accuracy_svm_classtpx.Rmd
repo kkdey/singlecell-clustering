@@ -93,13 +93,9 @@ class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = 
 
 ### classtpx application
 
-```{r echo=FALSE, eval=FALSE}
+```{r echo=FALSE, eval=TRUE}
 topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
 save(topic_clus, file = "../output/classtpx_pbmc_68K_training_testing_2.rda")
-```
-
-```{r}
-topic_clus <- get(load("../output/classtpx_pbmc_68K_training_testing_2.rda"))
 ```
 
 ```{r}
@@ -159,13 +155,9 @@ class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = 
 
 ### classtpx application
 
-```{r echo=FALSE, eval=FALSE}
+```{r echo=FALSE, eval=TRUE}
 topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
 save(topic_clus, file = "../output/classtpx_pbmc_68K_training_testing_1.rda")
-```
-
-```{r}
-topic_clus <- get(load("../output/classtpx_pbmc_68K_training_testing.rda"))
 ```
 
 ```{r}
@@ -226,13 +218,9 @@ class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = 
 
 ### classtpx application
 
-```{r echo=FALSE, eval=FALSE}
+```{r echo=FALSE, eval=TRUE}
 topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
 save(topic_clus, file = "../output/classtpx_pbmc_68K_training_testing_3.rda")
-```
-
-```{r}
-topic_clus <- get(load("../output/classtpx_pbmc_68K_training_testing_3.rda"))
 ```
 
 ```{r}

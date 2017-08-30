@@ -334,8 +334,8 @@ div.tocify {
                                    axis_label_size = 7,
                                    axis_label_face = &quot;bold&quot;))
 }</code></pre>
-<pre class="r"><code>fac1 &lt;- sapply(rownames(topic_clus[[5]]$omega)[1:5000], function(x) return(paste0(head(strsplit(x, &quot;[_]&quot;)[[1]], -1), collapse=&quot;_&quot;)))
-fac &lt;- c(fac1, rep(&quot;unsorted_PBMC&quot;, 4500))
+<pre class="r"><code>fac1 &lt;- sapply(rownames(topic_clus[[5]]$omega)[1:4500], function(x) return(paste0(head(strsplit(x, &quot;[_]&quot;)[[1]], -1), collapse=&quot;_&quot;)))
+fac &lt;- c(fac1, rep(&quot;unsorted_PBMC&quot;, 5000))
 PlotCountClust(topic_clus[[5]], fac)</code></pre>
 <p><img src="pooled_sorted_unsorted_pbmc_10X_analysis_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 <pre class="r"><code>PlotCountClust(topic_clus[[6]], fac)</code></pre>
