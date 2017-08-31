@@ -208,6 +208,12 @@ We next threshold the genes based on the divergence measure of the sorted cell g
 - [Training accuracy comparison of the original classtpx and the thresholded classtpx](train_accuracy_svm_classtpx_2.html)
 
 
+We also trained the model on the sorted immune cells from 10X Genomics and then observed the
+grades of memberships of the pooled MCC cells from the data on these classes. The results are presented below.
+
+- [supervised CountClust study on the sorted immune cells + MCC cells pooled across 4 time points](classification_gom_MCC.html)
+
+
 
 
 ## Extras
