@@ -1,0 +1,50 @@
+---
+title: "Thresholded classtpx  using MASH genes"
+author: "Kushal K Dey"
+date: "8/31/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(plyr)
+library(classtpx)
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+```
+
+
+```{r}
+seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
+```
+
+```{r}
+data <- seuratObj_TFH_global@raw.data[,1:4500]
+```
+
+
+```{r}
+gene_list <- get(load("../output/list_of_genes_mash_sorted_immune.rda"))
+```
+
+```{r}
+fac <- sapply(colnames(data), function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+```
+
+```{r}
+counts_mat <- apply(data, 1, function(x) return(tapply(x, fac, sum)))
+```
+
+```{r}
+counts_mat_prop <- t(apply(counts_mat, 1, function(x)
+                         {
+                           y <- (x+1e-07)
+                           z <- y/sum(y)
+                           return(z)
+                          }))
+```
+
+
