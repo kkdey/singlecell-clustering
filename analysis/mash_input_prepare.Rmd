@@ -40,9 +40,23 @@ voom_data <- t(limma::voom(data)$E)
 ```
 
 ```{r echo=FALSE, eval=FALSE}
-betahat <- matrix(0, dim(voom_data)[2], length(unique(fac)))
-sebetahat <- matrix(0, dim(voom_data)[2], length(unique(fac)))
+betahat <- matrix(0, dim(voom_data)[2], length(unique(fac))-1)
+sebetahat <- matrix(0, dim(voom_data)[2], length(unique(fac))-1)
 ```
+
+```{r echo=FALSE, eval=FALSE}
+for(l in 1:dim(voom_data)[2]){
+  ss <- lm(voom_data[,l] ~ factor(fac))
+  summ_ss <- summary(ss)
+  betahat[l,] <-  summ_ss$coefficients[-1,1] - median(summ_ss$coefficients[-1,1])
+  sebetahat[l,] <- summ_ss$coefficients[-1,2]
+  if((l %% 1000) == 0){
+    cat("WE are at iteration :", l, "\n")
+  }
+}
+
+```
+
 
 ```{r echo=FALSE, eval=FALSE}
 for(l in 1:dim(voom_data)[2]){
@@ -78,7 +92,7 @@ barplot(get_estimated_pi(mash_out), las = 2, cex.names = 0.3)
 We look at the LFDR (Local False Discovery Rate) for a particular gene of interest - NKG7.
 
 ```{r}
-idx <- which(rownames(data) == "CD79A")
+idx <- which(rownames(data) == "GNLY")
 mash_out$result$lfdr[idx,]
 ```
 

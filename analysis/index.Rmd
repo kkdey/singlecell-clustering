@@ -224,6 +224,15 @@ in the bulk RNA-seq data - for example - the blood and blood tissues data in the
 - [supervised Countclust study GTEx blood + sorted immune cells](gtex_blood_sorted_immune.html)
 
 
+We look at more robust version of classtpx that uses trimmed mean at different degrees of trimming instead of mean of the expression patterns of cells for a particular class or cell type. We tried with median, but median did not seem to give good performance.
+
+ - [robust supervised Countclust study on sorted + unsorted PBMC cells](classification_gom_robust.html)
+ 
+ - [Training accuracy of robust classtpx at different degrees of trimming and SVM on the sorted + unsorted PBMC data](train_accuracy_svm_robust_classtpx.html)
+ 
+ - [Comparison of SVM and robust supervised Countclust results on sorted + unsorted PBMC data](svm_classtpx_comparison_robust.html)
+
+
 ## Extras
 
 The model for applying CountClust with covariates information is below

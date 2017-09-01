@@ -1,0 +1,232 @@
+---
+title: "Support Vector machines and robust classtpx on PBMC data"
+author: "Kushal K Dey"
+date: "9/1/2017"
+output: html_document
+---
+
+We look at the t-SNE visualizations of the classtpx and the SVM model fits on the 
+PBMC data.
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(GSEABase)
+library(Seurat)
+library(classtpx)
+library(e1071)
+```
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+data <- seuratObj_TFH_global@raw.data
+counts <- t(data)
+```
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+class_labs_train <- fac1
+```
+
+
+```{r echo=FALSE, eval=TRUE}
+pca_data <- seuratObj_TFH_global@dr$pca@cell.embeddings
+```
+
+```{r echo=FALSE, eval=TRUE}
+train_indices <- 1:4500
+test_indices <- 4501:9500
+trainX <- pca_data[train_indices,]
+testX <- pca_data[test_indices,]
+y = factor(class_labs_train)
+dat <- cbind.data.frame(y, trainX);
+```
+
+## SVM application
+
+```{r echo=TRUE, eval=TRUE}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
+
+
+model_SVM <- do.call(e1071::svm, append(list(formula = y ~ .,
+                                                   data=dat,
+                                                   probability=TRUE), svm.control))
+prob  = predict(model_SVM, testX, probability=TRUE)
+table(prob)
+```
+
+```{r echo=FALSE, eval=TRUE}
+labels2 <- as.vector(prob)
+labels2_class <- c(fac1, labels2)
+
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 1],
+                          tSNE_2 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+We contrast this with the picture from classtpx model fit.
+
+## classtpx fit
+
+```{r echo=FALSE, eval=TRUE}
+topic_clus <- get(load("../output/classtpx_pbmc_68K_no_thresh_robust.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+known_samples <- 1:4500
+class_labs <- fac1
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 1],
+                          tSNE_2 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+## tSNE comparative analysis : SVM vs classtpx
+
+We present a comparative analysis of the class memberships from the SVM method and the classtpx method.
+
+```{r}
+probs_mat <- attr(prob, "probabilities")
+dim(probs_mat)
+colnames(probs_mat)
+```
+
+```{r}
+mat1 <- matrix(0, nrow=4500, ncol=9)
+colnames(mat1) <- colnames(probs_mat)
+for(m in 1:4500){
+  mat1[m, match(y[m], colnames(mat1))] <- 1
+}
+```
+
+```{r}
+pooled_mat <- rbind(mat1, probs_mat)
+```
+
+```{r echo=FALSE, eval=FALSE}
+save(pooled_mat, file = "../output/svm_memberships.rda")
+omega <- topic_clus$omega
+save(omega, file = "../output/classtpx_memberships.rda")
+```
+
+```{r echo=FALSE, eval=TRUE}
+tsne_svm_memberships <- get(load("../output/tsne_svm_memberships.rda"))
+tsne_classtpx_memberships <- get(load("../output/tsne_classtpx_memberships.rda"))
+dim(tsne_classtpx_memberships)
+dim(tsne_svm_memberships)
+```
+
+### classtpx labels on classtpx tSNE
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+known_samples <- 1:4500
+class_labs <- fac1
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = tsne_classtpx_memberships[, 1],
+                          tSNE_2 = tsne_classtpx_memberships[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+### SVM labels on classtpx tSNE
+
+```{r echo=FALSE, eval=TRUE}
+labels2_class <- as.factor(c(as.character(y), as.character(prob[1:5000])))
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = tsne_classtpx_memberships[, 1],
+                          tSNE_2 = tsne_classtpx_memberships[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+### classtpx labels on SVM tSNE
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+known_samples <- 1:4500
+class_labs <- fac1
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = tsne_svm_memberships[, 1],
+                          tSNE_2 = tsne_svm_memberships[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+### SVM labels on SVM tSNE
+
+```{r echo=FALSE, eval=TRUE}
+labels2_class <- as.factor(c(as.character(y), as.character(prob[1:5000])))
+data_ggplot <- data.frame(labels2_class = labels2_class,
+                          tSNE_1 = tsne_svm_memberships[, 1],
+                          tSNE_2 = tsne_svm_memberships[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
