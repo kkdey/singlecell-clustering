@@ -128,11 +128,11 @@ $$ \omega^{(t+1)}_{nk} =  \frac{E \left ( T_{nk+} | c, \omega, \theta \right) + 
 
 where 
 
-$$  E \left ( T_{nk+} | c, \omega, \theta \right) : = c_{n+} \omega^{(t)}_{nk}  $$
+$$  E \left ( T_{nk+} | c_{ng}, \omega, \theta \right) : = \sum_{g=1}^{G} c_{ng} v^{(t)}_{nkg} $$
 
 Therefore the update equation can be written as 
 
-$$   \omega^{(t+1)}_{nk} =  \frac{c_{n+} \omega^{(t)}_{nk} + \frac{1}{K}}{c_{n+} + 1} $$
+$$   \omega^{(t+1)}_{nk} =  \frac{\sum_{g=1}^{G} c_{ng} v^{(t)}_{nkg} + \frac{1}{K}}{\sum_{l=1}^{K} \left( \sum_{g=1}^{G} c_{ng} v^{(t)}_{nlg} + \frac{1}{K} \right ) } $$
 
 We additionally update the $\omega^{(t+1)}$ and $\theta^{(t+1)}$ by Quasi-Newton acceleration so that the convergence is quicker. Also we use an active set method as well to update the $\omega$  as well. 
 
