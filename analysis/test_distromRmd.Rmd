@@ -1,0 +1,9 @@
+---
+title: "Testing distrom and speed of multinomial fit"
+author: "Kushal K Dey"
+date: "9/5/2017"
+output: html_document
+---
+
+In this script, we test the **distrom** package due to Matt Taddy (UChicago Booth School) for fitting multinomial regression models in a distributed fashion. We take examples of counts matrices of different scales - small sample size (number of rows) and small number of features (number of columns), large sample size and small numbe rof features, small sample size and large number of features and finally with both large samples and large number of features. We discuss scalability issues for each of these cases. 
+

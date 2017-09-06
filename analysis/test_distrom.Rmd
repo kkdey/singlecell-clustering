@@ -1,0 +1,121 @@
+---
+title: "Testing distrom and speed of multinomial fit"
+author: "Kushal K Dey"
+date: "9/5/2017"
+output: html_document
+---
+
+In this script, we test the **distrom** package due to Matt Taddy (UChicago Booth School) for fitting multinomial regression models in a distributed fashion. We take examples of counts matrices of different scales - small sample size (number of rows) and small number of features (number of columns), large sample size and small numbe rof features, small sample size and large number of features and finally with both large samples and large number of features. We discuss scalability issues for each of these cases. 
+
+```{r}
+library(distrom)
+library(MASS)
+library(parallel)
+```
+
+## small sample size, small number of features
+
+We define `covars` to be a matrix of covariate information for each sample. So, this is a mtrix with samples along the rows and covariates along the columns.
+
+```{r}
+cl <- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))
+print(cl)
+covars <- do.call(rbind, replicate(1, fgl[,1:9], simplify=FALSE))
+dim(covars)
+head(covars)
+```
+
+
+We assume there are 100 categories in the multinomial model fit, in covtpx, this would be equivalent to the number of features (genes).
+
+```{r}
+counts <- matrix(sample(1:100, 214*100, replace=TRUE), 214, 100)
+dim(counts)
+counts[1:5,1:5]
+```
+
+```{r}
+system.time(fits <- dmr(cl, covars, counts, verb=1))
+stopCluster(cl)
+```
+
+We can then get the estimated coefficients as follows
+
+```{r}
+fitted_coeff <- coef(fits)
+dim(fitted_coeff)
+head(fitted_coeff)
+```
+
+
+## large sample size, small number of features
+
+```{r}
+cl <- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))
+print(cl)
+covars <- do.call(rbind, replicate(100, fgl[,1:9], simplify=FALSE))
+dim(covars)
+head(covars)
+counts <- matrix(sample(1:100, 21400*100, replace=TRUE), 21400, 100)
+dim(counts)
+counts[1:5,1:5]
+```
+
+```{r}
+system.time(fits <- dmr(cl, covars, counts, verb=1))
+stopCluster(cl)
+```
+
+```{r}
+coef(fits)
+```
+
+
+## small sample size, large number of features
+
+```{r}
+cl <- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))
+print(cl)
+covars <- do.call(rbind, replicate(1, fgl[,1:9], simplify=FALSE))
+dim(covars)
+head(covars)
+counts <- matrix(sample(1:100, 214*10000, replace=TRUE), 214, 10000)
+dim(counts)
+counts[1:5,1:5]
+```
+
+```{r}
+system.time(fits <- dmr(cl, covars, counts, verb=1))
+stopCluster(cl)
+```
+
+```{r}
+coef(fits)
+```
+
+## large sample size, large number of features
+
+```{r}
+cl <- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))
+print(cl)
+covars <- do.call(rbind, replicate(10, fgl[,1:9], simplify=FALSE))
+dim(covars)
+head(covars)
+counts <- matrix(sample(1:10, 2140*10000, replace=TRUE), 2140, 10000)
+dim(counts)
+counts[1:5,1:5]
+```
+
+```{r}
+system.time(fits <- dmr(cl, covars, counts, verb=1))
+stopCluster(cl)
+```
+
+```{r}
+coef(fits)
+```
+
+```{r}
+sessionInfo()
+```
+
