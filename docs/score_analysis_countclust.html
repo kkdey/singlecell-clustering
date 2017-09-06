@@ -313,36 +313,36 @@ div.tocify {
 <pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/10X_genomics_pooled_sort_unsort_maptpx.rda&quot;))</code></pre>
 <div id="k5" class="section level3">
 <h3>K=5</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:5){
-  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:1000), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 </div>
 <div id="k8" class="section level3">
 <h3>K=8</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:8){
-  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:1000), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 </div>
 <div id="k10" class="section level3">
 <h3>K=10</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(4,3))
 for(m in 1:10){
-  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:1000), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
@@ -363,12 +363,12 @@ for(m in 1:dim(scores)[1]){
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(density(abs(ll[[m]][,1] - ll[[m]][,2])), col = &quot;red&quot;, main = &quot;density of distance between quantiles&quot;, xlab = &quot;distance - qq&quot;, ylab = &quot;density&quot;)
+plot(density((ll[[m]][,1] - ll[[m]][,2])), col = &quot;red&quot;, main = &quot;density of distance between quantiles&quot;, xlab = &quot;distance - qq&quot;, ylab = &quot;density&quot;)
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(abs(ll[[m]][,1] - ll[[m]][,2]), col = &quot;red&quot;, main = &quot;abs diff between quantiles&quot;, xlab = &quot;distance - qq&quot;, ylab = &quot;density&quot;)
+plot((ll[[m]][,1] - ll[[m]][,2]), col = &quot;red&quot;, main = &quot;diff between quantiles&quot;, xlab = &quot;index&quot;, ylab = &quot;diff quantiles&quot;)
 abline(0,0)
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
@@ -379,43 +379,43 @@ abline(0,0)
 <pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/pbmc_68K_evan_maptpx.rda&quot;))</code></pre>
 <div id="k5-1" class="section level3">
 <h3>K=5</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:5){
-  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:1000), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 </div>
 <div id="k8-1" class="section level3">
 <h3>K=8</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:8){
-  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:1000), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
 </div>
 <div id="k10-1" class="section level3">
 <h3>K=10</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(4, 3))
 for(m in 1:10){
-  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:1000), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 </div>
 <div id="qqplot-k8-1" class="section level3">
 <h3>QQplot (K=8)</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores
 
@@ -429,12 +429,12 @@ for(m in 1:dim(scores)[1]){
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(density(abs(ll[[m]][,1] - ll[[m]][,2])), col = &quot;red&quot;, main = &quot;density of distance between quantiles&quot;, xlab = &quot;distance - qq&quot;, ylab = &quot;density&quot;)
+plot(density((ll[[m]][,1] - ll[[m]][,2])), col = &quot;red&quot;, main = &quot;density of distance between quantiles&quot;, xlab = &quot;distance - qq&quot;, ylab = &quot;density&quot;)
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(abs(ll[[m]][,1] - ll[[m]][,2]), col = &quot;red&quot;, main = &quot;abs diff between quantiles&quot;, xlab = &quot;distance - qq&quot;, ylab = &quot;density&quot;)
+plot((ll[[m]][,1] - ll[[m]][,2]), col = &quot;red&quot;, main = &quot;diff between quantiles&quot;, xlab = &quot;index&quot;, ylab = &quot;diff quantiles&quot;)
 abline(0,0)
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
@@ -444,50 +444,50 @@ abline(0,0)
 <h2>Aggregated MCC analysis</h2>
 <div id="k3" class="section level3">
 <h3>K=3</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(2,2))
 for(m in 1:3){
-  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:1000), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
 </div>
 <div id="k6" class="section level3">
 <h3>K=6</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[6]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[6]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores</code></pre>
 <pre class="r"><code>par(mfrow = c(3,2))
 for(m in 1:6){
-  plot(log(1:100), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
+  plot(log(1:1000), log(scores[m,]+1), col=&quot;black&quot;, pch=20, ylab = &quot;scores&quot;, xlab=&quot;top 100 genes (sorted)&quot;,
        main = paste0(&quot;cluster-&quot;, m))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
 </div>
 <div id="qqplot-k8-2" class="section level3">
 <h3>QQplot (K=8)</h3>
-<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = &quot;poisson&quot;, options = &quot;max&quot;)
+<pre class="r"><code>out &lt;- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 1000, method = &quot;poisson&quot;, options = &quot;max&quot;)
 indices &lt;- out$indices
 scores &lt;- out$scores
-
+scores[is.na(scores)] &lt;- 0
 ll &lt;- vector(mode=&quot;list&quot;, length=dim(scores)[1])
 par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
   out &lt;- qqnorm(log(scores[m,]+1), col=&quot;red&quot;, pch=20, cex = 1, main = paste0(&quot;QQplot: cluster - &quot;, m))
-  ll[[m]] &lt;- cbind(out$x, (out$y - mean(out$y))/(sd(out$y)))
+  ll[[m]] &lt;- cbind(out$x, (out$y - mean(out$y, na.rm=TRUE))/(sd(out$y, na.rm=TRUE)))
   qqline(log(scores[m,]+1))
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(density(abs(ll[[m]][,1] - ll[[m]][,2])), col = &quot;red&quot;, main = &quot;density of distance between quantiles&quot;, xlab = &quot;distance - qq&quot;, ylab = &quot;density&quot;)
+plot(density((ll[[m]][,1] - ll[[m]][,2])), col = &quot;red&quot;, main = &quot;density of distance between quantiles&quot;, xlab = &quot;distance - qq&quot;, ylab = &quot;density&quot;)
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
 <pre class="r"><code>par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(abs(ll[[m]][,1] - ll[[m]][,2]), col = &quot;red&quot;, main = &quot;abs diff between quantiles&quot;, xlab = &quot;distance - qq&quot;, ylab = &quot;density&quot;)
+plot((ll[[m]][,1] - ll[[m]][,2]), col = &quot;red&quot;, main = &quot;diff between quantiles&quot;, xlab = &quot;index&quot;, ylab = &quot;diff quantiles&quot;)
 abline(0,0)
 }</code></pre>
 <p><img src="score_analysis_countclust_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>

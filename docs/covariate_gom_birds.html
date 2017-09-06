@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>Applying covriate adjusted Grade of Membership model on ecological data</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Applying covriate adjusted Grade of Membership model on ecological data</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>9/6/2017</em></h4>
+
+</div>
+
+
+<p>In this script, we check how a covariate adjusted EM-based Grade of Membership model can be used to determined the role of covariates in clustering of the observations. Because of the limitations of speed, we first use a small ecological bird abundance data on which we have applied CountClust before.</p>
+<pre class="r"><code>library(ecostructure)</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre><code>## Loading required package: CountClust</code></pre>
+<pre><code>## Loading required package: maptpx</code></pre>
+<pre><code>## Loading required package: ordtpx</code></pre>
+<pre><code>## Loading required package: slam</code></pre>
+<pre><code>## Loading required package: parallel</code></pre>
+<pre><code>## 
+## Attaching package: &#39;ordtpx&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:maptpx&#39;:
+## 
+##     rdir, stm_tfidf</code></pre>
+<pre><code>## Loading required package: raster</code></pre>
+<pre><code>## Loading required package: sp</code></pre>
+<pre><code>## Loading required package: rgdal</code></pre>
+<pre><code>## rgdal: version: 1.2-8, (SVN revision 663)
+##  Geospatial Data Abstraction Library extensions to R successfully loaded
+##  Loaded GDAL runtime: GDAL 2.1.2, released 2016/10/24
+##  Path to GDAL shared files: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/rgdal/gdal
+##  Loaded PROJ.4 runtime: Rel. 4.9.1, 04 March 2015, [PJ_VERSION: 491]
+##  Path to PROJ.4 shared files: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/rgdal/proj
+##  Linking to sp version: 1.2-5</code></pre>
+<pre><code>## Loading required package: grid</code></pre>
+<pre><code>## Loading required package: gridExtra</code></pre>
+<pre><code>## Loading required package: phytools</code></pre>
+<pre><code>## Loading required package: ape</code></pre>
+<pre><code>## 
+## Attaching package: &#39;ape&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:raster&#39;:
+## 
+##     rotate, zoom</code></pre>
+<pre><code>## Loading required package: maps</code></pre>
+<pre><code>## Loading required package: SpatialExtremes</code></pre>
+<pre><code>## 
+## Attaching package: &#39;SpatialExtremes&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:maps&#39;:
+## 
+##     map</code></pre>
+<pre><code>## The following objects are masked from &#39;package:raster&#39;:
+## 
+##     cv, distance</code></pre>
+<pre><code>## The following object is masked from &#39;package:maptpx&#39;:
+## 
+##     logit</code></pre>
+<pre><code>## Loading required package: maptools</code></pre>
+<pre><code>## Checking rgeos availability: TRUE</code></pre>
+<pre><code>## 
+## Attaching package: &#39;ecostructure&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:CountClust&#39;:
+## 
+##     nullmodel_GoM</code></pre>
+<pre class="r"><code>library(covtpx)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;covtpx&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:ordtpx&#39;:
+## 
+##     rdir, stm_tfidf</code></pre>
+<pre><code>## The following objects are masked from &#39;package:maptpx&#39;:
+## 
+##     normalizetpx, rdir, stm_tfidf, topics</code></pre>
+<pre class="r"><code>library(Biobase)</code></pre>
+<pre><code>## Loading required package: BiocGenerics</code></pre>
+<pre><code>## 
+## Attaching package: &#39;BiocGenerics&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:gridExtra&#39;:
+## 
+##     combine</code></pre>
+<pre><code>## The following objects are masked from &#39;package:raster&#39;:
+## 
+##     as.data.frame, intersect, match, union, unique, which.max,
+##     which.min</code></pre>
+<pre><code>## The following objects are masked from &#39;package:parallel&#39;:
+## 
+##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+##     clusterExport, clusterMap, parApply, parCapply, parLapply,
+##     parLapplyLB, parRapply, parSapply, parSapplyLB</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     IQR, mad, xtabs</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     anyDuplicated, append, as.data.frame, cbind, colnames,
+##     do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+##     grepl, intersect, is.unsorted, lapply, lengths, Map, mapply,
+##     match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+##     Position, rank, rbind, Reduce, rownames, sapply, setdiff,
+##     sort, table, tapply, union, unique, unsplit, which, which.max,
+##     which.min</code></pre>
+<pre><code>## Welcome to Bioconductor
+## 
+##     Vignettes contain introductory material; view with
+##     &#39;browseVignettes()&#39;. To cite Bioconductor, see
+##     &#39;citation(&quot;Biobase&quot;)&#39;, and for packages &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
+<p>Loading the counts data</p>
+<pre class="r"><code>data &lt;- get(load(system.file(&quot;extdata&quot;, &quot;HimalayanBirdsData.rda&quot;, package = &quot;ecostructure&quot;)))
+taxonomic_counts &lt;- t(exprs(data))</code></pre>
+<pre class="r"><code>grid_metadata &lt;- pData(phenoData(data))
+head(grid_metadata)</code></pre>
+<pre><code>##    Elevation    North     East WorE
+## A2    198.25 26.97898 92.92198    E
+## A3    734.25 27.00627 92.40457    E
+## A4   1243.25 27.02750 92.41041    E
+## A6   2629.00 27.14773 92.45938    E
+## A7   2340.25 27.09198 92.40857    E
+## A8    300.00 26.96138 93.01216    E</code></pre>
+<div id="using-original-elevation-and-east-west-metadata" class="section level3">
+<h3>using original elevation and East-West metadata</h3>
+<pre class="r"><code>nsamples &lt;- 38
+ K &lt;- 5
+ num_covars &lt;- 2
+ G &lt;- 304
+# omega &lt;- gtools::rdirichlet(nsamples, alpha = rep(1/K, K))
+# theta &lt;- gtools::rdirichlet(nsamples*K, alpha = rep(1/(K*G), G))
+ metadata &lt;- grid_metadata[,1:3]
+ library(distrom)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:phytools&#39;:
+## 
+##     expm</code></pre>
+<pre><code>## Loading required package: gamlr</code></pre>
+<pre class="r"><code> counts &lt;- taxonomic_counts
+ 
+ iter &lt;- 1
+ maxiter &lt;- 50
+ 
+ 
+ gom_fit &lt;- CountClust::FitGoM(taxonomic_counts, K=5, tol=0.1)</code></pre>
+<pre><code>## Fitting the topic model (due to Matt Taddy)</code></pre>
+<pre><code>## 
+## Estimating on a 38 document collection.
+## Fit and Bayes Factor Estimation for K = 5
+## log posterior increase: 4770.3, 13.9, 7, 2.9, 0.3, 3.4, 0.3, done.
+## log BF( 5 ) = 1669.84</code></pre>
+<pre class="r"><code> theta_pre &lt;- gom_fit$clust_5$theta
+ omega_pre &lt;- gom_fit$clust_5$omega
+ 
+ theta_old &lt;- matrix(0, nsamples*K, dim(theta_pre)[1])
+ for(m in 1:dim(theta_pre)[2]){
+   theta_old[(nsamples*(m-1)+1):(nsamples*(m)),] &lt;- do.call(rbind, replicate(nsamples, theta_pre[,m], simplify=FALSE))
+ }
+ 
+ omega &lt;- omega_pre
+ theta &lt;- theta_old
+ 
+ for(iter in 1:maxiter){
+   out &lt;- update_params(taxonomic_counts, omega, theta, metadata)
+   theta &lt;- out$theta
+   omega &lt;- out$omega
+   cat(&quot;We are at iteration, &quot;, iter)
+ }</code></pre>
+<pre><code>## socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.65424e-05 :  theta -  0.0007747489 
+## We are at iteration,  1socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.563256e-05 :  theta -  9.472231e-05 
+## We are at iteration,  2socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.814985e-06 :  theta -  2.705366e-05 
+## We are at iteration,  3socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.890293e-06 :  theta -  1.308165e-05 
+## We are at iteration,  4socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.927114e-06 :  theta -  1.776798e-05 
+## We are at iteration,  5socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.205879e-06 :  theta -  1.325955e-05 
+## We are at iteration,  6socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.991392e-06 :  theta -  6.115162e-06 
+## We are at iteration,  7socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.61751e-05 :  theta -  8.340208e-06 
+## We are at iteration,  8socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.598242e-05 :  theta -  8.328578e-06 
+## We are at iteration,  9socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.304902e-05 :  theta -  4.441991e-06 
+## We are at iteration,  10socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.896287e-05 :  theta -  6.570477e-06 
+## We are at iteration,  11socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.396732e-05 :  theta -  1.515991e-05 
+## We are at iteration,  12socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.673257e-05 :  theta -  1.77775e-05 
+## We are at iteration,  13socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0001234527 :  theta -  1.145142e-05 
+## We are at iteration,  14socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0001461351 :  theta -  5.027616e-06 
+## We are at iteration,  15socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0001768854 :  theta -  9.479408e-06 
+## We are at iteration,  16socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0002309071 :  theta -  3.317894e-06 
+## We are at iteration,  17socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0002225649 :  theta -  4.372737e-06 
+## We are at iteration,  18socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0001883835 :  theta -  3.776053e-06 
+## We are at iteration,  19socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0001958457 :  theta -  2.061274e-06 
+## We are at iteration,  20socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0001666178 :  theta -  2.634111e-06 
+## We are at iteration,  21socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.00016642 :  theta -  7.10647e-06 
+## We are at iteration,  22socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0001343692 :  theta -  5.46277e-06 
+## We are at iteration,  23socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0001112325 :  theta -  2.858442e-06 
+## We are at iteration,  24socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  0.0001314127 :  theta -  2.220675e-06 
+## We are at iteration,  25socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  7.103606e-05 :  theta -  2.348123e-06 
+## We are at iteration,  26socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.244971e-05 :  theta -  1.486451e-06 
+## We are at iteration,  27socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.097336e-05 :  theta -  4.866089e-06 
+## We are at iteration,  28socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.820126e-05 :  theta -  3.94995e-06 
+## We are at iteration,  29socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.789675e-05 :  theta -  1.367379e-06 
+## We are at iteration,  30socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.019094e-05 :  theta -  3.235377e-06 
+## We are at iteration,  31socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.098866e-05 :  theta -  1.671496e-06 
+## We are at iteration,  32socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.409617e-05 :  theta -  1.201898e-06 
+## We are at iteration,  33socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.196788e-05 :  theta -  7.167227e-07 
+## We are at iteration,  34socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.040923e-05 :  theta -  1.609467e-06 
+## We are at iteration,  35socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.650228e-05 :  theta -  4.925416e-07 
+## We are at iteration,  36socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.098666e-05 :  theta -  3.114908e-07 
+## We are at iteration,  37socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.793745e-06 :  theta -  3.249906e-07 
+## We are at iteration,  38socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.474346e-06 :  theta -  2.885935e-07 
+## We are at iteration,  39socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.974552e-06 :  theta -  3.332259e-07 
+## We are at iteration,  40socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.594522e-06 :  theta -  1.109666e-06 
+## We are at iteration,  41socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.516234e-06 :  theta -  8.597597e-07 
+## We are at iteration,  42socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.596896e-06 :  theta -  2.647974e-07 
+## We are at iteration,  43socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  9.594198e-07 :  theta -  1.206353e-06 
+## We are at iteration,  44socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  7.610897e-07 :  theta -  1.069402e-06 
+## We are at iteration,  45socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.806279e-07 :  theta -  1.115825e-06 
+## We are at iteration,  46socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.162745e-07 :  theta -  1.14742e-07 
+## We are at iteration,  47socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.693091e-07 :  theta -  1.043157e-07 
+## We are at iteration,  48socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.209122e-07 :  theta -  9.27228e-08 
+## We are at iteration,  49socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 8 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.317519e-07 :  theta -  1.215898e-07 
+## We are at iteration,  50</code></pre>
+<pre class="r"><code>elevation_metadata=grid_metadata$Elevation;
+ east_west_dir = grid_metadata$WorE;
+ rownames(omega) &lt;- 1:nrow(omega)
+ 
+ BlockStructure(omega, blocker_metadata = east_west_dir,
+                order_metadata = elevation_metadata,
+                yaxis_label = &quot;Elevation&quot;,
+                levels_decreasing = FALSE)</code></pre>
+<p><img src="covariate_gom_birds_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code> BlockStructure(omega_pre, blocker_metadata = east_west_dir,
+                order_metadata = elevation_metadata,
+                yaxis_label = &quot;Elevation&quot;,
+                levels_decreasing = FALSE)</code></pre>
+<p><img src="covariate_gom_birds_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+</div>
+<div id="using-random-metadata" class="section level3">
+<h3>using random metadata</h3>
+<pre class="r"><code> metadata &lt;- matrix(sample(100, nsamples*num_covars, replace = FALSE), nsamples, num_covars)
+ 
+ omega &lt;- omega_pre
+ theta &lt;- theta_old
+ 
+ for(iter in 1:maxiter){
+   out &lt;- update_params(taxonomic_counts, omega, theta, metadata)
+   theta &lt;- out$theta
+   omega &lt;- out$omega
+   cat(&quot;We are at iteration, &quot;, iter)
+ }</code></pre>
+<pre><code>## socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.65424e-05 :  theta -  8.540054e-05 
+## We are at iteration,  1socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.062656e-05 :  theta -  7.893823e-07 
+## We are at iteration,  2socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  8.043134e-06 :  theta -  1.821842e-07 
+## We are at iteration,  3socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.887184e-06 :  theta -  7.059614e-08 
+## We are at iteration,  4socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.769694e-06 :  theta -  3.65301e-08 
+## We are at iteration,  5socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.605277e-06 :  theta -  9.06169e-08 
+## We are at iteration,  6socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.140774e-06 :  theta -  5.143287e-08 
+## We are at iteration,  7socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.316857e-06 :  theta -  1.730321e-08 
+## We are at iteration,  8socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  8.450244e-07 :  theta -  2.329091e-08 
+## We are at iteration,  9socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.580912e-07 :  theta -  9.093205e-08 
+## We are at iteration,  10socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.147273e-07 :  theta -  2.593363e-07 
+## We are at iteration,  11socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.403283e-07 :  theta -  1.98529e-06 
+## We are at iteration,  12socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.077585e-07 :  theta -  9.328854e-08 
+## We are at iteration,  13socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.714406e-07 :  theta -  2.33213e-08 
+## We are at iteration,  14socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.007059e-07 :  theta -  3.360819e-09 
+## We are at iteration,  15socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.384411e-07 :  theta -  4.116436e-09 
+## We are at iteration,  16socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.30954e-07 :  theta -  4.103577e-09 
+## We are at iteration,  17socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.494171e-07 :  theta -  4.619112e-09 
+## We are at iteration,  18socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.561293e-07 :  theta -  5.344668e-09 
+## We are at iteration,  19socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.308308e-07 :  theta -  5.12796e-09 
+## We are at iteration,  20socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  7.35529e-07 :  theta -  8.026536e-09 
+## We are at iteration,  21socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  9.944485e-07 :  theta -  9.274004e-09 
+## We are at iteration,  22socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  9.646848e-07 :  theta -  9.254709e-09 
+## We are at iteration,  23socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.143119e-06 :  theta -  4.269153e-08 
+## We are at iteration,  24socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.597762e-06 :  theta -  1.802659e-08 
+## We are at iteration,  25socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.377182e-06 :  theta -  1.509546e-08 
+## We are at iteration,  26socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.366089e-06 :  theta -  1.801938e-08 
+## We are at iteration,  27socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.525282e-06 :  theta -  8.856209e-08 
+## We are at iteration,  28socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.100085e-06 :  theta -  1.771308e-08 
+## We are at iteration,  29socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  8.902683e-07 :  theta -  1.786815e-08 
+## We are at iteration,  30socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  9.816293e-07 :  theta -  1.763595e-08 
+## We are at iteration,  31socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.186616e-07 :  theta -  4.567334e-08 
+## We are at iteration,  32socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.540878e-07 :  theta -  2.591867e-08 
+## We are at iteration,  33socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.449737e-07 :  theta -  7.61849e-08 
+## We are at iteration,  34socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.994431e-07 :  theta -  2.012174e-08 
+## We are at iteration,  35socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.670022e-07 :  theta -  3.967546e-08 
+## We are at iteration,  36socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.979249e-07 :  theta -  8.2511e-08 
+## We are at iteration,  37socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.262394e-07 :  theta -  1.424988e-07 
+## We are at iteration,  38socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  8.023902e-07 :  theta -  1.036625e-07 
+## We are at iteration,  39socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.513382e-06 :  theta -  3.009275e-07 
+## We are at iteration,  40socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.496659e-06 :  theta -  5.30776e-07 
+## We are at iteration,  41socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  8.110732e-07 :  theta -  8.01309e-07 
+## We are at iteration,  42socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.593695e-07 :  theta -  1.008715e-06 
+## We are at iteration,  43socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.939236e-07 :  theta -  8.272489e-07 
+## We are at iteration,  44socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.552532e-07 :  theta -  4.257337e-07 
+## We are at iteration,  45socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.913137e-08 :  theta -  6.695555e-08 
+## We are at iteration,  46socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  7.289353e-08 :  theta -  6.625811e-09 
+## We are at iteration,  47socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  7.220649e-08 :  theta -  1.468234e-09 
+## We are at iteration,  48socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  8.159686e-08 :  theta -  2.191421e-09 
+## We are at iteration,  49socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 7 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.123656e-07 :  theta -  1.206691e-09 
+## We are at iteration,  50</code></pre>
+<pre class="r"><code> elevation_metadata=grid_metadata$Elevation;
+ east_west_dir = grid_metadata$WorE;
+ rownames(omega) &lt;- 1:nrow(omega)
+ 
+ BlockStructure(omega, blocker_metadata = east_west_dir,
+                order_metadata = elevation_metadata,
+                yaxis_label = &quot;Elevation&quot;,
+                levels_decreasing = FALSE)</code></pre>
+<p><img src="covariate_gom_birds_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code> BlockStructure(omega_pre, blocker_metadata = east_west_dir,
+                order_metadata = elevation_metadata,
+                yaxis_label = &quot;Elevation&quot;,
+                levels_decreasing = FALSE)</code></pre>
+<p><img src="covariate_gom_birds_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+</div>
+<div id="using-no-metadata" class="section level3">
+<h3>using no metadata</h3>
+<pre class="r"><code>omega &lt;- omega_pre
+ theta &lt;- theta_old
+ 
+ for(iter in 1:maxiter){
+   out &lt;- update_params(taxonomic_counts, omega, theta, metadata=NULL)
+   theta &lt;- out$theta
+   omega &lt;- out$omega
+   cat(&quot;We are at iteration, &quot;, iter)
+ }</code></pre>
+<pre><code>## socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.65424e-05 :  theta -  3.902323e-08 
+## We are at iteration,  1socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.015195e-06 :  theta -  3.921633e-09 
+## We are at iteration,  2socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.005072e-06 :  theta -  5.403027e-09 
+## We are at iteration,  3socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.761858e-06 :  theta -  3.161535e-09 
+## We are at iteration,  4socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.700815e-06 :  theta -  1.776835e-09 
+## We are at iteration,  5socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.713283e-06 :  theta -  1.270271e-09 
+## We are at iteration,  6socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.454404e-06 :  theta -  2.074096e-09 
+## We are at iteration,  7socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.944555e-06 :  theta -  3.080742e-09 
+## We are at iteration,  8socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.129023e-06 :  theta -  2.889804e-09 
+## We are at iteration,  9socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.428362e-06 :  theta -  7.97032e-09 
+## We are at iteration,  10socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.002657e-06 :  theta -  4.891446e-09 
+## We are at iteration,  11socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.389535e-06 :  theta -  2.932942e-09 
+## We are at iteration,  12socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.885039e-06 :  theta -  3.4642e-09 
+## We are at iteration,  13socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.902266e-06 :  theta -  2.252117e-09 
+## We are at iteration,  14socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  8.750185e-07 :  theta -  3.738978e-09 
+## We are at iteration,  15socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.255407e-06 :  theta -  3.284354e-09 
+## We are at iteration,  16socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.660454e-07 :  theta -  1.015585e-09 
+## We are at iteration,  17socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.097243e-07 :  theta -  2.756425e-09 
+## We are at iteration,  18socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  6.266888e-07 :  theta -  1.738397e-09 
+## We are at iteration,  19socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.039202e-07 :  theta -  4.663389e-10 
+## We are at iteration,  20socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.364103e-07 :  theta -  1.118155e-09 
+## We are at iteration,  21socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  7.18254e-08 :  theta -  1.57326e-09 
+## We are at iteration,  22socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  7.248269e-08 :  theta -  1.721692e-09 
+## We are at iteration,  23socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.05868e-07 :  theta -  1.661653e-09 
+## We are at iteration,  24socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.466958e-08 :  theta -  1.404897e-09 
+## We are at iteration,  25socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  8.31714e-08 :  theta -  2.278678e-10 
+## We are at iteration,  26socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.716964e-08 :  theta -  5.142479e-09 
+## We are at iteration,  27socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.922615e-07 :  theta -  1.05278e-09 
+## We are at iteration,  28socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.788765e-07 :  theta -  3.855205e-10 
+## We are at iteration,  29socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.731759e-07 :  theta -  7.078722e-10 
+## We are at iteration,  30socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  7.342778e-08 :  theta -  5.755241e-10 
+## We are at iteration,  31socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.367628e-07 :  theta -  2.098606e-09 
+## We are at iteration,  32socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.057243e-07 :  theta -  1.139047e-09 
+## We are at iteration,  33socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.229249e-07 :  theta -  2.600855e-09 
+## We are at iteration,  34socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.154121e-07 :  theta -  2.168914e-09 
+## We are at iteration,  35socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  5.749592e-07 :  theta -  1.006965e-09 
+## We are at iteration,  36socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.292488e-07 :  theta -  4.540316e-10 
+## We are at iteration,  37socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  3.842366e-08 :  theta -  3.725013e-10 
+## We are at iteration,  38socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  4.400066e-08 :  theta -  5.082004e-10 
+## We are at iteration,  39socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.353839e-08 :  theta -  1.319075e-09 
+## We are at iteration,  40socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.532587e-08 :  theta -  2.175569e-09 
+## We are at iteration,  41socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.154908e-08 :  theta -  1.774452e-09 
+## We are at iteration,  42socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  2.13173e-08 :  theta -  5.721866e-11 
+## We are at iteration,  43socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.386622e-08 :  theta -  2.307443e-10 
+## We are at iteration,  44socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.228714e-08 :  theta -  2.023852e-10 
+## We are at iteration,  45socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.626838e-08 :  theta -  1.780167e-09 
+## We are at iteration,  46socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.212068e-08 :  theta -  1.518274e-09 
+## We are at iteration,  47socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.678542e-08 :  theta -  3.153203e-10 
+## We are at iteration,  48socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  9.813227e-09 :  theta -  1.089469e-09 
+## We are at iteration,  49socket cluster with 4 nodes on host &#39;localhost&#39;
+## fitting 190 observations on 304 categories, 5 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;
+## distance measure: omega -  1.085868e-08 :  theta -  4.246002e-10 
+## We are at iteration,  50</code></pre>
+<pre class="r"><code> elevation_metadata=grid_metadata$Elevation;
+ east_west_dir = grid_metadata$WorE;
+ rownames(omega) &lt;- 1:nrow(omega)
+ 
+ BlockStructure(omega, blocker_metadata = east_west_dir,
+                order_metadata = elevation_metadata,
+                yaxis_label = &quot;Elevation&quot;,
+                levels_decreasing = FALSE)</code></pre>
+<p><img src="covariate_gom_birds_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code> BlockStructure(omega_pre, blocker_metadata = east_west_dir,
+                order_metadata = elevation_metadata,
+                yaxis_label = &quot;Elevation&quot;,
+                levels_decreasing = FALSE)</code></pre>
+<p><img src="covariate_gom_birds_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

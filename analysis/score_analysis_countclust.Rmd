@@ -24,7 +24,7 @@ topic_clus <- get(load("../output/10X_genomics_pooled_sort_unsort_maptpx.rda"))
 ### K=5
 
 ```{r}
-out <- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
 ```
@@ -32,7 +32,7 @@ scores <- out$scores
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:5){
-  plot(log(1:100), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+  plot(log(1:1000), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
        main = paste0("cluster-", m))
 }
 ```
@@ -41,7 +41,7 @@ for(m in 1:5){
 ### K=8
 
 ```{r}
-out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
 ```
@@ -49,7 +49,7 @@ scores <- out$scores
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:8){
-  plot(log(1:100), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+  plot(log(1:1000), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
        main = paste0("cluster-", m))
 }
 ```
@@ -58,7 +58,7 @@ for(m in 1:8){
 ### K=10
 
 ```{r}
-out <- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
 ```
@@ -66,7 +66,7 @@ scores <- out$scores
 ```{r fig.height = 8}
 par(mfrow = c(4,3))
 for(m in 1:10){
-  plot(log(1:100), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+  plot(log(1:1000), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
        main = paste0("cluster-", m))
 }
 ```
@@ -92,14 +92,14 @@ for(m in 1:dim(scores)[1]){
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(density(abs(ll[[m]][,1] - ll[[m]][,2])), col = "red", main = "density of distance between quantiles", xlab = "distance - qq", ylab = "density")
+plot(density((ll[[m]][,1] - ll[[m]][,2])), col = "red", main = "density of distance between quantiles", xlab = "distance - qq", ylab = "density")
 }
 ```
 
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(abs(ll[[m]][,1] - ll[[m]][,2]), col = "red", main = "abs diff between quantiles", xlab = "distance - qq", ylab = "density")
+plot((ll[[m]][,1] - ll[[m]][,2]), col = "red", main = "diff between quantiles", xlab = "index", ylab = "diff quantiles")
 abline(0,0)
 }
 ```
@@ -114,7 +114,7 @@ topic_clus <- get(load("../output/pbmc_68K_evan_maptpx.rda"))
 ### K=5
 
 ```{r}
-out <- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[5]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
 ```
@@ -122,7 +122,7 @@ scores <- out$scores
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:5){
-  plot(log(1:100), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+  plot(log(1:1000), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
        main = paste0("cluster-", m))
 }
 ```
@@ -131,7 +131,7 @@ for(m in 1:5){
 ### K=8
 
 ```{r}
-out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
 ```
@@ -139,7 +139,7 @@ scores <- out$scores
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:8){
-  plot(log(1:100), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+  plot(log(1:1000), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
        main = paste0("cluster-", m))
 }
 ```
@@ -149,7 +149,7 @@ for(m in 1:8){
 ### K=10
 
 ```{r}
-out <- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[10]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
 ```
@@ -157,7 +157,7 @@ scores <- out$scores
 ```{r fig.height = 8}
 par(mfrow = c(4, 3))
 for(m in 1:10){
-  plot(log(1:100), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+  plot(log(1:1000), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
        main = paste0("cluster-", m))
 }
 ```
@@ -166,7 +166,7 @@ for(m in 1:10){
 
 ```{r}
 
-out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
 
@@ -182,7 +182,7 @@ for(m in 1:dim(scores)[1]){
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(density(abs(ll[[m]][,1] - ll[[m]][,2])), col = "red", main = "density of distance between quantiles", xlab = "distance - qq", ylab = "density")
+plot(density((ll[[m]][,1] - ll[[m]][,2])), col = "red", main = "density of distance between quantiles", xlab = "distance - qq", ylab = "density")
 }
 ```
 
@@ -190,7 +190,7 @@ plot(density(abs(ll[[m]][,1] - ll[[m]][,2])), col = "red", main = "density of di
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(abs(ll[[m]][,1] - ll[[m]][,2]), col = "red", main = "abs diff between quantiles", xlab = "distance - qq", ylab = "density")
+plot((ll[[m]][,1] - ll[[m]][,2]), col = "red", main = "diff between quantiles", xlab = "index", ylab = "diff quantiles")
 abline(0,0)
 }
 ```
@@ -207,7 +207,7 @@ topic_clus <- get(load("../output/maptpx_aggregated_MCC.rda"))
 ### K=3
 
 ```{r}
-out <- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[3]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
 ```
@@ -215,7 +215,7 @@ scores <- out$scores
 ```{r}
 par(mfrow = c(2,2))
 for(m in 1:3){
-  plot(log(1:100), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+  plot(log(1:1000), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
        main = paste0("cluster-", m))
 }
 ```
@@ -224,7 +224,7 @@ for(m in 1:3){
 ### K=6
 
 ```{r}
-out <- ExtractTopFeatures(topic_clus[[6]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[6]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
 ```
@@ -232,7 +232,7 @@ scores <- out$scores
 ```{r}
 par(mfrow = c(3,2))
 for(m in 1:6){
-  plot(log(1:100), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
+  plot(log(1:1000), log(scores[m,]+1), col="black", pch=20, ylab = "scores", xlab="top 100 genes (sorted)",
        main = paste0("cluster-", m))
 }
 ```
@@ -242,15 +242,15 @@ for(m in 1:6){
 
 ```{r}
 
-out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 100, method = "poisson", options = "max")
+out <- ExtractTopFeatures(topic_clus[[8]]$theta, top_features = 1000, method = "poisson", options = "max")
 indices <- out$indices
 scores <- out$scores
-
+scores[is.na(scores)] <- 0
 ll <- vector(mode="list", length=dim(scores)[1])
 par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
   out <- qqnorm(log(scores[m,]+1), col="red", pch=20, cex = 1, main = paste0("QQplot: cluster - ", m))
-  ll[[m]] <- cbind(out$x, (out$y - mean(out$y))/(sd(out$y)))
+  ll[[m]] <- cbind(out$x, (out$y - mean(out$y, na.rm=TRUE))/(sd(out$y, na.rm=TRUE)))
   qqline(log(scores[m,]+1))
 }
 ```
@@ -258,7 +258,7 @@ for(m in 1:dim(scores)[1]){
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(density(abs(ll[[m]][,1] - ll[[m]][,2])), col = "red", main = "density of distance between quantiles", xlab = "distance - qq", ylab = "density")
+plot(density((ll[[m]][,1] - ll[[m]][,2])), col = "red", main = "density of distance between quantiles", xlab = "distance - qq", ylab = "density")
 }
 ```
 
@@ -266,7 +266,7 @@ plot(density(abs(ll[[m]][,1] - ll[[m]][,2])), col = "red", main = "density of di
 ```{r}
 par(mfrow = c(3,3))
 for(m in 1:dim(scores)[1]){
-plot(abs(ll[[m]][,1] - ll[[m]][,2]), col = "red", main = "abs diff between quantiles", xlab = "distance - qq", ylab = "density")
+plot((ll[[m]][,1] - ll[[m]][,2]), col = "red", main = "diff between quantiles", xlab = "index", ylab = "diff quantiles")
 abline(0,0)
 }
 ```
