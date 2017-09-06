@@ -243,6 +243,5 @@ The results of plotting the divergence measure $D$ for the *ExtractTopFeatures()
 
 - [Divergence measure steepness study in CountClust](score_analysis_countclust.html)
 
-
-
+- [Testing for the speed of the distributed Multinomial regression - distrom package](test_distrom.html)
 
