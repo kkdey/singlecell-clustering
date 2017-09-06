@@ -1,0 +1,56 @@
+---
+title: "Testing for symmetry in divergence measure distribution"
+author: "Kushal K Dey"
+date: "9/6/2017"
+output: html_document
+---
+
+In this script, for a small simulation example choice of theta, we check if the QQplot based measure for the a theta when all its genes are non-informative is going to be symmteric.
+
+```{r}
+library(gtools)
+library(CountClust)
+```
+
+```{r}
+G <- 10000
+K <- 3
+a1 <- rdirichlet(1, alpha = rep(2, G))
+a2 <- rdirichlet(1, alpha = rep(2, G))
+a3 <- rdirichlet(1, alpha = rep(2, G))
+a4 <- rdirichlet(1, alpha = rep(2, G))
+
+theta <- cbind.data.frame(as.vector(a1), as.vector(a2), as.vector(a3), as.vector(a4))
+colnames(theta) <- paste0("clus:", 1:4)
+rownames(theta) <- paste0("gene:", 1:10000)
+colSums(theta)
+```
+```{r}
+
+out <- ExtractTopFeatures(theta, top_features = 500, method = "poisson", options = "max")
+indices <- out$indices
+scores <- out$scores
+
+ll <- vector(mode="list", length=dim(scores)[1])
+par(mfrow = c(3,3))
+for(m in 1:dim(scores)[1]){
+  out <- qqnorm(log(scores[m,]+1), col="red", pch=20, cex = 1, main = paste0("QQplot: cluster - ", m))
+  ll[[m]] <- cbind(out$x, (out$y - mean(out$y))/(sd(out$y)))
+  qqline(log(scores[m,]+1))
+}
+```
+
+```{r}
+par(mfrow = c(3,3))
+for(m in 1:dim(scores)[1]){
+plot(density((ll[[m]][,1] - ll[[m]][,2])), col = "red", main = "density of distance between quantiles", xlab = "distance - qq", ylab = "density")
+}
+```
+
+```{r}
+par(mfrow = c(3,3))
+for(m in 1:dim(scores)[1]){
+plot((ll[[m]][,1] - ll[[m]][,2]), col = "red", main = "diff between quantiles", xlab = "index", ylab = "diff quantiles")
+abline(0,0)
+}
+```
