@@ -1,0 +1,322 @@
+---
+title: 'Bird data : application of distrom'
+author: "Kushal K Dey"
+date: "9/7/2017"
+output: html_document
+---
+
+In this script, we perform distrom on the birds data and see the performance of the method and how it treats the known sources of variation like elevation of the ranges, East-West directional influence on the bird patterns.
+
+## Data Processing
+
+```{r echo=TRUE, eval=TRUE, message = FALSE, warning=FALSE}
+library(ecostructure)
+library(covtpx)
+library(Biobase)
+library(distrom)
+library(Seurat)
+```
+
+Loading the counts data 
+
+```{r}
+data <- get(load(system.file("extdata", "HimalayanBirdsData.rda", package = "ecostructure")))
+taxonomic_counts <- t(exprs(data))
+grid_metadata <- pData(phenoData(data))
+```
+
+```{r}
+covars1 <- grid_metadata[,1:3]
+covars2 <- model.matrix(~ factor(grid_metadata$WorE)-1)
+covars <- cbind(covars1, covars2)
+```
+
+
+## distrom
+
+```{r}
+cl <- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))
+print(cl)
+system.time(fits <- dmr(cl, covars[,1:3], taxonomic_counts+1, verb=1))
+stopCluster(cl)
+```
+
+```{r}
+coef(fits)
+```
+```{r}
+coefs_birds <- as.matrix(coef(fits))
+```
+
+### Elevation Driving Birds
+
+Top elevation driving birds
+
+```{r echo=FALSE}
+imp_birds <- names(sort(abs(coefs_birds[2,]), decreasing =TRUE))[1:5]
+```
+
+
+```{r echo=FALSE}
+data_ggplot <- data.frame(Meta = grid_metadata$Elevation,
+                          First = taxonomic_counts[, paste0(imp_birds[1])], 
+                          Second = taxonomic_counts[, paste0(imp_birds[2])],
+                          Third = taxonomic_counts[, paste0(imp_birds[3])], 
+                          Fourth = taxonomic_counts[, paste0(imp_birds[4])],
+                          Fifth = taxonomic_counts[, paste0(imp_birds[5])]
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = First), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[1]))
+
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Second), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[2]))
+
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Third), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[3]))
+
+
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fourth), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[4]))
+
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fifth), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[5]))
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+```
+
+### North/South Driving Birds
+
+```{r echo=FALSE}
+imp_birds <- names(sort(abs(coefs_birds[3,]), decreasing =TRUE))[1:5]
+sort(abs(coefs_birds[3,]), decreasing =TRUE)[1:5]
+```
+
+
+```{r echo=FALSE}
+data_ggplot <- data.frame(Meta = grid_metadata$North,
+                          First = taxonomic_counts[, paste0(imp_birds[1])], 
+                          Second = taxonomic_counts[, paste0(imp_birds[2])],
+                          Third = taxonomic_counts[, paste0(imp_birds[3])], 
+                          Fourth = taxonomic_counts[, paste0(imp_birds[4])],
+                          Fifth = taxonomic_counts[, paste0(imp_birds[5])]
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = First), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[1]))
+
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Second), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[2]))
+
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Third), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[3]))
+
+
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fourth), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[4]))
+
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fifth), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[5]))
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+
+```
+
+
+### East/West Driving Birds
+
+```{r echo=FALSE}
+imp_birds <- names(sort(abs(coefs_birds[4,]), decreasing =TRUE))[1:5]
+sort(abs(coefs_birds[4,]), decreasing =TRUE)[1:5]
+```
+
+
+```{r echo=FALSE}
+data_ggplot <- data.frame(Meta = grid_metadata$East,
+                          First = taxonomic_counts[, paste0(imp_birds[1])], 
+                          Second = taxonomic_counts[, paste0(imp_birds[2])],
+                          Third = taxonomic_counts[, paste0(imp_birds[3])], 
+                          Fourth = taxonomic_counts[, paste0(imp_birds[4])],
+                          Fifth = taxonomic_counts[, paste0(imp_birds[5])]
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = First), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[1]))
+
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Second), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[2]))
+
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Third), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[3]))
+
+
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fourth), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[4]))
+
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fifth), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[5]))
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+
+```
+
+We check now whether the distrom model found bird species match with a simpler linear model fit.
+
+
+## Linear Model
+
+```{r}
+coef_mat <- matrix(0, 3, dim(taxonomic_counts)[2])
+for(m in 1:dim(taxonomic_counts)[2]){
+  out <- lm(log(taxonomic_counts[,m]+1) ~ covars[,1] + covars[,2] + covars[,3])
+  coef_mat[, m] <- summary(out)$coefficients[-1,3]
+}
+rownames(coef_mat) <- c("Elevation", "North", "East")
+colnames(coef_mat) <- colnames(taxonomic_counts)
+```
+
+### Elevation Driving Birds
+
+Top elevation driving birds
+
+```{r echo=FALSE}
+imp_birds <- names(sort(abs(coef_mat[1,]), decreasing =TRUE))[1:10]
+```
+
+
+```{r echo=FALSE}
+data_ggplot <- data.frame(Meta = grid_metadata$Elevation,
+                          First = taxonomic_counts[, paste0(imp_birds[1])], 
+                          Second = taxonomic_counts[, paste0(imp_birds[2])],
+                          Third = taxonomic_counts[, paste0(imp_birds[3])], 
+                          Fourth = taxonomic_counts[, paste0(imp_birds[4])],
+                          Fifth = taxonomic_counts[, paste0(imp_birds[5])]
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = First), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[1]))
+
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Second), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[2]))
+
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Third), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[3]))
+
+
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fourth), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[4]))
+
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fifth), size = 1) + labs(x = 'Elevation', y = 'abundance', title = paste0(imp_birds[5]))
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+
+```
+
+
+### East/West Driving Birds
+
+```{r echo=FALSE}
+imp_birds <- names(sort(abs(coef_mat[3,]), decreasing =TRUE))[1:5]
+sort(abs(coefs_birds[3,]), decreasing =TRUE)[1:5]
+```
+
+
+```{r echo=FALSE}
+data_ggplot <- data.frame(Meta = grid_metadata$East,
+                          First = taxonomic_counts[, paste0(imp_birds[1])], 
+                          Second = taxonomic_counts[, paste0(imp_birds[2])],
+                          Third = taxonomic_counts[, paste0(imp_birds[3])], 
+                          Fourth = taxonomic_counts[, paste0(imp_birds[4])],
+                          Fifth = taxonomic_counts[, paste0(imp_birds[5])]
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = First), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[1]))
+
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Second), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[2]))
+
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Third), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[3]))
+
+
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fourth), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[4]))
+
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fifth), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[5]))
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+
+```
+
+
+### North/South Driving Birds
+
+```{r echo=FALSE}
+imp_birds <- names(sort(abs(coef_mat[2,]), decreasing =TRUE))[1:5]
+sort(abs(coef_mat[2,]), decreasing =TRUE)[1:5]
+```
+
+
+```{r echo=FALSE}
+data_ggplot <- data.frame(Meta = grid_metadata$North,
+                          First = taxonomic_counts[, paste0(imp_birds[1])], 
+                          Second = taxonomic_counts[, paste0(imp_birds[2])],
+                          Third = taxonomic_counts[, paste0(imp_birds[3])], 
+                          Fourth = taxonomic_counts[, paste0(imp_birds[4])],
+                          Fifth = taxonomic_counts[, paste0(imp_birds[5])]
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = First), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[1]))
+
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Second), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[2]))
+
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Third), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[3]))
+
+
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fourth), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[4]))
+
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fifth), size = 1) + labs(x = 'North', y = 'abundance', title = paste0(imp_birds[5]))
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+
+```
+
+

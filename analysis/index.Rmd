@@ -247,3 +247,5 @@ The results of plotting the divergence measure $D$ for the *ExtractTopFeatures()
 
 - [Testing for the speed of the distributed Multinomial regression - distrom package](test_distrom.html)
 
+- [Testing the performance of distrom and comparing with the linear model for birds ecological abundance data](distrom_birds_data.html)
+
