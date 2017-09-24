@@ -327,17 +327,17 @@ div.tocify {
 table(class_labs[train_subsamples])</code></pre>
 <pre><code>## 
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 126                 122                 107 
+##                 123                 114                 105 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                  99                 120                 114 
+##                 108                 122                 116 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 120                  96                  96</code></pre>
+##                 104                  99                 109</code></pre>
 <pre class="r"><code>train_data &lt;- net_data[train_subsamples,]
 test_data &lt;- net_data[-train_subsamples,]
 dim(train_data)</code></pre>
-<pre><code>## [1] 1000   20</code></pre>
+<pre><code>## [1] 1000  100</code></pre>
 <pre class="r"><code>dim(test_data)</code></pre>
-<pre><code>## [1] 3500   20</code></pre>
+<pre><code>## [1] 3500  100</code></pre>
 <pre class="r"><code>class_labs_train &lt;- class_labs[train_subsamples]
 class_labs_test &lt;- class_labs[-train_subsamples]
 dat &lt;- cbind.data.frame(train_data, class_labs_train)</code></pre>
@@ -358,7 +358,7 @@ model_SVM &lt;- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,
                                                    probability=TRUE), svm.control))
 prob  = predict(model_SVM, test_data, probability=TRUE)
 length(which(prob != class_labs_test))/length(prob)</code></pre>
-<pre><code>## [1] 0.3114286</code></pre>
+<pre><code>## [1] 0.3511429</code></pre>
 <p>So, SVM on the PC data (first 20 components) gives a misclassification error rate of <span class="math inline">\(28\%\)</span>. Now we compare this performance with that of classtpx.</p>
 <pre class="r"><code>counts &lt;- t(data[,1:4500])
 known_samples &lt;- train_subsamples
@@ -369,11 +369,11 @@ class_labs_train_2 &lt;- factor(as.vector(plyr::mapvalues(class_labs_train, from
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 561.975, done.</code></pre>
+## log posterior increase: 555.654, done.</code></pre>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.2348571</code></pre>
+<pre><code>## [1] 0.2402857</code></pre>
 </div>
 </div>
 <div id="subsampling-rate-0.5" class="section level2">
@@ -382,17 +382,17 @@ length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_
 table(class_labs[train_subsamples])</code></pre>
 <pre><code>## 
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 281                 266                 278 
+##                 256                 294                 292 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                 283                 269                 285 
+##                 277                 264                 262 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 262                 293                 283</code></pre>
+##                 275                 292                 288</code></pre>
 <pre class="r"><code>train_data &lt;- net_data[train_subsamples,]
 test_data &lt;- net_data[-train_subsamples,]
 dim(train_data)</code></pre>
-<pre><code>## [1] 2500   20</code></pre>
+<pre><code>## [1] 2500  100</code></pre>
 <pre class="r"><code>dim(test_data)</code></pre>
-<pre><code>## [1] 2000   20</code></pre>
+<pre><code>## [1] 2000  100</code></pre>
 <pre class="r"><code>class_labs_train &lt;- class_labs[train_subsamples]
 class_labs_test &lt;- class_labs[-train_subsamples]
 dat &lt;- cbind.data.frame(train_data, class_labs_train)</code></pre>
@@ -413,7 +413,7 @@ model_SVM &lt;- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,
                                                    probability=TRUE), svm.control))
 prob  = predict(model_SVM, test_data, probability=TRUE)
 length(which(prob != class_labs_test))/length(prob)</code></pre>
-<pre><code>## [1] 0.2845</code></pre>
+<pre><code>## [1] 0.32</code></pre>
 <p>So, SVM on the PC data (first 20 components) gives a misclassification error rate of <span class="math inline">\(28\%\)</span>. Now we compare this performance with that of classtpx.</p>
 <pre class="r"><code>counts &lt;- t(data[,1:4500])
 known_samples &lt;- train_subsamples
@@ -424,11 +424,11 @@ class_labs_train_2 &lt;- factor(as.vector(plyr::mapvalues(class_labs_train, from
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 806.502, done.</code></pre>
+## log posterior increase: 805.793, done.</code></pre>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.194</code></pre>
+<pre><code>## [1] 0.2</code></pre>
 <p>So, the misclassification error rate is lower compared to the SVM even when considering hard classification performance.</p>
 </div>
 </div>
@@ -438,17 +438,17 @@ length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_
 table(class_labs[train_subsamples])</code></pre>
 <pre><code>## 
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 381                 393                 395 
+##                 390                 387                 384 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                 373                 399                 375 
+##                 396                 391                 405 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 387                 400                 397</code></pre>
+##                 388                 370                 389</code></pre>
 <pre class="r"><code>train_data &lt;- net_data[train_subsamples,]
 test_data &lt;- net_data[-train_subsamples,]
 dim(train_data)</code></pre>
-<pre><code>## [1] 3500   20</code></pre>
+<pre><code>## [1] 3500  100</code></pre>
 <pre class="r"><code>dim(test_data)</code></pre>
-<pre><code>## [1] 1000   20</code></pre>
+<pre><code>## [1] 1000  100</code></pre>
 <pre class="r"><code>class_labs_train &lt;- class_labs[train_subsamples]
 class_labs_test &lt;- class_labs[-train_subsamples]
 dat &lt;- cbind.data.frame(train_data, class_labs_train)</code></pre>
@@ -469,7 +469,7 @@ model_SVM &lt;- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,
                                                    probability=TRUE), svm.control))
 prob  = predict(model_SVM, test_data, probability=TRUE)
 length(which(prob != class_labs_test))/length(prob)</code></pre>
-<pre><code>## [1] 0.296</code></pre>
+<pre><code>## [1] 0.305</code></pre>
 <p>So, SVM on the PC data (first 20 components) gives a misclassification error rate of <span class="math inline">\(28\%\)</span>. Now we compare this performance with that of classtpx.</p>
 <pre class="r"><code>counts &lt;- t(data[,1:4500])
 known_samples &lt;- train_subsamples
@@ -480,11 +480,11 @@ class_labs_train_2 &lt;- factor(as.vector(plyr::mapvalues(class_labs_train, from
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 867.737, done.</code></pre>
+## log posterior increase: 882.732, done.</code></pre>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.198</code></pre>
+<pre><code>## [1] 0.209</code></pre>
 </div>
 </div>
 

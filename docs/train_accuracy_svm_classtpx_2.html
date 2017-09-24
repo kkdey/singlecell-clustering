@@ -342,11 +342,11 @@ scores &lt;- out$scores</code></pre>
 table(class_labs[train_subsamples])</code></pre>
 <pre><code>## 
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 121                 109                 121 
+##                 115                 110                 110 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                 106                  97                 112 
+##                 106                 123                 112 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 126                  97                 111</code></pre>
+##                  96                  92                 136</code></pre>
 <pre class="r"><code>class_labs_train &lt;- class_labs[train_subsamples]
 class_labs_test &lt;- class_labs[-train_subsamples]
 counts &lt;- t(data[,1:4500])
@@ -357,19 +357,19 @@ class_labs_train_2 &lt;- factor(as.vector(plyr::mapvalues(class_labs_train, from
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 570.079, done.</code></pre>
+## log posterior increase: 588.629, done.</code></pre>
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 459.035, done.</code></pre>
+## log posterior increase: 462.023, done.</code></pre>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_1$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.2411429</code></pre>
+<pre><code>## [1] 0.252</code></pre>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_2$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.2257143</code></pre>
+<pre><code>## [1] 0.246</code></pre>
 </div>
 </div>
 <div id="subsampling-rate-0.5" class="section level2">
@@ -378,11 +378,11 @@ length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_
 table(class_labs[train_subsamples])</code></pre>
 <pre><code>## 
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 281                 289                 300 
+##                 270                 296                 270 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                 275                 286                 265 
+##                 292                 289                 280 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 282                 261                 261</code></pre>
+##                 273                 267                 263</code></pre>
 <pre class="r"><code>class_labs_train &lt;- class_labs[train_subsamples]
 class_labs_test &lt;- class_labs[-train_subsamples]
 counts &lt;- t(data[,1:4500])
@@ -393,19 +393,19 @@ class_labs_train_2 &lt;- factor(as.vector(plyr::mapvalues(class_labs_train, from
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 815.772, done.</code></pre>
+## log posterior increase: 812.258, done.</code></pre>
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 460.032, done.</code></pre>
+## log posterior increase: 465.395, done.</code></pre>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_1$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.184</code></pre>
+<pre><code>## [1] 0.199</code></pre>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_2$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.205</code></pre>
+<pre><code>## [1] 0.2085</code></pre>
 </div>
 </div>
 <div id="subsampling-rate-0.75" class="section level2">
@@ -414,11 +414,11 @@ length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_
 table(class_labs[train_subsamples])</code></pre>
 <pre><code>## 
 ##      CD14_Monocytes              CD19_B          CD4_Helper 
-##                 389                 393                 395 
+##                 384                 393                 409 
 ##          CD4_Memory           CD4_Naive      CD4_Regulatory 
-##                 368                 400                 397 
+##                 385                 387                 387 
 ##             CD56_NK       CD8_Cytotoxic CD8_Naive_Cytotoxic 
-##                 372                 397                 389</code></pre>
+##                 395                 376                 384</code></pre>
 <pre class="r"><code>class_labs_train &lt;- class_labs[train_subsamples]
 class_labs_test &lt;- class_labs[-train_subsamples]
 counts &lt;- t(data[,1:4500])
@@ -429,19 +429,19 @@ class_labs_train_2 &lt;- factor(as.vector(plyr::mapvalues(class_labs_train, from
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 867.918, done.</code></pre>
+## log posterior increase: 878.845, done.</code></pre>
 <pre><code>## 
 ## Estimating on a 4500 document collection.
 ## start the fit 
-## log posterior increase: 457.162, done.</code></pre>
+## log posterior increase: 466.679, done.</code></pre>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_1$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.186</code></pre>
+<pre><code>## [1] 0.189</code></pre>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus_2$omega, 1, function(x) return(which.max(x))))
 labels2_class &lt;- unique(class_labs)[labels2]
 length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)</code></pre>
-<pre><code>## [1] 0.211</code></pre>
+<pre><code>## [1] 0.219</code></pre>
 </div>
 </div>
 

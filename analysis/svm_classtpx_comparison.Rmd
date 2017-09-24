@@ -22,6 +22,7 @@ library(e1071)
 seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
 ```
 
+
 ```{r echo=FALSE, eval=TRUE}
 data <- seuratObj_TFH_global@raw.data
 counts <- t(data)
