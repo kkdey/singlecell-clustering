@@ -1,0 +1,43 @@
+---
+title: "Zero Inflated Gamma Lasso model on Birds data"
+author: "Kushal K Dey"
+date: "9/8/2017"
+output: html_document
+---
+
+We use a Gamma Lasso regression based zero inflated model on the Himalayan birds 
+data to see how the different metadata - elevation, North and East - characteristics
+
+```{r}
+library(ecostructure)
+library(covtpx)
+library(Biobase)
+library(distrom)
+library(Seurat)
+```
+
+```{r}
+data <- get(load(system.file("extdata", "HimalayanBirdsData.rda", package = "ecostructure")))
+taxonomic_counts <- t(exprs(data))
+grid_metadata <- pData(phenoData(data))
+covars1 <- grid_metadata[,1:3]
+covars2 <- model.matrix(~ factor(grid_metadata$WorE)-1)
+covars <- cbind(covars1, covars2)
+```
+
+```{r}
+
+########   Logistic component 
+
+x <- sapply(taxonomic_counts[,1], function(x) if(x>0) return(1) else return(0))
+fitgl_D <- gamlr(covars[,1:3], x, gamma=2, family = "binomial", lambda.min.ratio=1e-3) # small gamma
+coef(fitgl)
+
+pos <- which(x==1)
+fitgl_C <- gamlr(covars[pos,1:3], x[pos], gamma=2, family = "poisson", lambda.min.ratio=1e-3) 
+
+```
+
+
+
+

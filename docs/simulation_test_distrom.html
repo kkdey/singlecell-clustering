@@ -12,7 +12,7 @@
 <meta name="author" content="Kushal K Dey" />
 
 
-<title>GTEx blood + sorted immune cells</title>
+<title>Simulation experiment to test distrom</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -301,97 +301,71 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">GTEx blood + sorted immune cells</h1>
+<h1 class="title toc-ignore">Simulation experiment to test distrom</h1>
 <h4 class="author"><em>Kushal K Dey</em></h4>
-<h4 class="date"><em>9/1/2017</em></h4>
+<h4 class="date"><em>9/7/2017</em></h4>
 
 </div>
 
 
-<p>We apply classtpx on the GTEx blood samples (bulk) with the sorted cells information obtained from 10X Genomics.</p>
-<div id="gtex-expression-processing" class="section level2">
-<h2>GTEx expression processing</h2>
-<pre class="r"><code>gtex_expr &lt;- fread(&quot;../data/cis_gene_expression.txt&quot;)</code></pre>
-<pre><code>## 
-Read 0.0% of 16069 rows
-Read 62.2% of 16069 rows
-Read 16069 rows and 8557 (of 8557) columns from 0.532 GB file in 00:00:16</code></pre>
-<pre class="r"><code>mat1 &lt;- as.matrix(gtex_expr[, -(1:2)])</code></pre>
-<pre class="r"><code>mat &lt;- apply(mat1, 2, function(x) return(rbinom(dim(gtex_expr)[1], x, 1e-05)))</code></pre>
-<pre class="r"><code>samples_id &lt;- read.table(&quot;../data/samples_id.txt&quot;)
-tissue_names &lt;- samples_id[,2]
-table(tissue_names)</code></pre>
-<pre><code>## tissue_names
-##                  Adipose Tissue   Adrenal Gland         Bladder 
-##               2             577             145              11 
-##           Blood    Blood Vessel           Brain          Breast 
-##             511             689            1259             214 
-##    Cervix Uteri           Colon       Esophagus  Fallopian Tube 
-##              11             345             686               6 
-##           Heart          Kidney           Liver            Lung 
-##             412              32             119             320 
-##          Muscle           Nerve           Ovary        Pancreas 
-##             430             304              97             171 
-##       Pituitary        Prostate  Salivary Gland            Skin 
-##             103             106              57             890 
-## Small Intestine          Spleen         Stomach          Testis 
-##              88             104             192             172 
-##         Thyroid          Uterus          Vagina 
-##             323              83              96</code></pre>
-<pre class="r"><code>idx1 &lt;- which(tissue_names == &quot;Blood&quot;)
-mat2 &lt;- mat[, idx1]</code></pre>
-<pre class="r"><code>gene_names &lt;- as.character(read.table(&quot;../data/gene_names_GTEX_V6.txt&quot;)[,1])
-gene_names_1 &lt;- as.character(sapply(gene_names, function(x) return(strsplit(x, &quot;[.]&quot;)[[1]][1])))</code></pre>
-<p>We convert these ensembl IDs to gene names.</p>
-<pre class="r"><code>out &lt;- mygene::queryMany(gene_names_1,  scopes=&quot;ensembl.gene&quot;, fields=c(&quot;symbol&quot;, &quot;ensembl.gene&quot;), species=&quot;human&quot;);</code></pre>
-<pre><code>## Querying chunk 1</code></pre>
-<pre><code>## Querying chunk 2</code></pre>
-<pre><code>## Querying chunk 3</code></pre>
-<pre><code>## Querying chunk 4</code></pre>
-<pre><code>## Querying chunk 5</code></pre>
-<pre><code>## Querying chunk 6</code></pre>
-<pre><code>## Querying chunk 7</code></pre>
-<pre><code>## Querying chunk 8</code></pre>
-<pre><code>## Querying chunk 9</code></pre>
-<pre><code>## Querying chunk 10</code></pre>
-<pre><code>## Querying chunk 11</code></pre>
-<pre><code>## Querying chunk 12</code></pre>
-<pre><code>## Querying chunk 13</code></pre>
-<pre><code>## Querying chunk 14</code></pre>
-<pre><code>## Querying chunk 15</code></pre>
-<pre><code>## Querying chunk 16</code></pre>
-<pre><code>## Querying chunk 17</code></pre>
-<pre><code>## Finished
-## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
-<pre class="r"><code>idx2 &lt;- match(out$query, gene_names_1)
-gene_names_2 &lt;- out$symbol[idx2]</code></pre>
-<pre class="r"><code>data_build &lt;- t(mat2)
-colnames(data_build) &lt;- gene_names_2</code></pre>
-</div>
-<div id="x-genomics-data-processing" class="section level2">
-<h2>10X Genomics data processing</h2>
-<pre class="r"><code>common_genes &lt;- intersect(colnames(data_build), rownames(sorted_data))
-data_build_2 &lt;- data_build[, match(common_genes, colnames(data_build))]
-sorted_data_2 &lt;- sorted_data[match(common_genes, rownames(sorted_data)),]</code></pre>
-<pre class="r"><code>pooled_data &lt;- rbind(t(sorted_data_2), data_build_2)</code></pre>
-</div>
-<div id="classtpx" class="section level2">
-<h2>classtpx</h2>
-<p>We build the classifier now.</p>
-<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(pooled_data, K=9, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 0.001)</code></pre>
-<pre><code>## 
-## Estimating on a 5011 document collection.
-## start the fit 
-## log posterior increase: 850.569, done.</code></pre>
-<pre class="r"><code>save(topic_clus, file = &quot;../output/classtpx_gtex_blood_sorted_immune_thresh.rda&quot;)</code></pre>
-</div>
-<div id="cluster-representation" class="section level2">
-<h2>Cluster representation</h2>
-<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_thresh.rda&quot;))</code></pre>
-<p><img src="gtex_blood_sorted_immune_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
-<pre class="r"><code>topic_clus_2 &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_thresh_2.rda&quot;))</code></pre>
-<p><img src="gtex_blood_sorted_immune_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
-</div>
+<p>We run a simulation model here to test for distrom R package due to Matt Taddy.</p>
+<pre class="r"><code>library(ecostructure)
+library(covtpx)
+library(Biobase)
+library(distrom)
+library(Seurat)</code></pre>
+<pre class="r"><code>nsamples &lt;- 50
+ngenes &lt;- 500
+numcov &lt;- 2
+metadata &lt;- 0.05* matrix(sample(1:100, nsamples*numcov, replace = FALSE), nsamples, numcov)
+beta &lt;- as.matrix(Matrix::rsparsematrix(ngenes, numcov, density=0.3))
+lib_size &lt;- sample(100:1000, nsamples, replace=FALSE)
+libsize_array &lt;- log(do.call(cbind, replicate(ngenes, lib_size, simplify=FALSE)))
+tmp &lt;- exp(libsize_array+metadata %*% t(beta))
+#tmp &lt;- exp(metadata %*% t(beta))
+tmp1 &lt;- t(apply(tmp, 1, function(x) return(x/sum(x))))
+counts_mat &lt;- matrix(0, nsamples, ngenes)
+for(m in 1:nsamples){
+  counts_mat[m,] &lt;- rmultinom(1, lib_size[m], prob = tmp1[m,])
+}
+mu &lt;- rep(1, nsamples)</code></pre>
+<p>Apply distrom (with 0s kept as is)</p>
+<pre class="r"><code>cl &lt;- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type==&quot;unix&quot;,&quot;FORK&quot;,&quot;PSOCK&quot;))
+print(cl)</code></pre>
+<pre><code>## socket cluster with 4 nodes on host &#39;localhost&#39;</code></pre>
+<pre class="r"><code>system.time(fits &lt;- dmr(cl, metadata, counts_mat, mu=mu, verb=1))</code></pre>
+<pre><code>## fitting 50 observations on 500 categories, 2 covariates.
+## converting counts matrix to column list...
+## distributed run.
+## socket cluster with 4 nodes on host &#39;localhost&#39;</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.069   0.015   1.769</code></pre>
+<pre class="r"><code>stopCluster(cl)</code></pre>
+<pre class="r"><code>coef_mat &lt;- as.matrix(coef(fits))</code></pre>
+<pre><code>## Warning in `[&lt;-`(`*tmp*`, sapply(B, is.null), value = &lt;S4 object of class
+## structure(&quot;dsCMatrix&quot;, package = &quot;Matrix&quot;)&gt;): implicit list embedding of S4
+## objects is deprecated</code></pre>
+<pre class="r"><code>coef_mat[, 1:10] </code></pre>
+<pre><code>##                   1         2          3         4         5          6
+## intercept  1.190881  2.930078  1.2722710 -3.813411  1.589262  0.9649451
+## 1         -1.384000 -1.979253 -1.1954359  0.000000 -1.527826 -0.6135739
+## 2         -1.076993 -3.462662 -0.7314818  0.000000 -1.264977 -0.2853466
+##                   7   8         9        10
+## intercept  1.174947 NaN -4.912023 10.206125
+## 1         -1.632316   0  0.000000 -6.619196
+## 2         -1.128046   0  0.000000 -6.281669</code></pre>
+<pre class="r"><code>beta[1:10,]</code></pre>
+<pre><code>##       [,1]  [,2]
+##  [1,]  0.0  0.00
+##  [2,]  0.0 -1.20
+##  [3,]  0.0  0.71
+##  [4,]  0.0 -0.22
+##  [5,]  0.0  0.00
+##  [6,]  0.2  1.40
+##  [7,]  0.0  0.00
+##  [8,] -1.3  0.00
+##  [9,] -1.3  0.42
+## [10,]  0.0 -1.40</code></pre>
 
 <hr>
 <p>

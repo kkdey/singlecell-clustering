@@ -27,7 +27,11 @@ gtex_expr <- fread("../data/cis_gene_expression.txt")
 ```
 
 ```{r}
-mat <- as.matrix(gtex_expr[, -(1:2)])
+mat1 <- as.matrix(gtex_expr[, -(1:2)])
+```
+
+```{r}
+mat <- apply(mat1, 2, function(x) return(rbinom(dim(gtex_expr)[1], x, 1e-05)))
 ```
 
 ```{r}
@@ -52,6 +56,7 @@ We convert these ensembl IDs to gene names.
 ```{r}
 out <- mygene::queryMany(gene_names_1,  scopes="ensembl.gene", fields=c("symbol", "ensembl.gene"), species="human");
 ```
+
 ```{r}
 idx2 <- match(out$query, gene_names_1)
 gene_names_2 <- out$symbol[idx2]
@@ -96,19 +101,19 @@ class_labs_2 <- factor(as.vector(mapvalues(class_labs, from = unique(class_labs)
 
 ```{r}
 topic_clus <- classtpx::class_topics(pooled_data, K=9, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 0.001)
-save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune.rda")
+save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_thresh.rda")
 ```
 
 
 ```{r echo=FALSE, eval=FALSE}
 topic_clus <- classtpx::class_topics(pooled_data, K=11, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 100)
-save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_2.rda")
+save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_thresh_2.rda")
 ```
 
 ## Cluster representation
 
 ```{r}
-topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune.rda"))
+topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_thresh.rda"))
 ```
 
 ```{r echo=FALSE, eval=TRUE}
@@ -142,7 +147,7 @@ PlotCountClust(topic_clus, labs)
 ```
 
 ```{r}
-topic_clus_2 <- get(load("../output/classtpx_gtex_blood_sorted_immune_2.rda"))
+topic_clus_2 <- get(load("../output/classtpx_gtex_blood_sorted_immune_thresh_2.rda"))
 ```
 
 ```{r echo=FALSE, eval=TRUE}

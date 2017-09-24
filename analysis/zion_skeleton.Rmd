@@ -1,0 +1,241 @@
+---
+title: "Skeleton f Zion"
+author: "Kushal K Dey"
+date: "9/8/2017"
+output: html_document
+---
+
+We take a look at the skeleton of ZION, a Zero-inflated Gamma Lasso regularized Poisson and Negative binomial modeling software.
+
+```{r}
+library(ecostructure)
+library(covtpx)
+library(Biobase)
+library(distrom)
+library(Seurat)
+library(gamlr)
+```
+
+We load and process the data and the sample metadata.
+
+```{r}
+data <- get(load(system.file("extdata", "HimalayanBirdsData.rda", package = "ecostructure")))
+taxonomic_counts <- t(exprs(data))
+grid_metadata <- pData(phenoData(data))
+covars1 <- grid_metadata[,1:3]
+covars2 <- model.matrix(~ factor(grid_metadata$WorE)-1)
+covars <- cbind(covars1, covars2)
+```
+
+We first build the cluster.
+
+```{r}
+cl <- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))
+print(cl)
+```
+
+```{r}
+mu <- rep(0, dim(taxonomic_counts)[1])
+bins=NULL
+verb=0
+cv=FALSE
+argl <- list()
+argl$family <- NULL
+if(is.null(argl$nlambda))
+    argl$nlambda <- formals(gamlr)$nlambda
+argl$verb <- max(verb-1,0)
+argl$cv <- cv
+argl$shift <- mu
+argl$x <- apply(covars1, 2, function(x) return(rank(x)))
+```
+
+```{r}
+counts <- taxonomic_counts
+cat(sprintf("Fitting the ZION model: %d observations on %d features, %d covariates.\n",
+    nrow(counts), ncol(counts), ncol(argl$x)))
+stopifnot( all(counts == floor(counts)) ) # OK
+
+
+if(inherits(counts,"data.frame")){
+    if(ncol(counts)>1) counts <- as.matrix(counts)
+    else counts <- factor(counts[,1])
+}
+
+counts=as(counts,"dgCMatrix") 
+p <- ncol(counts)
+if(is.null(colnames(counts))) colnames(counts) <- 1:p
+n <- nrow(counts)
+if(n != nrow(argl$x)) 
+  stop("counts and covars have a different number of observations")
+
+```
+
+
+```{r}
+C <- ifelse(is.null(cl),Inf,length(cl))
+p <- ncol(counts)
+if(is.null(colnames(counts))) {vars <- 1:dim(counts)[2]} else {vars <- colnames(counts)}
+counts2 <- counts
+```
+
+
+```{r}
+if(C < p/4){
+    chunks <- round(seq(0,p,length.out=C+1))
+    counts <- lapply(1:C, 
+      function(i) counts[,(chunks[i]+1):chunks[i+1]])
+    counts <- parLapply(cl,
+                counts, 
+                function(x) 
+                  sapply(colnames(x), 
+                  function(j) x[,j,drop=FALSE]))
+    counts <- unlist(counts,recursive=FALSE)
+  } else{
+    counts <- sapply(vars,
+      function(j) counts[,j,drop=FALSE]) }
+
+```
+
+
+```{r}
+
+##########################  Skeleton for a single ZION run  ##################################
+
+zion_run <- function(xj, argl){
+  if(length(xj@i)==0) return(NULL) # n'er occurs
+  arglD = arglC = argl
+  arglD$family = "binomial"
+  arglD$y <- sapply(xj, function(w) if(w > 0) return(1) else return(0))
+  
+  if(length(which(arglD$y==0)) == 0){
+    fitD <- NULL
+    pos <- which(arglD$y==1)
+    arglC$family = "poisson"
+    arglC$y <- xj[pos]
+    arglC$x <- as.matrix(argl$x[pos,])
+    if(!is.null(arglC$shift)){arglC$shift <- arglC$shift[pos]}
+    if(arglC$cv) {fitC <- do.call(cv.gamlr,arglC)} else {fitC <- do.call(gamlr,arglC)}
+  }else if(length(which(arglD$y==1)) == 0){
+     fitC <- NULL
+     fitD <- NULL
+  }else{
+     if(arglD$cv) {fitD <- do.call(cv.gamlr,arglD)} else {fitD <- do.call(gamlr,arglD)}
+     pos <- which(arglD$y==1)
+     arglC$family = "poisson"
+     arglC$y <- xj[pos]
+     arglC$x <- matrix(argl$x[pos,], nrow=length(pos))
+     if(!is.null(argl$shift)){arglC$shift <- argl$shift[pos]}
+     if(arglC$cv) {fitC <- do.call(cv.gamlr,arglC)} else {fitC <- do.call(gamlr,arglC)}
+  }
+
+  ll <- list("fitD" = fitD, "fitC" = fitC)
+  return(ll)
+}
+```
+
+
+```{r}
+
+##########################  Skeleton for a single Poisson run  ##################################
+
+poiss_run <- function(xj, argl){
+  if(length(xj@i)==0) return(NULL) # n'er occurs
+  argl$family = "poisson"
+  argl$y = xj
+  if(arglC$cv) {fit <- do.call(cv.gamlr,argl)} else {fit <- do.call(gamlr,argl)}
+  return(fit)
+}
+```
+
+
+Implementing the distributed parellel implementation of ZION
+
+```{r}
+
+##########################  Parallel Implementation of ZION  ##################################
+
+mods <- parLapply(cl,counts, zion_run,argl=argl) 
+
+fitC_coef <- as.matrix(do.call(cbind, lapply(mods, function(x) return(coef(x$fitC)))))
+fitD_coef <- as.matrix(do.call(cbind, lapply(mods, function(x) return(coef(x$fitD)))))
+
+```
+
+
+```{r}
+
+##########################  Parallel Implementation of Poisson run  ##################################
+
+mods <- parLapply(cl,counts, poiss_run,argl=argl) 
+```
+
+```{r}
+colnames(fitC_coef) =  colnames(fitD_coef) = vars
+```
+
+```{r}
+fit_coef <- as.matrix(do.call(cbind, lapply(mods, function(x) return(coef(x)))))
+colnames(fit_coef) <- vars
+```
+
+```{r echo=FALSE}
+imp_birds <- names(sort(abs(fitD_coef[2,]), decreasing =TRUE))[1:5]
+sort(abs(fitD_coef[2,]), decreasing =TRUE)[1:5]
+```
+
+```{r echo=FALSE}
+data_ggplot <- data.frame(Meta = grid_metadata$Elevation,
+                          First = taxonomic_counts[, paste0(imp_birds[1])], 
+                          Second = taxonomic_counts[, paste0(imp_birds[2])],
+                          Third = taxonomic_counts[, paste0(imp_birds[3])], 
+                          Fourth = taxonomic_counts[, paste0(imp_birds[4])],
+                          Fifth = taxonomic_counts[, paste0(imp_birds[5])]
+                          ) # effector t cell
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = First), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[1]))
+
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Second), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[2]))
+
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Third), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[3]))
+
+
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fourth), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[4]))
+
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1),                                      panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = Meta, y = Fifth), size = 1) + labs(x = 'East', y = 'abundance', title = paste0(imp_birds[5]))
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+
+```
+
+
+```{r}
+fit1 <- poiss_run(counts$Cyornis_rubeculoides, argl)
+coef(fit1)
+```
+
+```{r}
+glm(as.matrix(counts$Cyornis_rubeculoides) ~ argl$x[,1] + argl$x[,2] + argl$x[,3],
+    family = poisson(link = log))
+```
+
+```{r}
+fit2 <- zion_run(counts$Cyornis_rubeculoides, argl)
+
+
+```
+
+```{r}
+fit3 <- poiss_run(counts$Cyornis_rubeculoides, argl)
+```
+
+

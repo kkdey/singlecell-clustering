@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>Skeleton of distrom</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Skeleton of distrom</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>9/7/2017</em></h4>
+
+</div>
+
+
+<p>In this script, we investigate the skeleton of the <strong>distrom</strong> package and try to see what happens inside the <em>dmr</em> function of this package. We take the Himalayan bird abundance data as the test data for this case.</p>
+<pre class="r"><code>library(ecostructure)</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre><code>## Loading required package: CountClust</code></pre>
+<pre><code>## Loading required package: maptpx</code></pre>
+<pre><code>## Loading required package: ordtpx</code></pre>
+<pre><code>## Loading required package: slam</code></pre>
+<pre><code>## Loading required package: parallel</code></pre>
+<pre><code>## 
+## Attaching package: &#39;ordtpx&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:maptpx&#39;:
+## 
+##     rdir, stm_tfidf</code></pre>
+<pre><code>## Loading required package: raster</code></pre>
+<pre><code>## Loading required package: sp</code></pre>
+<pre><code>## Loading required package: rgdal</code></pre>
+<pre><code>## rgdal: version: 1.2-8, (SVN revision 663)
+##  Geospatial Data Abstraction Library extensions to R successfully loaded
+##  Loaded GDAL runtime: GDAL 2.1.2, released 2016/10/24
+##  Path to GDAL shared files: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/rgdal/gdal
+##  Loaded PROJ.4 runtime: Rel. 4.9.1, 04 March 2015, [PJ_VERSION: 491]
+##  Path to PROJ.4 shared files: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/rgdal/proj
+##  Linking to sp version: 1.2-5</code></pre>
+<pre><code>## Loading required package: grid</code></pre>
+<pre><code>## Loading required package: gridExtra</code></pre>
+<pre><code>## Loading required package: phytools</code></pre>
+<pre><code>## Loading required package: ape</code></pre>
+<pre><code>## 
+## Attaching package: &#39;ape&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:raster&#39;:
+## 
+##     rotate, zoom</code></pre>
+<pre><code>## Loading required package: maps</code></pre>
+<pre><code>## Loading required package: SpatialExtremes</code></pre>
+<pre><code>## 
+## Attaching package: &#39;SpatialExtremes&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:maps&#39;:
+## 
+##     map</code></pre>
+<pre><code>## The following objects are masked from &#39;package:raster&#39;:
+## 
+##     cv, distance</code></pre>
+<pre><code>## The following object is masked from &#39;package:maptpx&#39;:
+## 
+##     logit</code></pre>
+<pre><code>## Loading required package: maptools</code></pre>
+<pre><code>## Checking rgeos availability: TRUE</code></pre>
+<pre><code>## 
+## Attaching package: &#39;ecostructure&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:CountClust&#39;:
+## 
+##     nullmodel_GoM</code></pre>
+<pre class="r"><code>library(covtpx)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;covtpx&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:ordtpx&#39;:
+## 
+##     rdir, stm_tfidf</code></pre>
+<pre><code>## The following objects are masked from &#39;package:maptpx&#39;:
+## 
+##     normalizetpx, rdir, stm_tfidf, topics</code></pre>
+<pre class="r"><code>library(Biobase)</code></pre>
+<pre><code>## Loading required package: BiocGenerics</code></pre>
+<pre><code>## 
+## Attaching package: &#39;BiocGenerics&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:gridExtra&#39;:
+## 
+##     combine</code></pre>
+<pre><code>## The following objects are masked from &#39;package:raster&#39;:
+## 
+##     as.data.frame, intersect, match, union, unique, which.max,
+##     which.min</code></pre>
+<pre><code>## The following objects are masked from &#39;package:parallel&#39;:
+## 
+##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+##     clusterExport, clusterMap, parApply, parCapply, parLapply,
+##     parLapplyLB, parRapply, parSapply, parSapplyLB</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     IQR, mad, xtabs</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     anyDuplicated, append, as.data.frame, cbind, colnames,
+##     do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+##     grepl, intersect, is.unsorted, lapply, lengths, Map, mapply,
+##     match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+##     Position, rank, rbind, Reduce, rownames, sapply, setdiff,
+##     sort, table, tapply, union, unique, unsplit, which, which.max,
+##     which.min</code></pre>
+<pre><code>## Welcome to Bioconductor
+## 
+##     Vignettes contain introductory material; view with
+##     &#39;browseVignettes()&#39;. To cite Bioconductor, see
+##     &#39;citation(&quot;Biobase&quot;)&#39;, and for packages &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
+<pre class="r"><code>library(distrom)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:phytools&#39;:
+## 
+##     expm</code></pre>
+<pre><code>## Loading required package: gamlr</code></pre>
+<pre class="r"><code>library(Seurat)</code></pre>
+<pre><code>## Loading required package: cowplot</code></pre>
+<pre><code>## 
+## Attaching package: &#39;cowplot&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     ggsave</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Seurat&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:SpatialExtremes&#39;:
+## 
+##     cv</code></pre>
+<pre><code>## The following object is masked from &#39;package:raster&#39;:
+## 
+##     cv</code></pre>
+<pre class="r"><code>data &lt;- get(load(system.file(&quot;extdata&quot;, &quot;HimalayanBirdsData.rda&quot;, package = &quot;ecostructure&quot;)))
+taxonomic_counts &lt;- t(exprs(data))
+grid_metadata &lt;- pData(phenoData(data))
+covars1 &lt;- grid_metadata[,1:3]
+covars2 &lt;- model.matrix(~ factor(grid_metadata$WorE)-1)
+covars &lt;- cbind(covars1, covars2)</code></pre>
+<p>Set up the cluster with number of cores same as that in my machine.</p>
+<pre class="r"><code>cl &lt;- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type==&quot;unix&quot;,&quot;FORK&quot;,&quot;PSOCK&quot;))
+print(cl)</code></pre>
+<pre><code>## socket cluster with 4 nodes on host &#39;localhost&#39;</code></pre>
+<p>Create an argument list <code>argl</code></p>
+<pre class="r"><code>mu &lt;- rep(0, dim(taxonomic_counts)[1])
+bins=NULL
+verb=0
+cv=FALSE
+argl &lt;- list()
+argl$family &lt;- &quot;poisson&quot;
+if(is.null(argl$nlambda))
+    argl$nlambda &lt;- formals(gamlr)$nlambda
+argl$verb &lt;- max(verb-1,0)
+argl$cv &lt;- cv</code></pre>
+<pre class="r"><code>source(&quot;../../distrom/R/collapse.R&quot;)</code></pre>
+<pre class="r"><code>chk &lt;- collapse(covars[,1:3], taxonomic_counts, mu, bins)</code></pre>
+<p><code>chk</code> is a list with <code>v</code> attribute corresponding to the metadata, a <code>counts</code> attribute comprising of the counts data in sparse format, <code>nbins</code> set as 1 as no collapse, <code>mu</code> representing the intercept to be added. if NULL, then log(rowSums) used.</p>
+<pre class="r"><code>cat(sprintf(&quot;fitting %d observations on %d categories, %d covariates.\n&quot;,
+    nrow(chk$v), ncol(chk$counts), ncol(chk$v)))</code></pre>
+<pre><code>## fitting 38 observations on 304 categories, 3 covariates.</code></pre>
+<p>Add the metadata and the mean shift to argument list.</p>
+<pre class="r"><code>argl$x &lt;- chk$v
+argl$shift &lt;- chk$mu</code></pre>
+<p>Report the number of columns and the column names.</p>
+<pre class="r"><code>p &lt;- ncol(chk$counts)
+vars &lt;- colnames(chk$counts)</code></pre>
+<pre class="r"><code>rownames(argl$x) &lt;- rownames(chk$counts) &lt;- NULL
+counts &lt;- chk$counts
+rm(covars,mu,chk)
+taxo_counts &lt;- counts</code></pre>
+<pre class="r"><code>C &lt;- ifelse(is.null(cl),Inf,length(cl))</code></pre>
+<pre class="r"><code>if(C &lt; p/4){
+    chunks &lt;- round(seq(0,p,length.out=C+1))
+    counts &lt;- lapply(1:C, 
+      function(i) counts[,(chunks[i]+1):chunks[i+1]])
+    counts &lt;- parLapply(cl,
+                counts, 
+                function(x) 
+                  sapply(colnames(x), 
+                  function(j) x[,j,drop=FALSE]))
+    counts &lt;- unlist(counts,recursive=FALSE)
+  } else{
+    counts &lt;- sapply(vars,
+      function(j) counts[,j,drop=FALSE]) }</code></pre>
+<pre class="r"><code>onerun &lt;- function(xj, argl){
+  if(length(xj@i)==0) return(NULL) # n&#39;er occurs
+  argl$y &lt;- xj
+  if(argl$cv) fit &lt;- do.call(cv.gamlr,argl)
+  else fit &lt;- do.call(gamlr,argl)
+  return(fit)
+}</code></pre>
+<pre class="r"><code>mods &lt;- parLapply(cl,counts,onerun,argl=argl) </code></pre>
+<p>Define a class to store the output.</p>
+<pre class="r"><code>class(mods) &lt;- &quot;dmr&quot;
+attr(mods,&quot;nobs&quot;) &lt;- argl$nobs
+attr(mods,&quot;nlambda&quot;) &lt;- argl$nlambda
+attr(mods,&quot;mu&quot;) &lt;- argl$shift</code></pre>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,80 @@
+---
+title: "Simulation experiment to test distrom"
+author: "Kushal K Dey"
+date: "9/7/2017"
+output: html_document
+---
+
+We run a simulation model here to test for distrom R package due to Matt Taddy.
+
+```{r echo=TRUE, eval=TRUE, message = FALSE, warning=FALSE}
+library(ecostructure)
+library(covtpx)
+library(Biobase)
+library(distrom)
+library(Seurat)
+```
+
+```{r}
+nsamples <- 1000
+ngenes <- 50
+numcov <- 3
+metadata <- 0.05* matrix(sample(1:1000, nsamples*(numcov-1), replace = TRUE), nsamples, (numcov-1))
+metadata2 <- cbind(rep(1, ngenes), metadata)
+beta <- as.matrix(Matrix::rsparsematrix(ngenes, numcov, density=0.3))
+lib_size <- sample(100:1000, nsamples, replace=TRUE)
+libsize_array <- log(do.call(cbind, replicate(ngenes, lib_size, simplify=FALSE)))
+tmp <- exp(metadata2 %*% t(beta))
+#tmp <- exp(metadata %*% t(beta))
+tmp1 <- t(apply(tmp, 1, function(x) return(x/sum(x))))
+counts_mat <- matrix(0, nsamples, ngenes)
+for(m in 1:nsamples){
+  counts_mat[m,] <- rmultinom(1, lib_size[m], prob = tmp1[m,])
+}
+#mu <- rep(0, nsamples)
+mu <- log(rowSums(tmp))
+```
+
+
+```{r}
+beta[1:5,]
+```
+
+Apply distrom (with 0s kept as is)
+
+```{r}
+cl <- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))
+print(cl)
+system.time(fits <- dmr(cl, metadata, counts_mat, mu = mu, verb=1))
+stopCluster(cl)
+```
+
+```{r}
+colnames(counts_mat) <- 1:dim(counts_mat)[2] 
+colnames(metadata2) <- 1:dim(metadata2)[2]
+cl <- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))
+print(cl)
+system.time(fits <- zion_poiss(cl, counts_mat, metadata2, mu = mu, verb=1))
+stopCluster(cl)
+```
+
+```{r}
+fitted_params <- fits$fit
+fitted_params[,1:5]
+```
+
+```{r}
+coef_mat <- t(do.call(cbind, lapply(1:10, function(x) return(as.matrix(coef(fits[[x]]))))))
+```
+
+```{r}
+coef_mat[1:10,]
+```
+
+## Linear Model
+
+```{r}
+out <- glm(counts_mat[,2] ~ metadata[,1] + metadata[,2], family = quasipoisson(link = log))
+summary(out)$coefficients
+```
+

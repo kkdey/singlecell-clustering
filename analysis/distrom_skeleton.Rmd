@@ -1,0 +1,130 @@
+---
+title: "Skeleton of distrom"
+author: "Kushal K Dey"
+date: "9/7/2017"
+output: html_document
+---
+
+In this script, we investigate the skeleton of the **distrom** package and try to see what happens inside the *dmr* function of this package. We take the Himalayan bird abundance data as the test data for this case.
+
+```{r}
+library(ecostructure)
+library(covtpx)
+library(Biobase)
+library(distrom)
+library(Seurat)
+```
+
+```{r}
+data <- get(load(system.file("extdata", "HimalayanBirdsData.rda", package = "ecostructure")))
+taxonomic_counts <- t(exprs(data))
+grid_metadata <- pData(phenoData(data))
+covars1 <- grid_metadata[,1:3]
+covars2 <- model.matrix(~ factor(grid_metadata$WorE)-1)
+covars <- cbind(covars1, covars2)
+```
+
+Set up the cluster with number of cores same as that in my machine.
+
+```{r}
+cl <- makeCluster(parallel::detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))
+print(cl)
+```
+
+
+Create an argument list `argl` 
+```{r}
+mu <- rep(0, dim(taxonomic_counts)[1])
+bins=NULL
+verb=0
+cv=FALSE
+argl <- list()
+argl$family <- "poisson"
+if(is.null(argl$nlambda))
+    argl$nlambda <- formals(gamlr)$nlambda
+argl$verb <- max(verb-1,0)
+argl$cv <- cv
+```
+
+```{r}
+source("../../distrom/R/collapse.R")
+```
+
+```{r}
+chk <- collapse(covars[,1:3], taxonomic_counts, mu, bins)
+```
+
+`chk` is a list with `v` attribute corresponding to the metadata, a `counts` attribute comprising of the counts data in sparse format, `nbins` set as 1 as no collapse, `mu` representing the intercept to be added. if NULL, then log(rowSums) used.
+
+```{r}
+cat(sprintf("fitting %d observations on %d categories, %d covariates.\n",
+    nrow(chk$v), ncol(chk$counts), ncol(chk$v)))
+```
+
+Add the metadata and the mean shift to argument list.
+
+```{r}
+argl$x <- chk$v
+argl$shift <- chk$mu
+```
+
+Report the number of columns and the column names.
+
+```{r}
+p <- ncol(chk$counts)
+vars <- colnames(chk$counts)
+```
+
+```{r}
+rownames(argl$x) <- rownames(chk$counts) <- NULL
+counts <- chk$counts
+rm(covars,mu,chk)
+taxo_counts <- counts
+```
+
+
+```{r}
+C <- ifelse(is.null(cl),Inf,length(cl))
+```
+
+
+```{r}
+if(C < p/4){
+    chunks <- round(seq(0,p,length.out=C+1))
+    counts <- lapply(1:C, 
+      function(i) counts[,(chunks[i]+1):chunks[i+1]])
+    counts <- parLapply(cl,
+                counts, 
+                function(x) 
+                  sapply(colnames(x), 
+                  function(j) x[,j,drop=FALSE]))
+    counts <- unlist(counts,recursive=FALSE)
+  } else{
+    counts <- sapply(vars,
+      function(j) counts[,j,drop=FALSE]) }
+
+```
+
+```{r}
+onerun <- function(xj, argl){
+  if(length(xj@i)==0) return(NULL) # n'er occurs
+  argl$y <- xj
+  if(argl$cv) fit <- do.call(cv.gamlr,argl)
+  else fit <- do.call(gamlr,argl)
+  return(fit)
+}
+```
+
+```{r}
+mods <- parLapply(cl,counts,onerun,argl=argl) 
+```
+
+Define a class to store the output.
+
+```{r}
+class(mods) <- "dmr"
+attr(mods,"nobs") <- argl$nobs
+attr(mods,"nlambda") <- argl$nlambda
+attr(mods,"mu") <- argl$shift
+```
+
