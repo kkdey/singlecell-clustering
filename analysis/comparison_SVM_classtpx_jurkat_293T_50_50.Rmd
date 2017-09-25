@@ -1,0 +1,273 @@
+---
+title: "SVM vs classtpx training for Jurkat + 293T data (50-50) data"
+author: "Kushal K Dey"
+date: "9/24/2017"
+output: html_document
+---
+
+## Data Processing
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(GSEABase)
+library(Seurat)
+library(classtpx)
+library(e1071)
+library(plyr)
+```
+
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_jurkat_293T_50_50.rda"))
+fac <- rep("jurkat_293T", dim(seuratObj_TFH_global@data)[2])
+```
+
+```{r}
+jurkat_data <- Read10X("../data/jurkat/filtered_matrices_mex/hg19/")
+dim(jurkat_data)
+```
+
+```{r}
+t_data <- Read10X("../data/293T/filtered_matrices_mex/hg19/")
+dim(t_data)
+```
+
+```{r}
+data3 <- seuratObj_TFH_global@raw.data
+```
+
+
+```{r}
+intersected_genes <- intersect(rownames(data3), intersect(rownames(jurkat_data), rownames(t_data)))
+```
+
+```{r}
+data3_filt <- data3[match(intersected_genes, rownames(data3)), ]
+jurkat_data_filt <- jurkat_data[match(intersected_genes, rownames(jurkat_data)),]
+t_data_filt <- t_data[match(intersected_genes, rownames(t_data)),]
+```
+
+```{r}
+pooled_jurkat_t_data <- rbind(t(jurkat_data_filt), t(t_data_filt))
+class_labs <- c(rep("jurkat", dim(jurkat_data_filt)[2]), rep("293T", dim(t_data_filt)[2]))
+```
+
+## Subsampling rate : 0.25
+
+Subsampling from this data to form training and test samples.
+
+```{r}
+train_subsamples <- sample(1:length(class_labs), 1500, replace = FALSE)
+table(class_labs[train_subsamples])
+```
+
+### svm application
+
+```{r}
+svm_data <- pooled_jurkat_t_data[, match(seuratObj_TFH_global@var.genes, colnames(pooled_jurkat_t_data))]
+```
+
+```{r}
+train_data <- as.matrix(svm_data[train_subsamples,])
+test_data <- as.matrix(svm_data[-train_subsamples,])
+dim(train_data)
+dim(test_data)
+class_labs_train <- class_labs[train_subsamples]
+class_labs_test <- class_labs[-train_subsamples]
+dat <- cbind.data.frame(train_data, class_labs_train)
+```
+
+```{r}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
+
+
+model_SVM <- do.call(e1071::svm, append(list(formula = class_labs_train ~ ., data=dat, probability=TRUE), svm.control))
+prob  = predict(model_SVM, test_data, probability=TRUE)
+length(which(prob != class_labs_test))/length(prob)
+```
+
+```{r}
+known_samples <- train_subsamples
+class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+```
+
+### classtpx application (subsetted)
+
+```{r echo=FALSE, eval=TRUE}
+topic_clus <- classtpx::class_topics(svm_data, K=2, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+```
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```
+
+### classtpx application (full)
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(pooled_jurkat_t_data, K=2, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_jurkat_T293_train_test_1.rda")
+```
+
+```{r}
+topic_clus <- get(load(file = "../output/classtpx_jurkat_T293_train_test_1.rda"))
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```
+
+
+
+## Subsampling rate : 0.5
+
+Subsampling from this data to form training and test samples.
+
+```{r}
+train_subsamples <- sample(1:length(class_labs), 3000, replace = FALSE)
+table(class_labs[train_subsamples])
+```
+
+### svm application
+
+```{r}
+svm_data <- pooled_jurkat_t_data[, match(seuratObj_TFH_global@var.genes, colnames(pooled_jurkat_t_data))]
+```
+
+```{r}
+train_data <- as.matrix(svm_data[train_subsamples,])
+test_data <- as.matrix(svm_data[-train_subsamples,])
+dim(train_data)
+dim(test_data)
+class_labs_train <- class_labs[train_subsamples]
+class_labs_test <- class_labs[-train_subsamples]
+dat <- cbind.data.frame(train_data, class_labs_train)
+```
+
+```{r}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
+
+
+model_SVM <- do.call(e1071::svm, append(list(formula = class_labs_train ~ ., data=dat, probability=TRUE), svm.control))
+prob  = predict(model_SVM, test_data, probability=TRUE)
+length(which(prob != class_labs_test))/length(prob)
+```
+
+```{r}
+known_samples <- train_subsamples
+class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+```
+
+### classtpx application (subsetted)
+
+```{r echo=FALSE, eval=TRUE}
+topic_clus <- classtpx::class_topics(svm_data, K=2, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+```
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```
+
+### classtpx application (full)
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(pooled_jurkat_t_data, K=2, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_jurkat_T293_train_test_2.rda")
+```
+
+```{r}
+topic_clus <- get(load(file = "../output/classtpx_jurkat_T293_train_test_2.rda"))
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```
+
+## Subsampling rate : 0.75
+
+Subsampling from this data to form training and test samples.
+
+```{r}
+train_subsamples <- sample(1:length(class_labs), 4500, replace = FALSE)
+table(class_labs[train_subsamples])
+```
+
+### svm application
+
+```{r}
+svm_data <- pooled_jurkat_t_data[, match(seuratObj_TFH_global@var.genes, colnames(pooled_jurkat_t_data))]
+```
+
+```{r}
+train_data <- as.matrix(svm_data[train_subsamples,])
+test_data <- as.matrix(svm_data[-train_subsamples,])
+dim(train_data)
+dim(test_data)
+class_labs_train <- class_labs[train_subsamples]
+class_labs_test <- class_labs[-train_subsamples]
+dat <- cbind.data.frame(train_data, class_labs_train)
+```
+
+```{r}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
+
+
+model_SVM <- do.call(e1071::svm, append(list(formula = class_labs_train ~ ., data=dat, probability=TRUE), svm.control))
+prob  = predict(model_SVM, test_data, probability=TRUE)
+length(which(prob != class_labs_test))/length(prob)
+```
+
+```{r}
+known_samples <- train_subsamples
+class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+```
+
+### classtpx application (subsetted)
+
+```{r echo=FALSE, eval=TRUE}
+topic_clus <- classtpx::class_topics(svm_data, K=2, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+```
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```
+
+### classtpx application (full)
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(pooled_jurkat_t_data, K=2, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_jurkat_T293_train_test_3.rda")
+```
+
+```{r}
+topic_clus <- get(load(file = "../output/classtpx_jurkat_T293_train_test_3.rda"))
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```

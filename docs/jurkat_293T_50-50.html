@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>Jurkat + 293T cells (50-50 mix)</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Jurkat + 293T cells (50-50 mix)</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>9/24/2017</em></h4>
+
+</div>
+
+
+<p>We take a mixture of <span class="math inline">\(50\%\)</span> mixture of Jurkat cells and <span class="math inline">\(50\%\)</span> 293T cells. We aim to perform unsupervised Countclust clustering of the cells to see if the clusters picked up in an unsupervised way correspond to the Jurkat cells and 293T cells.</p>
+<pre class="r"><code>library(cellrangerRkit)</code></pre>
+<pre class="r"><code>library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+library(classtpx)</code></pre>
+<pre class="r"><code>data &lt;- Read10X(&quot;../data/jurkat_293T_50_50/filtered_matrices_mex 2/hg19/&quot;)</code></pre>
+<p>The dimensionality of the matrix loaded</p>
+<pre class="r"><code>dim(data)</code></pre>
+<pre><code>## [1] 32738  3388</code></pre>
+<p>We first remove all the ribosomal, mitochondrial, small RNA genes reported in the above data matrix.</p>
+<p>We report the sample names</p>
+<pre class="r"><code>colnames(data)[1:10]</code></pre>
+<pre><code>##  [1] &quot;AAACATACAGCTAC&quot; &quot;AAACATTGTAAGGA&quot; &quot;AAACCGTGGCGTAT&quot; &quot;AAACGCACTACTGG&quot;
+##  [5] &quot;AAACGCTGAAGATG&quot; &quot;AAACGCTGCGCATA&quot; &quot;AAACGGCTCTGGAT&quot; &quot;AAACGGCTTCGCTC&quot;
+##  [9] &quot;AAACGGCTTGCCCT&quot; &quot;AAACTTGAAAGAAC&quot;</code></pre>
+<p>We report the names of the genes</p>
+<pre class="r"><code>rownames(data)[1:10]</code></pre>
+<pre><code>##  [1] &quot;MIR1302-10&quot;    &quot;FAM138A&quot;       &quot;OR4F5&quot;         &quot;RP11-34P13.7&quot; 
+##  [5] &quot;RP11-34P13.8&quot;  &quot;AL627309.1&quot;    &quot;RP11-34P13.14&quot; &quot;RP11-34P13.9&quot; 
+##  [9] &quot;AP006222.2&quot;    &quot;RP4-669L17.10&quot;</code></pre>
+<pre class="r"><code>idx2 &lt;- which(!is.na(match(substring(rownames(data), 1, 2), c(&quot;RP&quot;, &quot;MT&quot;, &quot;RN&quot;))))</code></pre>
+<pre class="r"><code>data2 &lt;- data[-idx2, ]</code></pre>
+<p>Remove data from multiple gene mapping and small RNA.</p>
+<pre class="r"><code>idx3 &lt;- grep(&quot;[.]&quot;, rownames(data2))
+idx4 &lt;- grep(&quot;[-]&quot;, rownames(data2))</code></pre>
+<pre class="r"><code>data3 &lt;- data2[-union(idx3, idx4), ]</code></pre>
+<p>We now create a Seurat object using this data matrix.</p>
+<div id="mixture-jurkat-293t-data-processing-and-visualization" class="section level2">
+<h2>Mixture (Jurkat + 293T) data Processing and Visualization</h2>
+<div id="t-sne-projection" class="section level3">
+<h3>t-SNE projection</h3>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+</div>
+<div id="jurkat-293t-sorted-data-processing" class="section level2">
+<h2>Jurkat + 293T sorted Data processing</h2>
+<p>We load the Jurkat cells data.</p>
+<pre class="r"><code>jurkat_data &lt;- Read10X(&quot;../data/jurkat/filtered_matrices_mex/hg19/&quot;)
+dim(jurkat_data)</code></pre>
+<pre><code>## [1] 32738  3258</code></pre>
+<pre class="r"><code>t_data &lt;- Read10X(&quot;../data/293T/filtered_matrices_mex/hg19/&quot;)
+dim(t_data)</code></pre>
+<pre><code>## [1] 32738  2885</code></pre>
+<pre class="r"><code>intersected_genes &lt;- intersect(rownames(data3), intersect(rownames(jurkat_data), rownames(t_data)))</code></pre>
+<pre class="r"><code>data3_filt &lt;- data3[match(intersected_genes, rownames(data3)), ]
+jurkat_data_filt &lt;- jurkat_data[match(intersected_genes, rownames(jurkat_data)),]
+t_data_filt &lt;- t_data[match(intersected_genes, rownames(t_data)),]</code></pre>
+<pre class="r"><code>dim(jurkat_data_filt)</code></pre>
+<pre><code>## [1] 19559  3258</code></pre>
+<pre class="r"><code>dim(t_data_filt)</code></pre>
+<pre><code>## [1] 19559  2885</code></pre>
+<pre class="r"><code>dim(data3_filt)</code></pre>
+<pre><code>## [1] 19559  3388</code></pre>
+<pre class="r"><code>pooled_data &lt;- rbind(t(jurkat_data_filt), t(t_data_filt), t(data3_filt))</code></pre>
+<pre class="r"><code>class_labs &lt;- c(rep(&quot;jurkat&quot;, dim(jurkat_data_filt)[2]), rep(&quot;293T&quot;, dim(t_data_filt)[2]))
+class_labs_2 &lt;- factor(as.vector(mapvalues(class_labs, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+known_indices &lt;- 1:(dim(jurkat_data_filt)[2]+dim(t_data_filt)[2])</code></pre>
+</div>
+<div id="classification-results-classtpx-svm" class="section level2">
+<h2>Classification results (classtpx + svm)</h2>
+<div id="full-gene-set-classtpx-study" class="section level3">
+<h3>Full Gene set classtpx study</h3>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_jurkat_293T_50_50.rda&quot;))</code></pre>
+<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+#labels2_class &lt;- unique(class_labs)[labels2]
+
+data_ggplot &lt;- data.frame(labels2 = labels2[-known_indices],
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
+plot1</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+</div>
+<div id="reduced-gene-set-svm-study" class="section level3">
+<h3>Reduced Gene set SVM study</h3>
+<p>We now compare this with the SVM based classification results.</p>
+<pre class="r"><code>genes1 &lt;- seuratObj_TFH_global@var.genes</code></pre>
+<pre class="r"><code>svm_data &lt;- pooled_data[, match(genes1, colnames(pooled_data))]</code></pre>
+<pre class="r"><code>train_data &lt;- as.matrix(svm_data[known_indices,])
+test_data &lt;- as.matrix(svm_data[-known_indices,])
+y &lt;- class_labs_2
+dat &lt;- cbind.data.frame(y, train_data);</code></pre>
+<pre><code>## Warning in data.row.names(row.names, rowsi, i): some row.names duplicated:
+## 3828,3862,4366,4846,5591,5946,6119 --&gt; row.names NOT used</code></pre>
+<pre class="r"><code>svm.control.default &lt;- list(scale = TRUE, type = NULL, kernel =&quot;radial&quot;,
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control &lt;- list()
+svm.control &lt;- modifyList(svm.control.default, svm.control)
+
+
+model_SVM &lt;- do.call(e1071::svm, append(list(formula = y ~ .,
+                                                   data=dat,
+                                                   probability=TRUE), svm.control))
+prob  = predict(model_SVM, test_data, probability=TRUE)
+table(prob)</code></pre>
+<pre><code>## prob
+##    1    2 
+## 1801 1587</code></pre>
+<pre class="r"><code>prob_mat &lt;- as.matrix(attr(prob, &quot;probabilities&quot;))
+labels3 &lt;- as.factor(apply(prob_mat, 1, function(x) return(which.max(x))))
+#labels2_class &lt;- unique(class_labs)[labels2]
+
+data_ggplot &lt;- data.frame(labels3 = labels3,
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
+plot1</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<pre class="r"><code>prob_mat &lt;- as.matrix(attr(prob, &quot;probabilities&quot;))
+#labels3 &lt;- as.factor(apply(prob_mat, 1, function(x) return(which.max(x))))
+#labels2_class &lt;- unique(class_labs)[labels2]
+labels3 &lt;- as.factor(apply(prob_mat, 1, function(x)
+  {
+  if(max(x) &gt; 0.7){
+    return(which.max(x))
+    }else{
+      return(dim(prob_mat)[2]+1)
+      }}))
+
+
+data_ggplot &lt;- data.frame(labels3 = labels3,
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
+plot1</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+</div>
+<div id="reduced-gene-set-classtpx-study" class="section level3">
+<h3>Reduced Gene set classtpx study</h3>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_jurkat_293T_50_50_vargenes.rda&quot;))</code></pre>
+<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+#labels2_class &lt;- unique(class_labs)[labels2]
+
+data_ggplot &lt;- data.frame(labels2 = labels2[-known_indices],
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
+plot1</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
+<pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x)
+  {
+  if(max(x) &gt; 0.7){
+    return(which.max(x))
+    }else{
+      return(dim(topic_clus$omega)[2]+1)
+      }}))
+#labels2_class &lt;- unique(class_labs)[labels2]
+
+data_ggplot &lt;- data.frame(labels2 = labels2[-known_indices],
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
+plot1</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
+</div>
+</div>
+<div id="clustering-results" class="section level2">
+<h2>Clustering results</h2>
+<pre class="r"><code>topic_clus_list &lt;- get(load(&quot;../output/maptpx_jurkat_293T_50_50.rda&quot;))</code></pre>
+<pre class="r"><code>PlotCountClust &lt;- function(topic_clus, fac){
+  omega &lt;- topic_clus$omega
+  theta &lt;- topic_clus$theta
+  
+  annotation &lt;- data.frame(
+    sample_id = paste0(&quot;X&quot;, 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) &lt;- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = RColorBrewer::brewer.pal(8, &quot;Accent&quot;),
+                  yaxis_label = &quot;Types&quot;,
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = &quot;bold&quot;))
+}</code></pre>
+<div id="structure-plot-representation" class="section level3">
+<h3>Structure Plot representation</h3>
+<pre class="r"><code>PlotCountClust(topic_clus_list[[2]], fac)</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus_list[[3]], fac)</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-2.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus_list[[4]], fac)</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-3.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus_list[[5]], fac)</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-4.png" width="672" /></p>
+<pre class="r"><code>PlotCountClust(topic_clus_list[[6]], fac)</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-5.png" width="672" /></p>
+</div>
+<div id="t-sne-projection-countclust-coloring" class="section level3">
+<h3>t-SNE projection + CountClust coloring</h3>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+</div>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

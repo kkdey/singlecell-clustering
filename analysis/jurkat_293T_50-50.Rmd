@@ -1,0 +1,451 @@
+---
+title: "Jurkat + 293T cells (50-50 mix)"
+author: "Kushal K Dey"
+date: "9/24/2017"
+output: html_document
+---
+
+We take a mixture of $50\%$ mixture of Jurkat cells and $50\%$ 293T cells. 
+We aim to perform unsupervised Countclust clustering of the cells to see 
+if the clusters picked up in an unsupervised way correspond to the Jurkat cells and 293T cells. 
+
+```{r message = FALSE, warning=FALSE}
+library(cellrangerRkit)
+```
+
+```{r message=FALSE, warning = FALSE}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+library(classtpx)
+```
+
+```{r}
+data <- Read10X("../data/jurkat_293T_50_50/filtered_matrices_mex 2/hg19/")
+```
+
+The dimensionality of the matrix loaded
+
+```{r}
+dim(data)
+```
+
+
+We first remove all the ribosomal, mitochondrial, small RNA genes reported in the above data matrix.
+
+We report the sample names
+
+```{r}
+colnames(data)[1:10]
+```
+
+We report the names of the genes 
+
+```{r}
+rownames(data)[1:10]
+```
+
+
+```{r}
+idx2 <- which(!is.na(match(substring(rownames(data), 1, 2), c("RP", "MT", "RN"))))
+```
+
+```{r}
+data2 <- data[-idx2, ]
+```
+
+Remove data from multiple gene mapping and small RNA.
+
+```{r}
+idx3 <- grep("[.]", rownames(data2))
+idx4 <- grep("[-]", rownames(data2))
+```
+
+```{r}
+data3 <- data2[-union(idx3, idx4), ]
+```
+
+We now create a Seurat object using this data matrix.
+
+```{r echo=FALSE, eval=FALSE}
+seuratObj <- new('seurat', raw.data = data3)
+seuratObj <- Setup(seuratObj, min.cells = 0, min.genes = 0, project = 'Pantaleo', total.expr = 10000) # no need to filter - already done
+#- Output
+seuratObj_TFH_global <- seuratObj
+```
+
+```{r echo=FALSE, eval=FALSE}
+seuratObj_TFH_global <- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_TFH_global@var.genes)
+seuratObj_TFH_global <- PCA(seuratObj_TFH_global, pc.genes = seuratObj_TFH_global@var.genes)
+seuratObj_TFH_global <- ProjectPCA(seuratObj_TFH_global)
+VizPCA(seuratObj_TFH_global, 1:2)
+```
+
+```{r echo=FALSE, eval=FALSE}
+seuratObj_TFH_global <- RunTSNE(seuratObj_TFH_global, dims.use = 1:10, perplexity = 50)
+```
+
+```{r echo=FALSE, eval=FALSE}
+save(seuratObj_TFH_global, file = "../output/seurat_jurkat_293T_50_50.rda")
+```
+
+## Mixture (Jurkat + 293T) data Processing and Visualization
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_jurkat_293T_50_50.rda"))
+fac <- rep("jurkat_293T", dim(seuratObj_TFH_global@data)[2])
+```
+
+### t-SNE projection
+
+```{r echo=FALSE, eval=TRUE}
+labels <- fac
+nUMI <- seuratObj_TFH_global@data.info$nUMI
+nGene <- seuratObj_TFH_global@data.info$nGene
+
+data_ggplot <- data.frame(labels = labels,
+                          nUMI = nUMI,
+                          nGene = nGene,
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+```
+
+
+```{r echo=FALSE, eval=TRUE}
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+
+## Jurkat + 293T sorted Data processing
+
+We load the Jurkat cells data.
+
+```{r}
+jurkat_data <- Read10X("../data/jurkat/filtered_matrices_mex/hg19/")
+dim(jurkat_data)
+```
+
+```{r}
+t_data <- Read10X("../data/293T/filtered_matrices_mex/hg19/")
+dim(t_data)
+```
+
+```{r}
+intersected_genes <- intersect(rownames(data3), intersect(rownames(jurkat_data), rownames(t_data)))
+```
+
+```{r}
+data3_filt <- data3[match(intersected_genes, rownames(data3)), ]
+jurkat_data_filt <- jurkat_data[match(intersected_genes, rownames(jurkat_data)),]
+t_data_filt <- t_data[match(intersected_genes, rownames(t_data)),]
+```
+
+```{r}
+dim(jurkat_data_filt)
+dim(t_data_filt)
+dim(data3_filt)
+```
+
+
+```{r}
+pooled_data <- rbind(t(jurkat_data_filt), t(t_data_filt), t(data3_filt))
+```
+
+```{r}
+class_labs <- c(rep("jurkat", dim(jurkat_data_filt)[2]), rep("293T", dim(t_data_filt)[2]))
+class_labs_2 <- factor(as.vector(mapvalues(class_labs, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+known_indices <- 1:(dim(jurkat_data_filt)[2]+dim(t_data_filt)[2])
+```
+
+
+## Classification results (classtpx + svm)
+
+### Full Gene set classtpx study
+
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- class_topics(pooled_data, K=2, class_labs = class_labs_2, known_samples =known_indices, method = "theta.fix", shrink = FALSE, tol = 0.0001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_jurkat_293T_50_50.rda")
+```
+
+```{r}
+topic_clus <- get(load("../output/classtpx_jurkat_293T_50_50.rda"))
+```
+
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+#labels2_class <- unique(class_labs)[labels2]
+
+data_ggplot <- data.frame(labels2 = labels2[-known_indices],
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+### Reduced Gene set SVM study
+
+We now compare this with the SVM based classification results.
+
+```{r}
+genes1 <- seuratObj_TFH_global@var.genes
+```
+
+
+```{r}
+svm_data <- pooled_data[, match(genes1, colnames(pooled_data))]
+```
+
+```{r}
+train_data <- as.matrix(svm_data[known_indices,])
+test_data <- as.matrix(svm_data[-known_indices,])
+y <- class_labs_2
+dat <- cbind.data.frame(y, train_data);
+```
+
+```{r}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
+
+
+model_SVM <- do.call(e1071::svm, append(list(formula = y ~ .,
+                                                   data=dat,
+                                                   probability=TRUE), svm.control))
+prob  = predict(model_SVM, test_data, probability=TRUE)
+table(prob)
+```
+
+```{r}
+prob_mat <- as.matrix(attr(prob, "probabilities"))
+labels3 <- as.factor(apply(prob_mat, 1, function(x) return(which.max(x))))
+#labels2_class <- unique(class_labs)[labels2]
+
+data_ggplot <- data.frame(labels3 = labels3,
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+```{r}
+prob_mat <- as.matrix(attr(prob, "probabilities"))
+#labels3 <- as.factor(apply(prob_mat, 1, function(x) return(which.max(x))))
+#labels2_class <- unique(class_labs)[labels2]
+labels3 <- as.factor(apply(prob_mat, 1, function(x)
+  {
+  if(max(x) > 0.7){
+    return(which.max(x))
+    }else{
+      return(dim(prob_mat)[2]+1)
+      }}))
+
+
+data_ggplot <- data.frame(labels3 = labels3,
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- class_topics(svm_data, K=2, class_labs = class_labs_2, known_samples =known_indices, method = "theta.fix", shrink = FALSE, tol = 0.0001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_jurkat_293T_50_50_vargenes.rda")
+```
+
+### Reduced Gene set classtpx study
+
+```{r}
+topic_clus <- get(load("../output/classtpx_jurkat_293T_50_50_vargenes.rda"))
+```
+
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+#labels2_class <- unique(class_labs)[labels2]
+
+data_ggplot <- data.frame(labels2 = labels2[-known_indices],
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x)
+  {
+  if(max(x) > 0.7){
+    return(which.max(x))
+    }else{
+      return(dim(topic_clus$omega)[2]+1)
+      }}))
+#labels2_class <- unique(class_labs)[labels2]
+
+data_ggplot <- data.frame(labels2 = labels2[-known_indices],
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+plot1
+```
+
+
+## Clustering results 
+
+```{r}
+topic_clus_list <- get(load("../output/maptpx_jurkat_293T_50_50.rda"))
+```
+
+```{r}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = RColorBrewer::brewer.pal(8, "Accent"),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+### Structure Plot representation
+
+```{r}
+PlotCountClust(topic_clus_list[[2]], fac)
+PlotCountClust(topic_clus_list[[3]], fac)
+PlotCountClust(topic_clus_list[[4]], fac)
+PlotCountClust(topic_clus_list[[5]], fac)
+PlotCountClust(topic_clus_list[[6]], fac)
+```
+
+
+### t-SNE projection + CountClust coloring
+
+```{r fig.height = 6, echo=FALSE, eval=TRUE}
+labels2 <- as.factor(apply(topic_clus_list[[2]]$omega, 1, function(x) return(which.max(x))))
+labels3 <- as.factor(apply(topic_clus_list[[3]]$omega, 1, function(x) return(which.max(x))))
+labels4 <- as.factor(apply(topic_clus_list[[4]]$omega, 1, function(x) return(which.max(x))))
+labels5 <- as.factor(apply(topic_clus_list[[5]]$omega, 1, function(x) return(which.max(x))))
+labels6 <- as.factor(apply(topic_clus_list[[6]]$omega, 1, function(x) return(which.max(x))))
+
+data_ggplot <- data.frame(labels2 = labels2,
+                          labels3 = labels3,
+                          labels4 = labels4,
+                          labels5 = labels5,
+                          labels6 = labels6,
+                          tSNE_1 = seuratObj_TFH_global@tsne.rot[, 1],
+                          tSNE_2 = seuratObj_TFH_global@tsne.rot[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot2 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot3 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels4), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot4 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels5), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels6), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+
+plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+```
+
+
+
+
