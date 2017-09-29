@@ -129,8 +129,8 @@ plot1
 
 
 ```{r echo=FALSE, eval=FALSE}
-topic_clus <- classtpx::class_topics(pooled_data, K=12, class_labs = class_labs_2, known_samples = 1:4500, method = "theta.fix", shrink = FALSE, tol = 100, ord=FALSE)
-save(topic_clus, file = "../output/classtpx_sorted_MCC_12.rda")
+topic_clus <- classtpx::class_topics(pooled_data, K=14, class_labs = class_labs_2, known_samples = 1:4500, method = "theta.fix", shrink = FALSE, tol = 500, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_sorted_MCC_14.rda")
 ```
 
 ```{r}
@@ -139,10 +139,15 @@ topic_clus <- get(load("../output/classtpx_sorted_MCC_12.rda"))
 
 
 ```{r}
-labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
-#labels2_class <- unique(class_labs)[labels2]
+labels2 <- as.numeric(as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x)))))
+labels2_class <- factor(sapply(labels2, function(x) {
+  if(x <= 9){
+    return(unique(class_labs)[x])
+  }else{
+    return(paste0("cluster-", x))
+  }}))
 
-data_ggplot <- data.frame(labels2 = labels2[-(1:4500)],
+data_ggplot <- data.frame(labels2_class = labels2_class[-(1:4500)],
                           tSNE_1 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 1],
                           tSNE_2 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 2])
 
@@ -152,7 +157,64 @@ plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "b
                                      axis.text.y = element_blank(),
                                      axis.text.x = element_blank(),
                                      axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_manual(values = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(3, 1, 4,6, 5, 8)]))
+plot1
+```
+
+
+```{r}
+topic_clus <- get(load("../output/classtpx_sorted_MCC_14.rda"))
+```
+
+
+```{r}
+labels2 <- as.numeric(as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x)))))
+labels2_class <- factor(sapply(labels2, function(x) {
+  if(x <= 9){
+    return(unique(class_labs)[x])
+  }else{
+    return(paste0("cluster-", x))
+  }}))
+
+data_ggplot <- data.frame(labels2_class = labels2_class[-(1:4500)],
+                          tSNE_1 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 1],
+                          tSNE_2 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_manual(values = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(3, 1, 4,6, 5, 8)]))
+plot1
+```
+
+```{r}
+topic_clus <- get(load("../output/classtpx_sorted_MCC_15.rda"))
+```
+
+
+```{r}
+labels2 <- as.numeric(as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x)))))
+labels2_class <- factor(sapply(labels2, function(x) {
+  if(x <= 9){
+    return(unique(class_labs)[x])
+  }else{
+    return(paste0("cluster-", x))
+  }}))
+
+data_ggplot <- data.frame(labels2_class = labels2_class[-(1:4500)],
+                          tSNE_1 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 1],
+                          tSNE_2 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 2])
+
+plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "black", size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_manual(values = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(3, 1, 4, 7, 6, 5, 8)]))
 plot1
 ```
 

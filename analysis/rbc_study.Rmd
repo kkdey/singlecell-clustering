@@ -1,0 +1,136 @@
+---
+title: "RBC study clusters in HIV data"
+author: "Kushal K Dey"
+date: "9/26/2017"
+output: html_document
+---
+
+We perform a gene expression pattern study of the hemoglobin genes for the different clusters in the PBMC data for the MCC study.
+
+```{r}
+seuratObj_TFH_global <- get(load("../output/seurat_aggregated_after_tsne.Robj"))
+raw_data <- seuratObj_TFH_global@raw.data
+topic_clus <- get(load("../output/maptpx_aggregated_MCC.rda"))
+rbc_samples_tmp <- apply(topic_clus[[2]]$omega, 1, function(x) return(which.max(x)))
+```
+
+
+```{r}
+idx <- match(c("HBB", "HBA1", "HBA2"), rownames(raw_data))
+idx
+```
+
+```{r}
+which_clus <- which(rbc_samples_tmp == 2)
+par(mfrow =c(2,2))
+plot(raw_data[idx[1], which_clus], col="red", pch = 20)
+plot(raw_data[idx[2], which_clus], col="red", pch = 20)
+plot(raw_data[idx[3], which_clus], col="red", pch = 20)
+
+```
+
+
+```{r}
+which_clus <- which(rbc_samples_tmp == 1)
+par(mfrow =c(2,2))
+plot(raw_data[idx[1], which_clus], col="red", pch = 20)
+plot(raw_data[idx[2], which_clus], col="red", pch = 20)
+plot(raw_data[idx[3], which_clus], col="red", pch = 20)
+
+```
+
+```{r}
+idx2 <- match(c("S100A7", "S100A8", "S100A9"), rownames(raw_data))
+idx2
+```
+
+```{r}
+which_clus <- which(rbc_samples_tmp == 1)
+par(mfrow =c(2,2))
+plot(raw_data[idx2[1], which_clus], col="red", pch = 20)
+plot(raw_data[idx2[2], which_clus], col="red", pch = 20)
+plot(raw_data[idx2[3], which_clus], col="red", pch = 20)
+
+```
+
+```{r}
+which_clus <- which(rbc_samples_tmp == 2)
+par(mfrow =c(2,2))
+plot(raw_data[idx2[1], which_clus], col="red", pch = 20)
+plot(raw_data[idx2[2], which_clus], col="red", pch = 20)
+plot(raw_data[idx2[3], which_clus], col="red", pch = 20)
+
+```
+
+We look at the expression patterns of the hemoglobin genes in the different cell lines data.
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+sorted_data <- seuratObj_TFH_global@raw.data[, 1:4500]
+```
+
+
+```{r}
+idx <- match(c("HBB", "HBA1", "HBA2"), rownames(sorted_data))
+idx
+```
+
+```{r}
+par(mfrow=c(3,3))
+for(k in 1:9){
+  plot(sorted_data[idx[1], (500*(k-1)+1):(500*k)], col="red", pch = 20,
+       xlab = "samples", ylab = "expression")
+}
+```
+
+```{r}
+par(mfrow=c(3,3))
+for(k in 1:9){
+  plot(sorted_data[idx[2], (500*(k-1)+1):(500*k)], col="red", pch = 20,
+       xlab = "samples", ylab = "expression")
+}
+```
+
+```{r}
+par(mfrow=c(3,3))
+for(k in 1:9){
+  plot(sorted_data[idx[3], (500*(k-1)+1):(500*k)], col="red", pch = 20,
+       xlab = "samples", ylab = "expression")
+}
+```
+
+
+```{r}
+idx2 <- match(c("S100A7", "S100A8", "S100A9"), rownames(sorted_data))
+idx2
+```
+
+```{r}
+par(mfrow=c(3,3))
+for(k in 1:9){
+  plot(sorted_data[idx[3], (500*(k-1)+1):(500*k)], col="red", pch = 20,
+       xlab = "samples", ylab = "expression")
+}
+```
+
+
+```{r}
+par(mfrow=c(3,3))
+for(k in 1:9){
+  plot(sorted_data[idx2[1], (500*(k-1)+1):(500*k)], col="red", pch = 20,
+       xlab = "samples", ylab = "expression")
+}
+```
+
+```{r}
+par(mfrow=c(3,3))
+for(k in 1:9){
+  plot(sorted_data[idx2[1], (500*(k-1)+1):(500*k)], col="red", pch = 20,
+       xlab = "samples", ylab = "expression")
+}
+```
+
+

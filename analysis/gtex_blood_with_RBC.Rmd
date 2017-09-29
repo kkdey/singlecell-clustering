@@ -70,19 +70,20 @@ data_build <- t(mat2)
 colnames(data_build) <- gene_names_2
 ```
 
+
 ## 10X Genomics data processing
 
-```{r echo=FALSE, eval=TRUE}
+```{r}
 seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
 ```
 
-```{r echo=FALSE, eval=TRUE}
+```{r}
 sorted_data <- seuratObj_TFH_global@raw.data[, 1:4500]
 ```
 
 ## Erythrocytes data 
 
-```{r echo=FALSE, eval=TRUE}
+```{r}
 seuratObj_TFH_global <- get(load("../output/seurat_aggregated_after_tsne.Robj"))
 #tsne_data <- get(load("../output/tsne_seurat_aggregated_mcc.rda"))
 #seuratObj_TFH_global@tsne.rot <- data.frame(tsne_data)
@@ -97,8 +98,8 @@ topic_clus <- get(load("../output/maptpx_aggregated_MCC.rda"))
 ```
 
 ```{r}
-rbc_samples_tmp <- apply(topic_clus[[6]]$omega, 1, function(x) return(which.max(x)))
-rbc_samples <- which(rbc_samples_tmp == 5)
+rbc_samples_tmp <- apply(topic_clus[[2]]$omega, 1, function(x) return(which.max(x)))
+rbc_samples <- which(rbc_samples_tmp == 2)
 ```
 
 ```{r}
@@ -110,16 +111,23 @@ rbc_data <- raw_data[, rbc_samples]
 common_genes <- intersect(colnames(data_build), intersect(rownames(rbc_data),rownames(sorted_data)))
 data_build_2 <- data_build[, match(common_genes, colnames(data_build))]
 sorted_data_2 <- sorted_data[match(common_genes, rownames(sorted_data)),]
-rbc_data_2 <- rbc_data[match(common_genes, rownames(sorted_data)),]
+rbc_data_2 <- rbc_data[match(common_genes, rownames(rbc_data)),]
 ```
 
 ```{r}
 pooled_data <- rbind(t(sorted_data_2), t(rbc_data_2), data_build_2)
 ```
 
+```{r}
+seuratObj_TFH_global <- get(load("../output/seurat_gtex_rbc_sorted_immune.rda"))
+```
+
+```{r}
+pooled_data <- t(seuratObj_TFH_global@raw.data)
+```
 
 ```{r echo=FALSE, eval=TRUE}
-fac1 <- sapply(colnames(sorted_data), function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+fac1 <- sapply(colnames(sorted_data_2), function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
 fac2 <- rep("RBC", dim(rbc_data_2)[2])
 fac3 <- c(fac1, fac2)
 known_samples <- 1:(dim(sorted_data_2)[2] + dim(rbc_data_2)[2])
@@ -135,7 +143,7 @@ save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_with_rbc_th
 ## Cluster representation
 
 ```{r}
-topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh.rda"))
+topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_with_rbc_no_thresh.rda"))
 ```
 
 ```{r echo=FALSE, eval=TRUE}
@@ -152,7 +160,7 @@ PlotCountClust <- function(topic_clus, fac){
   
   StructureGGplot(omega = omega,
                   annotation = annotation,
-                  palette = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(1,3,4,5)]),
+                  palette = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(1,4,5,6)]),
                   yaxis_label = "Types",
                   order_sample = TRUE,
                   axis_tick = list(axis_ticks_length = .1,
@@ -173,7 +181,6 @@ PlotCountClust(topic_clus, labs)
 topic_clus <- classtpx::class_topics(pooled_data, K=11, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 100, ord=FALSE)
 save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_11.rda")
 ```
-
 ```{r}
 topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_11.rda"))
 ```
@@ -183,7 +190,23 @@ labs <- c(as.character(fac3), rep("Blood", dim(data_build_2)[1]))
 PlotCountClust(topic_clus, labs)
 ```
 
-## K=6 driving genes
+
+```{r}
+topic_clus <- classtpx::class_topics(pooled_data, K=12, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 100, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_12.rda")
+```
+
+
+```{r}
+topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_12.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+labs <- c(as.character(fac3), rep("Blood", dim(data_build_2)[1]))
+PlotCountClust(topic_clus, labs)
+```
+
+## Driving genes 
 
 ### cluster 1
 
@@ -304,11 +327,108 @@ rownames(tab) <- NULL
 tab
 ```
 
+## SVM application
+
+```{r echo=FALSE, eval=FALSE}
+seuratObj <- new('seurat', raw.data = t(pooled_data))
+seuratObj <- Setup(seuratObj, min.cells = 0, min.genes = 0, project = 'Pantaleo', total.expr = 10000) # no need to filter - already done
+#- Output
+seuratObj_TFH_global <- seuratObj
+```
+
+```{r echo=FALSE, eval=FALSE}
+seuratObj_TFH_global <- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)
+length(seuratObj_TFH_global@var.genes)
+seuratObj_TFH_global <- PCA(seuratObj_TFH_global, pc.genes = seuratObj_TFH_global@var.genes)
+seuratObj_TFH_global <- ProjectPCA(seuratObj_TFH_global)
+VizPCA(seuratObj_TFH_global, 1:2)
+```
+
+```{r echo=FALSE, eval= FALSE}
+save(seuratObj_TFH_global, file = "../output/seurat_gtex_rbc_sorted_immune.rda")
+```
 
 
+```{r}
+seuratObj_TFH_global <- get(load("../output/seurat_gtex_rbc_sorted_immune.rda"))
+```
+
+```{r}
+imp_genes_vec <- as.vector(imp_genes)
+imp_genes_vec <- imp_genes_vec[!is.na(imp_genes_vec)]
+raw_data <- t(seuratObj_TFH_global@raw.data[paste0(imp_genes_vec),])
+trainX <- raw_data[known_samples,]
+testX <- raw_data[-known_samples,]
+y <- factor(class_labs_2)
+dat <- cbind.data.frame(y, trainX);
+```
+
+```{r echo=FALSE, eval=FALSE}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
 
 
+model_SVM <- do.call(e1071::svm, append(list(formula = y ~ .,
+                                                   data=dat,
+                                                   probability=TRUE), svm.control))
+prob  = predict(model_SVM, testX, probability=TRUE)
+table(prob)
+```
 
+```{r echo=FALSE, eval=FALSE}
+save(prob, file = "svm_gtex_rbc_sorted_immune.rda")
+```
 
+```{r}
+prob  <- get(load(file = "svm_gtex_rbc_sorted_immune.rda"))
+```
 
+```{r echo=FALSE, eval=TRUE}
+PlotCountClust2 <- function(omega, fac){
 
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(1,4,5,6)]),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+```{r echo=FALSE, eval=TRUE}
+labs2 <-  rep("Blood", dim(data_build_2)[1])
+prob_mat <- as.matrix(attr(prob, "probabilities"))
+rownames(prob_mat) <- 1:dim(prob_mat)[1]
+PlotCountClust2(prob_mat, labs2)
+```
+
+```{r}
+topic_clus <- classtpx::class_topics(raw_data, K=10, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+```
+
+```{r echo=FALSE, eval=TRUE}
+labs <- c(as.character(fac3), rep("Blood", dim(data_build_2)[1]))
+PlotCountClust(topic_clus, labs)
+```
+
+```{r echo=FALSE, eval=TRUE}
+labs2 <-  rep("Blood", dim(data_build_2)[1])
+PlotCountClust2(topic_clus$omega[-known_samples,], labs2)
+```

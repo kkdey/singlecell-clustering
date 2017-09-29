@@ -1,0 +1,110 @@
+---
+title: 'Training accuracy  svm+classtpx: top distinguishing genes'
+author: "Kushal K Dey"
+date: "9/27/2017"
+output: html_document
+---
+
+## Data Processing
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(GSEABase)
+library(Seurat)
+library(classtpx)
+library(e1071)
+library(plyr)
+```
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+data <- seuratObj_TFH_global@raw.data
+```
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+class_labs <- fac1
+```
+
+```{r}
+table(fac1)
+```
+
+```{r}
+net_data <- t(as.matrix(seuratObj_TFH_global@data)[,1:4500])
+```
+
+```{r}
+train_subsamples <- sample(1:4500, 2000, replace = FALSE)
+table(class_labs[train_subsamples])
+```
+
+```{r}
+counts <- t(data[paste0(seuratObj_TFH_global@var.genes),1:4500])
+known_samples <- train_subsamples
+class_labs_train <- class_labs[train_subsamples]
+class_labs_train_2 <- factor(as.vector(plyr::mapvalues(class_labs_train, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+```
+
+### classtpx application
+
+```{r echo=FALSE, eval=TRUE}
+topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_pbmc_68K_training_testing_try_3.rda")
+```
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+class_labs_test <- class_labs[-train_subsamples]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```
+
+```{r}
+tmp <- CountClust::ExtractTopFeatures(topic_clus$theta, top_features = 500, method = "poisson")
+imp_genes <- apply(tmp$indices, c(1,2), function(x) return(rownames(topic_clus$theta)[x]))
+imp_genes_vec <- as.vector(imp_genes)
+imp_genes_vec <- imp_genes_vec[!is.na(imp_genes_vec)]
+```
+
+```{r}
+net_data <- as.matrix(net_data)
+train_data <- net_data[train_subsamples, paste0(seuratObj_TFH_global@var.genes)]
+test_data <- net_data[-train_subsamples, paste0(seuratObj_TFH_global@var.genes)]
+dat <- cbind.data.frame(train_data, class_labs_train)
+```
+
+### SVM application 
+
+```{r}
+svm.control.default <- list(scale = TRUE, type = NULL, kernel ="radial",
+                              degree = 3,
+                              coef0 = 0, cost = 1, nu = 0.5,
+                              class.weights = NULL, cachesize = 40, tolerance = 0.001, 
+                              epsilon = 0.1,
+                              shrinking = TRUE, cross = 0, fitted = TRUE)
+svm.control <- list()
+svm.control <- modifyList(svm.control.default, svm.control)
+
+
+model_SVM <- do.call(e1071::svm, append(list(formula = class_labs_train ~ .,data=dat, probability=TRUE), svm.control))
+
+prob  = predict(model_SVM, test_data, probability=TRUE)
+length(which(prob != class_labs_test))/length(prob)
+```
+
+```{r echo=FALSE, eval=TRUE}
+topic_clus <- classtpx::class_topics(counts[, paste0(seuratObj_TFH_global@var.genes)]+1, K=9, known_samples = known_samples, class_labs = class_labs_train_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+```
+
+```{r}
+labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
+labels2_class <- unique(class_labs)[labels2]
+class_labs_test <- class_labs[-train_subsamples]
+length(which(labels2_class[-train_subsamples] != class_labs_test))/length(class_labs_test)
+```

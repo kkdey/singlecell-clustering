@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>classtpx GTEX + blood single cell with RBC</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">classtpx GTEX + blood single cell with RBC</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>9/25/2017</em></h4>
+
+</div>
+
+
+<p>In our previous analysis, we tried to explain tne constituent cell types in the GTEx blood data using the immune cell types from the Zheng et al 2017 data.</p>
+<p>We apply classtpx on the GTEx blood samples (bulk) with the sorted cells information obtained from 10X Genomics.</p>
+<div id="gtex-expression-processing" class="section level2">
+<h2>GTEx expression processing</h2>
+<pre class="r"><code>gtex_expr &lt;- fread(&quot;../data/cis_gene_expression.txt&quot;)</code></pre>
+<pre><code>## 
+Read 0.0% of 16069 rows
+Read 62.2% of 16069 rows
+Read 16069 rows and 8557 (of 8557) columns from 0.532 GB file in 00:00:13</code></pre>
+<pre class="r"><code>mat1 &lt;- as.matrix(gtex_expr[, -(1:2)])</code></pre>
+<pre class="r"><code>mat &lt;- apply(mat1, 2, function(x) return(rbinom(dim(gtex_expr)[1], x, 1e-05)))</code></pre>
+<pre class="r"><code>samples_id &lt;- read.table(&quot;../data/samples_id.txt&quot;)
+tissue_names &lt;- samples_id[,3]
+table(tissue_names)</code></pre>
+<pre><code>## tissue_names
+##                    Adipose - Subcutaneous 
+##                                       350 
+##              Adipose - Visceral (Omentum) 
+##                                       227 
+##                             Adrenal Gland 
+##                                       145 
+##                            Artery - Aorta 
+##                                       224 
+##                         Artery - Coronary 
+##                                       133 
+##                           Artery - Tibial 
+##                                       332 
+##                                   Bladder 
+##                                        11 
+##                          Brain - Amygdala 
+##                                        72 
+##  Brain - Anterior cingulate cortex (BA24) 
+##                                        84 
+##           Brain - Caudate (basal ganglia) 
+##                                       117 
+##             Brain - Cerebellar Hemisphere 
+##                                       105 
+##                        Brain - Cerebellum 
+##                                       125 
+##                            Brain - Cortex 
+##                                       114 
+##              Brain - Frontal Cortex (BA9) 
+##                                       108 
+##                       Brain - Hippocampus 
+##                                        94 
+##                      Brain - Hypothalamus 
+##                                        96 
+## Brain - Nucleus accumbens (basal ganglia) 
+##                                       113 
+##           Brain - Putamen (basal ganglia) 
+##                                        97 
+##        Brain - Spinal cord (cervical c-1) 
+##                                        71 
+##                  Brain - Substantia nigra 
+##                                        63 
+##                   Breast - Mammary Tissue 
+##                                       214 
+##       Cells - EBV-transformed lymphocytes 
+##                                       118 
+##           Cells - Transformed fibroblasts 
+##                                       284 
+##                       Cervix - Ectocervix 
+##                                         6 
+##                       Cervix - Endocervix 
+##                                         5 
+##                           Colon - Sigmoid 
+##                                       149 
+##                        Colon - Transverse 
+##                                       196 
+##     Esophagus - Gastroesophageal Junction 
+##                                       153 
+##                        Esophagus - Mucosa 
+##                                       286 
+##                    Esophagus - Muscularis 
+##                                       247 
+##                            Fallopian Tube 
+##                                         6 
+##                  Heart - Atrial Appendage 
+##                                       194 
+##                    Heart - Left Ventricle 
+##                                       218 
+##                           Kidney - Cortex 
+##                                        32 
+##                                     Liver 
+##                                       119 
+##                                      Lung 
+##                                       320 
+##                      Minor Salivary Gland 
+##                                        57 
+##                         Muscle - Skeletal 
+##                                       430 
+##                            Nerve - Tibial 
+##                                       304 
+##                                     Ovary 
+##                                        97 
+##                                  Pancreas 
+##                                       171 
+##                                 Pituitary 
+##                                       103 
+##                                  Prostate 
+##                                       106 
+##       Skin - Not Sun Exposed (Suprapubic) 
+##                                       250 
+##            Skin - Sun Exposed (Lower leg) 
+##                                       357 
+##          Small Intestine - Terminal Ileum 
+##                                        88 
+##                                    Spleen 
+##                                       104 
+##                                   Stomach 
+##                                       193 
+##                                    Testis 
+##                                       172 
+##                                   Thyroid 
+##                                       323 
+##                                    Uterus 
+##                                        83 
+##                                    Vagina 
+##                                        96 
+##                               Whole Blood 
+##                                       393</code></pre>
+<pre class="r"><code>idx1 &lt;- which(tissue_names == &quot;Whole Blood&quot;)
+mat2 &lt;- mat[, idx1]</code></pre>
+<pre class="r"><code>gene_names &lt;- as.character(read.table(&quot;../data/gene_names_GTEX_V6.txt&quot;)[,1])
+gene_names_1 &lt;- as.character(sapply(gene_names, function(x) return(strsplit(x, &quot;[.]&quot;)[[1]][1])))</code></pre>
+<p>We convert these ensembl IDs to gene names.</p>
+<pre class="r"><code>out &lt;- mygene::queryMany(gene_names_1,  scopes=&quot;ensembl.gene&quot;, fields=c(&quot;symbol&quot;, &quot;ensembl.gene&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Querying chunk 1</code></pre>
+<pre><code>## Querying chunk 2</code></pre>
+<pre><code>## Querying chunk 3</code></pre>
+<pre><code>## Querying chunk 4</code></pre>
+<pre><code>## Querying chunk 5</code></pre>
+<pre><code>## Querying chunk 6</code></pre>
+<pre><code>## Querying chunk 7</code></pre>
+<pre><code>## Querying chunk 8</code></pre>
+<pre><code>## Querying chunk 9</code></pre>
+<pre><code>## Querying chunk 10</code></pre>
+<pre><code>## Querying chunk 11</code></pre>
+<pre><code>## Querying chunk 12</code></pre>
+<pre><code>## Querying chunk 13</code></pre>
+<pre><code>## Querying chunk 14</code></pre>
+<pre><code>## Querying chunk 15</code></pre>
+<pre><code>## Querying chunk 16</code></pre>
+<pre><code>## Querying chunk 17</code></pre>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre class="r"><code>idx2 &lt;- match(out$query, gene_names_1)
+gene_names_2 &lt;- out$symbol[idx2]</code></pre>
+<pre class="r"><code>data_build &lt;- t(mat2)
+colnames(data_build) &lt;- gene_names_2</code></pre>
+</div>
+<div id="x-genomics-data-processing" class="section level2">
+<h2>10X Genomics data processing</h2>
+<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/seurat_pooled_sorted_unsorted_PBMC.rda&quot;))</code></pre>
+<pre class="r"><code>sorted_data &lt;- seuratObj_TFH_global@raw.data[, 1:4500]</code></pre>
+</div>
+<div id="erythrocytes-data" class="section level2">
+<h2>Erythrocytes data</h2>
+<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/seurat_aggregated_after_tsne.Robj&quot;))
+#tsne_data &lt;- get(load(&quot;../output/tsne_seurat_aggregated_mcc.rda&quot;))
+#seuratObj_TFH_global@tsne.rot &lt;- data.frame(tsne_data)</code></pre>
+<pre class="r"><code>raw_data &lt;- seuratObj_TFH_global@raw.data</code></pre>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/maptpx_aggregated_MCC.rda&quot;))</code></pre>
+<pre class="r"><code>rbc_samples_tmp &lt;- apply(topic_clus[[2]]$omega, 1, function(x) return(which.max(x)))
+rbc_samples &lt;- which(rbc_samples_tmp == 2)</code></pre>
+<pre class="r"><code>rbc_data &lt;- raw_data[, rbc_samples]</code></pre>
+<pre class="r"><code>common_genes &lt;- intersect(colnames(data_build), intersect(rownames(rbc_data),rownames(sorted_data)))
+data_build_2 &lt;- data_build[, match(common_genes, colnames(data_build))]
+sorted_data_2 &lt;- sorted_data[match(common_genes, rownames(sorted_data)),]
+rbc_data_2 &lt;- rbc_data[match(common_genes, rownames(rbc_data)),]</code></pre>
+<pre class="r"><code>pooled_data &lt;- rbind(t(sorted_data_2), t(rbc_data_2), data_build_2)</code></pre>
+<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/seurat_gtex_rbc_sorted_immune.rda&quot;))</code></pre>
+<pre class="r"><code>pooled_data &lt;- t(seuratObj_TFH_global@raw.data)</code></pre>
+<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(pooled_data, K=10, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 0.001, ord=FALSE)</code></pre>
+<pre><code>## 
+## Estimating on a 6220 document collection.
+## start the fit 
+## log posterior increase: 856.17, done.</code></pre>
+<pre class="r"><code>save(topic_clus, file = &quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh.rda&quot;)</code></pre>
+</div>
+<div id="cluster-representation" class="section level2">
+<h2>Cluster representation</h2>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_no_thresh.rda&quot;))</code></pre>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(pooled_data, K=11, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 100, ord=FALSE)</code></pre>
+<pre><code>## 
+## Estimating on a 6220 document collection.
+## start the fit 
+## log posterior increase: 34115.7, 1107.1, 213.5, done.</code></pre>
+<pre class="r"><code>save(topic_clus, file = &quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_11.rda&quot;)</code></pre>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_11.rda&quot;))</code></pre>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(pooled_data, K=12, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 100, ord=FALSE)</code></pre>
+<pre><code>## 
+## Estimating on a 6220 document collection.
+## start the fit 
+## log posterior increase: 35680.8, 950.7, 323.4, 96.1, done.</code></pre>
+<pre class="r"><code>save(topic_clus, file = &quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_12.rda&quot;)</code></pre>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_12.rda&quot;))</code></pre>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+</div>
+<div id="driving-genes" class="section level2">
+<h2>Driving genes</h2>
+<div id="cluster-1" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol                                                  name
+## 1     S100B                        S100 calcium binding protein B
+## 2    SNRPD2        small nuclear ribonucleoprotein D2 polypeptide
+## 3     RGS10                   regulator of G protein signaling 10
+## 4    NDUFA4              NDUFA4, mitochondrial complex associated
+## 5   CCDC85B                     coiled-coil domain containing 85B
+## 6    NDUFS5             NADH:ubiquinone oxidoreductase subunit S5
+## 7   CLEC11A                   C-type lectin domain containing 11A
+## 8      RGL4 ral guanine nucleotide dissociation stimulator like 4
+## 9     C1QBP                        complement C1q binding protein
+## 10    KRT10                                            keratin 10
+## 11     NHP2                                NHP2 ribonucleoprotein
+## 12 TRAPPC6A               trafficking protein particle complex 6A</code></pre>
+</div>
+<div id="cluster-2" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol                                                name
+## 1       HBB                             hemoglobin subunit beta
+## 2      HBA2                          hemoglobin subunit alpha 2
+## 3      HBA1                          hemoglobin subunit alpha 1
+## 4       HBD                            hemoglobin subunit delta
+## 5      SNCA                                     synuclein alpha
+## 6      HBG2                          hemoglobin subunit gamma 2
+## 7       UBB                                         ubiquitin B
+## 8      BPGM                          bisphosphoglycerate mutase
+## 9  SELENBP1                          selenium binding protein 1
+## 10     GMPR                   guanosine monophosphate reductase
+## 11 SLC25A37                  solute carrier family 25 member 37
+## 12   DCAF12                  DDB1 and CUL4 associated factor 12
+## 13     FECH                                      ferrochelatase
+## 14     KRT1                                           keratin 1
+## 15    EPB42               erythrocyte membrane protein band 4.2
+## 16    SMIM1 small integral membrane protein 1 (Vel blood group)
+## 17     MYL4                                myosin light chain 4</code></pre>
+</div>
+<div id="cluster-3" class="section level3">
+<h3>cluster 3</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##     symbol                                                         name
+## 1    SAP18                                  Sin3A associated protein 18
+## 2    SSBP1                        single stranded DNA binding protein 1
+## 3   FKBP11                                     FK506 binding protein 11
+## 4     LAG3                                      lymphocyte activating 3
+## 5    PBRM1                                                  polybromo 1
+## 6    PIBF1               progesterone immunomodulatory binding factor 1
+## 7  TERF2IP                                    TERF2 interacting protein
+## 8   TUBA1A                                             tubulin alpha 1a
+## 9     ARV1               ARV1 homolog, fatty acid homeostasis modulator
+## 10   DUSP2                               dual specificity phosphatase 2
+## 11    REST                           RE1 silencing transcription factor
+## 12   RAB4A                            RAB4A, member RAS oncogene family
+## 13 ARFGEF1 ADP ribosylation factor guanine nucleotide exchange factor 1</code></pre>
+</div>
+<div id="cluster-4" class="section level3">
+<h3>cluster 4</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol                                         name
+## 1      GNLY                                   granulysin
+## 2    FCER1G               Fc fragment of IgE receptor Ig
+## 3      CST7                                   cystatin F
+## 4       CD7                                 CD7 molecule
+## 5      CTSW                                  cathepsin W
+## 6      GZMM                                   granzyme M
+## 7      HCST         hematopoietic cell signal transducer
+## 8     KLRD1          killer cell lectin like receptor D1
+## 9     KLRF1          killer cell lectin like receptor F1
+## 10    PTGDS                    prostaglandin D2 synthase
+## 11    CLIC3             chloride intracellular channel 3
+## 12     HOPX                                 HOP homeobox
+## 13     PFN1                                   profilin 1
+## 14   IGFBP7 insulin like growth factor binding protein 7
+## 15    IL2RB          interleukin 2 receptor subunit beta
+## 16  RARRES3           retinoic acid receptor responder 3
+## 17 HIST1H1E         histone cluster 1 H1 family member e
+## 18   POLR2L                  RNA polymerase II subunit L</code></pre>
+</div>
+<div id="cluster-5" class="section level3">
+<h3>cluster 5</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##     symbol                                                          name
+## 1     IL32                                                interleukin 32
+## 2     ACTB                                                    actin beta
+## 3   SPOCK2 SPARC/osteonectin, cwcv and kazal like domains proteoglycan 2
+## 4     SOD1                                        superoxide dismutase 1
+## 5      JUN         Jun proto-oncogene, AP-1 transcription factor subunit
+## 6     CFL1                                                     cofilin 1
+## 7    PSME1                                proteasome activator subunit 1
+## 8    ACTG1                                                 actin gamma 1
+## 9    H3F3B                                   H3 histone family member 3B
+## 10 TMEM173                                     transmembrane protein 173
+## 11   DUSP1                                dual specificity phosphatase 1
+## 12    OPTN                                                    optineurin
+## 13     ID3                       inhibitor of DNA binding 3, HLH protein
+## 14   CCR10                               C-C motif chemokine receptor 10
+## 15     AES                              amino-terminal enhancer of split</code></pre>
+</div>
+<div id="cluster-6" class="section level3">
+<h3>cluster 6</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##     symbol                                                     name
+## 1     BTG1                          BTG anti-proliferation factor 1
+## 2     LDHB                                  lactate dehydrogenase B
+## 3      LAT                         linker for activation of T-cells
+## 4     LEF1                       lymphoid enhancer binding factor 1
+## 5      MAL                      mal, T-cell differentiation protein
+## 6     CD27                                            CD27 molecule
+## 7  ARHGDIB                      Rho GDP dissociation inhibitor beta
+## 8    STMN3                                               stathmin 3
+## 9     DDX5                                      DEAD-box helicase 5
+## 10  CORO1A                                               coronin 1A
+## 11   EPHX2                                      epoxide hydrolase 2
+## 12  FLT3LG                     fms related tyrosine kinase 3 ligand
+## 13   APBB1 amyloid beta precursor protein binding family B member 1
+## 14  CHI3L2                                       chitinase 3 like 2
+## 15   VDAC2                        voltage dependent anion channel 2</code></pre>
+</div>
+<div id="cluster-7" class="section level3">
+<h3>cluster 7</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol
+## 1       B2M
+## 2      AQP3
+## 3      APRT
+## 4    CHCHD2
+## 5    COX6B1
+## 6     FXYD5
+## 7     ATP5H
+## 8    NDUFB9
+## 9  TNFRSF25
+## 10 TNFRSF18
+## 11   MRPL34
+## 12   RANBP1
+##                                                                 name
+## 1                                               beta-2-microglobulin
+## 2                                     aquaporin 3 (Gill blood group)
+## 3                                  adenine phosphoribosyltransferase
+## 4            coiled-coil-helix-coiled-coil-helix domain containing 2
+## 5                                   cytochrome c oxidase subunit 6B1
+## 6                   FXYD domain containing ion transport regulator 5
+## 7  ATP synthase, H+ transporting, mitochondrial Fo complex subunit D
+## 8                          NADH:ubiquinone oxidoreductase subunit B9
+## 9                                 TNF receptor superfamily member 25
+## 10                                TNF receptor superfamily member 18
+## 11                               mitochondrial ribosomal protein L34
+## 12                                             RAN binding protein 1</code></pre>
+</div>
+<div id="cluster-8" class="section level3">
+<h3>cluster 8</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol                                                   name
+## 1     ANXA1                                             annexin A1
+## 2     CMPK1                cytidine/uridine monophosphate kinase 1
+## 3     HSPA8           heat shock protein family A (Hsp70) member 8
+## 4       RAN                        RAN, member RAS oncogene family
+## 5      ECH1                                  enoyl-CoA hydratase 1
+## 6  LGALS3BP                             galectin 3 binding protein
+## 7      CNBP     CCHC-type zinc finger nucleic acid binding protein
+## 8    SDHAF2      succinate dehydrogenase complex assembly factor 2
+## 9    ATRAID all-trans retinoic acid induced differentiation factor
+## 10     NMT2                               N-myristoyltransferase 2
+## 11 ITGB1BP1              integrin subunit beta 1 binding protein 1
+## 12    LIMS1                    LIM zinc finger domain containing 1
+## 13    THOC3                                          THO complex 3</code></pre>
+</div>
+<div id="cluster-9" class="section level3">
+<h3>cluster 9</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol                                            name
+## 1      CD74                                   CD74 molecule
+## 2     CD79A                                  CD79a molecule
+## 3       LTB                                lymphotoxin beta
+## 4     CD79B                                  CD79b molecule
+## 5      CD37                                   CD37 molecule
+## 6     P2RX5                       purinergic receptor P2X 5
+## 7    PDLIM1                            PDZ and LIM domain 1
+## 8     IGLL5        immunoglobulin lambda like polypeptide 5
+## 9     ERP29                endoplasmic reticulum protein 29
+## 10     PKIG   cAMP-dependent protein kinase inhibitor gamma
+## 11     CD40                                   CD40 molecule
+## 12    CXXC5                           CXXC finger protein 5
+## 13    HMGN1 high mobility group nucleosome binding domain 1
+## 14 ARHGAP24                Rho GTPase activating protein 24
+## 15    MEF2C                      myocyte enhancer factor 2C
+## 16  TSPAN13                                  tetraspanin 13</code></pre>
+</div>
+<div id="cluster-10" class="section level3">
+<h3>cluster 10</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##    symbol
+## 1  S100A8
+## 2    CST3
+## 3     LYZ
+## 4  TYROBP
+## 5    FTH1
+## 6  S100A4
+## 7    FCN1
+## 8     CFD
+## 9     FTL
+## 10  CEBPD
+## 11   CD14
+## 12   GPX1
+## 13   AIF1
+## 14  GSTP1
+## 15 LGALS1
+## 16   LST1
+## 17  ATP5E
+## 18 ATP5G2
+##                                                                              name
+## 1                                                 S100 calcium binding protein A8
+## 2                                                                      cystatin C
+## 3                                                                        lysozyme
+## 4                                    TYRO protein tyrosine kinase binding protein
+## 5                                                          ferritin heavy chain 1
+## 6                                                 S100 calcium binding protein A4
+## 7                                                                       ficolin 1
+## 8                                                             complement factor D
+## 9                                                            ferritin light chain
+## 10                                           CCAAT/enhancer binding protein delta
+## 11                                                                  CD14 molecule
+## 12                                                       glutathione peroxidase 1
+## 13                                                allograft inflammatory factor 1
+## 14                                                 glutathione S-transferase pi 1
+## 15                                                                     galectin 1
+## 16                                                leukocyte specific transcript 1
+## 17       ATP synthase, H+ transporting, mitochondrial F1 complex, epsilon subunit
+## 18 ATP synthase, H+ transporting, mitochondrial Fo complex subunit C2 (subunit 9)</code></pre>
+</div>
+<div id="cluster-11" class="section level3">
+<h3>cluster 11</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol                                           name
+## 1    S100A9                S100 calcium binding protein A9
+## 2     CSF3R           colony stimulating factor 3 receptor
+## 3  SERPINA1                       serpin family A member 1
+## 4      FPR1                      formyl peptide receptor 1
+## 5     ACSL1 acyl-CoA synthetase long chain family member 1
+## 6    FCGR3B               Fc fragment of IgG receptor IIIb
+## 7      VNN2                                        vanin 2
+## 8   SLC11A1              solute carrier family 11 member 1
+## 9     MMP25                     matrix metallopeptidase 25
+## 10     GLUL                       glutamate-ammonia ligase
+## 11     ALPL        alkaline phosphatase, liver/bone/kidney
+## 12     AQP9                                    aquaporin 9
+## 13    IL1R2                  interleukin 1 receptor type 2
+## 14      FGR FGR proto-oncogene, Src family tyrosine kinase
+## 15     BCL6                          B-cell CLL/lymphoma 6
+## 16    CXCR1               C-X-C motif chemokine receptor 1
+## 17     SPI1                           Spi-1 proto-oncogene
+## 18     MNDA   myeloid cell nuclear differentiation antigen
+## 19     NCF2                  neutrophil cytosolic factor 2
+## 20   FCGR2A                Fc fragment of IgG receptor IIa</code></pre>
+</div>
+</div>
+<div id="svm-application" class="section level2">
+<h2>SVM application</h2>
+<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/seurat_gtex_rbc_sorted_immune.rda&quot;))</code></pre>
+<pre class="r"><code>imp_genes_vec &lt;- as.vector(imp_genes)
+imp_genes_vec &lt;- imp_genes_vec[!is.na(imp_genes_vec)]
+raw_data &lt;- t(seuratObj_TFH_global@raw.data[paste0(imp_genes_vec),])
+trainX &lt;- raw_data[known_samples,]
+testX &lt;- raw_data[-known_samples,]
+y &lt;- factor(class_labs_2)
+dat &lt;- cbind.data.frame(y, trainX);</code></pre>
+<pre class="r"><code>prob  &lt;- get(load(file = &quot;svm_gtex_rbc_sorted_immune.rda&quot;))</code></pre>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-53-1.png" width="672" /></p>
+<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(raw_data, K=10, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 0.001, ord=FALSE)</code></pre>
+<pre><code>## 
+## Estimating on a 6220 document collection.
+## start the fit 
+## log posterior increase: 587.303, done.</code></pre>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-55-1.png" width="672" /></p>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-56-1.png" width="672" /></p>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

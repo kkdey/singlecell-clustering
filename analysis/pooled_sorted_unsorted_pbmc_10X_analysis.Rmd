@@ -87,12 +87,12 @@ plot1
 
 ## t-SNE projection + CountClust coloring
 
-```{r fig.height = 6, echo=FALSE, eval=TRUE}
+```{r fig.height = 4, echo=FALSE, eval=TRUE}
 labels2 <- as.factor(apply(topic_clus[[5]]$omega, 1, function(x) return(which.max(x))))
 labels3 <- as.factor(apply(topic_clus[[6]]$omega, 1, function(x) return(which.max(x))))
 labels4 <- as.factor(apply(topic_clus[[7]]$omega, 1, function(x) return(which.max(x))))
 labels5 <- as.factor(apply(topic_clus[[8]]$omega, 1, function(x) return(which.max(x))))
-labels6 <- as.factor(apply(topic_clus[[10]]$omega, 1, function(x) return(which.max(x))))
+labels6 <- as.factor(apply(topic_clus[[9]]$omega, 1, function(x) return(which.max(x))))
 
 data_ggplot <- data.frame(labels2 = labels2,
                           labels3 = labels3,
@@ -143,6 +143,9 @@ plot5 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "b
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels6), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
 
 plot_grid(plot1, plot2, plot3, plot4, plot5, ncol = 2, align = 'v')
+```
+```{r}
+plot5
 ```
 
 
