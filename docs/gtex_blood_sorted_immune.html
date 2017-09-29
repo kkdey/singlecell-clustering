@@ -315,7 +315,7 @@ div.tocify {
 <pre><code>## 
 Read 0.0% of 16069 rows
 Read 62.2% of 16069 rows
-Read 16069 rows and 8557 (of 8557) columns from 0.532 GB file in 00:00:16</code></pre>
+Read 16069 rows and 8557 (of 8557) columns from 0.532 GB file in 00:00:11</code></pre>
 <pre class="r"><code>mat1 &lt;- as.matrix(gtex_expr[, -(1:2)])</code></pre>
 <pre class="r"><code>mat &lt;- apply(mat1, 2, function(x) return(rbinom(dim(gtex_expr)[1], x, 1e-05)))</code></pre>
 <pre class="r"><code>samples_id &lt;- read.table(&quot;../data/samples_id.txt&quot;)
@@ -378,11 +378,11 @@ sorted_data_2 &lt;- sorted_data[match(common_genes, rownames(sorted_data)),]</co
 <div id="classtpx" class="section level2">
 <h2>classtpx</h2>
 <p>We build the classifier now.</p>
-<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(pooled_data, K=9, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 0.001)</code></pre>
+<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(pooled_data, K=9, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 0.001, ord=FALSE)</code></pre>
 <pre><code>## 
 ## Estimating on a 5011 document collection.
 ## start the fit 
-## log posterior increase: 850.569, done.</code></pre>
+## log posterior increase: 862.975, done.</code></pre>
 <pre class="r"><code>save(topic_clus, file = &quot;../output/classtpx_gtex_blood_sorted_immune_thresh.rda&quot;)</code></pre>
 </div>
 <div id="cluster-representation" class="section level2">

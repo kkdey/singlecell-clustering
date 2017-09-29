@@ -391,6 +391,50 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
 <p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+<div id="cluster-1" class="section level4">
+<h4>cluster 1</h4>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##     symbol                                     name
+## 1     CD3D                            CD3d molecule
+## 2     CD1E                            CD1e molecule
+## 3   TMSB4X                thymosin beta 4, X-linked
+## 4    IGLL1 immunoglobulin lambda like polypeptide 1
+## 5     CD3E                            CD3e molecule
+## 6  ARHGDIB      Rho GDP dissociation inhibitor beta
+## 7     AIF1          allograft inflammatory factor 1
+## 8     MGMT  O-6-methylguanine-DNA methyltransferase
+## 9   SH2D1A                 SH2 domain containing 1A
+## 10  CHI3L2                       chitinase 3 like 2
+## 11   IL2RG     interleukin 2 receptor subunit gamma
+## 12    CTSG                              cathepsin G
+## 13   IFI16    interferon gamma inducible protein 16
+## 14  ARPP21         cAMP regulated phosphoprotein 21
+## 15     SPN                              sialophorin</code></pre>
+</div>
+<div id="cluster-2" class="section level4">
+<h4>cluster 2</h4>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol                                                name
+## 1      XIST X inactive specific transcript (non-protein coding)
+## 2       CA2                                carbonic anhydrase 2
+## 3    CDKN2A                cyclin dependent kinase inhibitor 2A
+## 4       GAL                      galanin and GMAP prepropeptide
+## 5      CBR1                                carbonyl reductase 1
+## 6     UCHL1                   ubiquitin C-terminal hydrolase L1
+## 7       CKB                                   creatine kinase B
+## 8     RAB13                   RAB13, member RAS oncogene family
+## 9      PLS3                                           plastin 3
+## 10 CDC42EP1                            CDC42 effector protein 1
+## 11   HOXA10                                        homeobox A10
+## 12    KRT18                                          keratin 18
+## 13    HOXA9                                         homeobox A9
+## 14    CAMK1       calcium/calmodulin dependent protein kinase I
+## 15     MLF1                           myeloid leukemia factor 1
+## 16   TSPAN6                                       tetraspanin 6</code></pre>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+</div>
 </div>
 <div id="reduced-gene-set-svm-study" class="section level3">
 <h3>Reduced Gene set SVM study</h3>
@@ -437,7 +481,7 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
 <pre class="r"><code>prob_mat &lt;- as.matrix(attr(prob, &quot;probabilities&quot;))
 #labels3 &lt;- as.factor(apply(prob_mat, 1, function(x) return(which.max(x))))
 #labels2_class &lt;- unique(class_labs)[labels2]
@@ -462,7 +506,7 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
 </div>
 <div id="reduced-gene-set-classtpx-study" class="section level3">
 <h3>Reduced Gene set classtpx study</h3>
@@ -482,7 +526,7 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x)
   {
   if(max(x) &gt; 0.7){
@@ -504,7 +548,7 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
 </div>
 </div>
 <div id="clustering-results" class="section level2">
@@ -535,19 +579,19 @@ plot1</code></pre>
 <div id="structure-plot-representation" class="section level3">
 <h3>Structure Plot representation</h3>
 <pre class="r"><code>PlotCountClust(topic_clus_list[[2]], fac)</code></pre>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
 <pre class="r"><code>PlotCountClust(topic_clus_list[[3]], fac)</code></pre>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-2.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-44-2.png" width="672" /></p>
 <pre class="r"><code>PlotCountClust(topic_clus_list[[4]], fac)</code></pre>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-3.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-44-3.png" width="672" /></p>
 <pre class="r"><code>PlotCountClust(topic_clus_list[[5]], fac)</code></pre>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-4.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-44-4.png" width="672" /></p>
 <pre class="r"><code>PlotCountClust(topic_clus_list[[6]], fac)</code></pre>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-40-5.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-44-5.png" width="672" /></p>
 </div>
 <div id="t-sne-projection-countclust-coloring" class="section level3">
 <h3>t-SNE projection + CountClust coloring</h3>
-<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+<p><img src="jurkat_293T_50-50_files/figure-html/unnamed-chunk-45-1.png" width="672" /></p>
 </div>
 </div>
 

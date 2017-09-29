@@ -100,13 +100,13 @@ class_labs_2 <- factor(as.vector(mapvalues(class_labs, from = unique(class_labs)
 ```
 
 ```{r}
-topic_clus <- classtpx::class_topics(pooled_data, K=9, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 0.001)
+topic_clus <- classtpx::class_topics(pooled_data, K=9, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
 save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_thresh.rda")
 ```
 
 
 ```{r echo=FALSE, eval=FALSE}
-topic_clus <- classtpx::class_topics(pooled_data, K=11, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 100)
+topic_clus <- classtpx::class_topics(pooled_data, K=11, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 100, ord=FALSE)
 save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_thresh_2.rda")
 ```
 

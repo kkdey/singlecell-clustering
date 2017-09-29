@@ -36,7 +36,7 @@ class_labs_2 <- factor(as.vector(mapvalues(class_labs, from = unique(class_labs)
 ```
 
 ```{r echo=FALSE, eval=FALSE}
-topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs, method = "theta.fix", shrink = FALSE, tol = 0.001)
+topic_clus <- classtpx::class_topics(counts, K=9, known_samples = known_samples, class_labs = class_labs, method = "theta.fix", shrink = FALSE, tol = 0.001, ord = FALSE)
 save(topic_clus, file = "../output/classtpx_pbmc_68K_no_thresh.rda")
 ```
 
@@ -94,14 +94,14 @@ plot1 <- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = "b
                                      axis.text.y = element_blank(),
                                      axis.text.x = element_blank(),
                                      axis.ticks = element_blank(),
-                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = fac), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = factor(fac)), size = 0.5) + labs(x = 'tSNE 1', y = 'tSNE 2', title = '') + scale_color_discrete('')
 plot1
 ```
 
 
 ```{r echo=FALSE, eval=TRUE}
 labels2 <- as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x))))
-labels2_class <- unique(class_labs)[labels2]
+labels2_class <- levels(factor(fac))[labels2]
 
 data_ggplot <- data.frame(labels2 = labels2,
                           tSNE_1 = seuratObj_TFH_global@dr$tsne@cell.embeddings[, 1],

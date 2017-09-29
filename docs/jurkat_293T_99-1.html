@@ -339,165 +339,6 @@ library(classtpx)</code></pre>
 idx4 &lt;- grep(&quot;[-]&quot;, rownames(data2))</code></pre>
 <pre class="r"><code>data3 &lt;- data2[-union(idx3, idx4), ]</code></pre>
 <p>We now create a Seurat object using this data matrix.</p>
-<pre class="r"><code>seuratObj &lt;- new(&#39;seurat&#39;, raw.data = data3)
-seuratObj &lt;- Setup(seuratObj, min.cells = 0, min.genes = 0, project = &#39;Pantaleo&#39;, total.expr = 10000) # no need to filter - already done
-#- Output
-seuratObj_TFH_global &lt;- seuratObj</code></pre>
-<pre class="r"><code>seuratObj_TFH_global &lt;- MeanVarPlot(seuratObj_TFH_global, fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.25, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = FALSE)</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
-<pre class="r"><code>length(seuratObj_TFH_global@var.genes)</code></pre>
-<pre><code>## [1] 645</code></pre>
-<pre class="r"><code>seuratObj_TFH_global &lt;- PCA(seuratObj_TFH_global, pc.genes = seuratObj_TFH_global@var.genes)</code></pre>
-<pre><code>## [1] &quot;PC1&quot;
-##  [1] &quot;PLK1&quot;    &quot;AURKA&quot;   &quot;UBE2C&quot;   &quot;CCNB1&quot;   &quot;HMGB2&quot;   &quot;AURKB&quot;   &quot;CENPF&quot;  
-##  [8] &quot;CENPE&quot;   &quot;TOP2A&quot;   &quot;CENPA&quot;   &quot;KPNA2&quot;   &quot;TPX2&quot;    &quot;ARL6IP1&quot; &quot;GTSE1&quot;  
-## [15] &quot;CDCA3&quot;   &quot;NUSAP1&quot;  &quot;NUF2&quot;    &quot;CCNA2&quot;   &quot;ASPM&quot;    &quot;CDC20&quot;   &quot;CKS2&quot;   
-## [22] &quot;DLGAP5&quot;  &quot;PSRC1&quot;   &quot;KNSTRN&quot;  &quot;HMMR&quot;    &quot;PBK&quot;     &quot;TUBB4B&quot;  &quot;BIRC5&quot;  
-## [29] &quot;CDCA8&quot;   &quot;TUBA1C&quot; 
-## [1] &quot;&quot;
-##  [1] &quot;GINS2&quot;   &quot;UNG&quot;     &quot;SLBP&quot;    &quot;PCNA&quot;    &quot;CCNE2&quot;   &quot;MCM3&quot;    &quot;CLSPN&quot;  
-##  [8] &quot;MCM5&quot;    &quot;FEN1&quot;    &quot;CHAF1A&quot;  &quot;SNHG10&quot;  &quot;CDC6&quot;    &quot;MCM4&quot;    &quot;RFC4&quot;   
-## [15] &quot;MCM6&quot;    &quot;ARGLU1&quot;  &quot;FAM111B&quot; &quot;MSH6&quot;    &quot;E2F1&quot;    &quot;HELLS&quot;   &quot;TREX1&quot;  
-## [22] &quot;KLHL23&quot;  &quot;EEF2&quot;    &quot;MCM2&quot;    &quot;MIR142&quot;  &quot;DTL&quot;     &quot;PSMC3IP&quot; &quot;RGCC&quot;   
-## [29] &quot;EID1&quot;    &quot;ATAD2&quot;  
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC2&quot;
-##  [1] &quot;PTTG1&quot;     &quot;MYC&quot;       &quot;CDC20&quot;     &quot;CCNB2&quot;     &quot;SOX4&quot;     
-##  [6] &quot;CCNB1&quot;     &quot;UBE2D3&quot;    &quot;LEF1&quot;      &quot;CDKN3&quot;     &quot;ARPP21&quot;   
-## [11] &quot;RBMX&quot;      &quot;LINC00938&quot; &quot;MZT1&quot;      &quot;SNHG10&quot;    &quot;FYB&quot;      
-## [16] &quot;C1orf63&quot;   &quot;SNRPA&quot;     &quot;ZFP36L2&quot;   &quot;RHOH&quot;      &quot;LINC01003&quot;
-## [21] &quot;HMMR&quot;      &quot;PHF7&quot;      &quot;PLK1&quot;      &quot;MIR142&quot;    &quot;GLTSCR2&quot;  
-## [26] &quot;RCSD1&quot;     &quot;TCF7&quot;      &quot;SPTBN1&quot;    &quot;LDLRAD4&quot;   &quot;KIAA0907&quot; 
-## [1] &quot;&quot;
-##  [1] &quot;HIST1H4C&quot;  &quot;HIST1H1D&quot;  &quot;RRM2&quot;      &quot;HIST1H1B&quot;  &quot;HIST1H1E&quot; 
-##  [6] &quot;HIST1H1C&quot;  &quot;HIST2H2AC&quot; &quot;CDK1&quot;      &quot;TYMS&quot;      &quot;CLSPN&quot;    
-## [11] &quot;FBXO5&quot;     &quot;PCNA&quot;      &quot;DUT&quot;       &quot;EIF5&quot;      &quot;UBC&quot;      
-## [16] &quot;KIAA0101&quot;  &quot;CDCA5&quot;     &quot;ASF1B&quot;     &quot;MCM7&quot;      &quot;FAM111A&quot;  
-## [21] &quot;ESCO2&quot;     &quot;CARHSP1&quot;   &quot;TK1&quot;       &quot;CCNA2&quot;     &quot;ATAD2&quot;    
-## [26] &quot;PSMC3IP&quot;   &quot;NUDT8&quot;     &quot;CCNE2&quot;     &quot;CDC6&quot;      &quot;CTNNAL1&quot;  
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC3&quot;
-##  [1] &quot;TFDP2&quot;    &quot;MZB1&quot;     &quot;PTGES3&quot;   &quot;VDAC1&quot;    &quot;MAP1A&quot;    &quot;CD1E&quot;    
-##  [7] &quot;IGLL1&quot;    &quot;PTCRA&quot;    &quot;GYPC&quot;     &quot;LRRC28&quot;   &quot;ATP6AP1L&quot; &quot;CD99&quot;    
-## [13] &quot;HSPA9&quot;    &quot;SKP1&quot;     &quot;CCT4&quot;     &quot;SH3TC1&quot;   &quot;MORF4L2&quot;  &quot;MYC&quot;     
-## [19] &quot;ARPP21&quot;   &quot;RGCC&quot;     &quot;SLIRP&quot;    &quot;PSAT1&quot;    &quot;RAG1&quot;     &quot;SRM&quot;     
-## [25] &quot;PRDX4&quot;    &quot;HNRNPD&quot;   &quot;TSHR&quot;     &quot;CHORDC1&quot;  &quot;CCT8&quot;     &quot;CCNB2&quot;   
-## [1] &quot;&quot;
-##  [1] &quot;TMSB10&quot;   &quot;SH3BGRL3&quot; &quot;SOX4&quot;     &quot;MYO1G&quot;    &quot;EMP3&quot;     &quot;LIMD2&quot;   
-##  [7] &quot;TPM4&quot;     &quot;GIMAP7&quot;   &quot;TPO&quot;      &quot;VIM&quot;      &quot;COTL1&quot;    &quot;CDKN2D&quot;  
-## [13] &quot;RCBTB2&quot;   &quot;LAT&quot;      &quot;MYL6&quot;     &quot;ARHGDIB&quot;  &quot;CNN2&quot;     &quot;DDAH2&quot;   
-## [19] &quot;ADD3&quot;     &quot;ANXA1&quot;    &quot;ARPC2&quot;    &quot;PPDPF&quot;    &quot;SELL&quot;     &quot;C9orf16&quot; 
-## [25] &quot;CORO1A&quot;   &quot;ID3&quot;      &quot;CASC15&quot;   &quot;PTPRC&quot;    &quot;PPP1R18&quot;  &quot;GATA3&quot;   
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC4&quot;
-##  [1] &quot;PGK1&quot;    &quot;DDX5&quot;    &quot;ARHGDIB&quot; &quot;DNAJA1&quot;  &quot;PTGES3&quot;  &quot;ITM2A&quot;   &quot;ITM2B&quot;  
-##  [8] &quot;HSPA9&quot;   &quot;CCT8&quot;    &quot;CXCR4&quot;   &quot;PDIA3&quot;   &quot;CCT4&quot;    &quot;XRCC6&quot;   &quot;PCNA&quot;   
-## [15] &quot;TUBA1A&quot;  &quot;HSP90B1&quot; &quot;SLC3A2&quot;  &quot;FDFT1&quot;   &quot;HSPA5&quot;   &quot;IDI1&quot;    &quot;FEN1&quot;   
-## [22] &quot;SELL&quot;    &quot;CD53&quot;    &quot;CORO1A&quot;  &quot;FDPS&quot;    &quot;NAA15&quot;   &quot;PPIB&quot;    &quot;SLBP&quot;   
-## [29] &quot;TSPAN7&quot;  &quot;PSMD12&quot; 
-## [1] &quot;&quot;
-##  [1] &quot;OST4&quot;     &quot;MZT2B&quot;    &quot;HIST1H4C&quot; &quot;CKLF&quot;     &quot;SRM&quot;      &quot;TOP2A&quot;   
-##  [7] &quot;GPX4&quot;     &quot;RAD23A&quot;   &quot;PPDPF&quot;    &quot;CENPA&quot;    &quot;KIAA0101&quot; &quot;GTSE1&quot;   
-## [13] &quot;UBE2C&quot;    &quot;ZFAS1&quot;    &quot;CHCHD10&quot;  &quot;EEF2&quot;     &quot;SLC25A6&quot;  &quot;MKI67&quot;   
-## [19] &quot;NETO2&quot;    &quot;SVIP&quot;     &quot;OXLD1&quot;    &quot;EEF1A1&quot;   &quot;PSRC1&quot;    &quot;PMEPA1&quot;  
-## [25] &quot;IGLL1&quot;    &quot;ARPP21&quot;   &quot;GYPC&quot;     &quot;NGFRAP1&quot;  &quot;MAP7D3&quot;   &quot;HES4&quot;    
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC5&quot;
-##  [1] &quot;IL32&quot;     &quot;CORO1B&quot;   &quot;IGLL1&quot;    &quot;CTSG&quot;     &quot;TNFRSF4&quot;  &quot;C9orf78&quot; 
-##  [7] &quot;GPX4&quot;     &quot;TALDO1&quot;   &quot;MYO7B&quot;    &quot;BST2&quot;     &quot;SIX6&quot;     &quot;HES4&quot;    
-## [13] &quot;HSPH1&quot;    &quot;CD7&quot;      &quot;XRCC6&quot;    &quot;SH3TC1&quot;   &quot;VAMP5&quot;    &quot;ALOX5AP&quot; 
-## [19] &quot;FAM63B&quot;   &quot;ETS2&quot;     &quot;ALG3&quot;     &quot;CD99&quot;     &quot;CHCHD10&quot;  &quot;PPAPDC1B&quot;
-## [25] &quot;PMEPA1&quot;   &quot;TSTD1&quot;    &quot;OST4&quot;     &quot;CKS1B&quot;    &quot;METTL21A&quot; &quot;PDIA6&quot;   
-## [1] &quot;&quot;
-##  [1] &quot;ITM2A&quot;      &quot;BEX4&quot;       &quot;SMC4&quot;       &quot;BEX1&quot;       &quot;ADD3&quot;      
-##  [6] &quot;LMAN1&quot;      &quot;ARPP21&quot;     &quot;TFDP2&quot;      &quot;GSTM3&quot;      &quot;MSH6&quot;      
-## [11] &quot;H1FX&quot;       &quot;RAG1&quot;       &quot;SSBP2&quot;      &quot;SLC4A7&quot;     &quot;MIR181A1HG&quot;
-## [16] &quot;PGK1&quot;       &quot;SH2D1A&quot;     &quot;LEF1&quot;       &quot;SYNGR1&quot;     &quot;SLC25A6&quot;   
-## [21] &quot;RASGRP2&quot;    &quot;RHOH&quot;       &quot;NGFRAP1&quot;    &quot;TTC3&quot;       &quot;HIST1H1C&quot;  
-## [26] &quot;GIMAP7&quot;     &quot;GTF3C5&quot;     &quot;ITGA4&quot;      &quot;PDGFC&quot;      &quot;CLSPN&quot;     
-## [1] &quot;&quot;
-## [1] &quot;&quot;</code></pre>
-<pre class="r"><code>seuratObj_TFH_global &lt;- ProjectPCA(seuratObj_TFH_global)</code></pre>
-<pre><code>## [1] &quot;PC1&quot;
-##  [1] &quot;PLK1&quot;    &quot;AURKA&quot;   &quot;UBE2C&quot;   &quot;CCNB1&quot;   &quot;HMGB2&quot;   &quot;AURKB&quot;   &quot;CENPF&quot;  
-##  [8] &quot;CENPE&quot;   &quot;TOP2A&quot;   &quot;CENPA&quot;   &quot;KPNA2&quot;   &quot;TPX2&quot;    &quot;ARL6IP1&quot; &quot;GTSE1&quot;  
-## [15] &quot;CDCA3&quot;   &quot;NUSAP1&quot;  &quot;NUF2&quot;    &quot;CCNA2&quot;   &quot;ASPM&quot;    &quot;CDC20&quot;   &quot;CKS2&quot;   
-## [22] &quot;DLGAP5&quot;  &quot;PSRC1&quot;   &quot;KNSTRN&quot;  &quot;HMMR&quot;    &quot;PBK&quot;     &quot;TUBB4B&quot;  &quot;BIRC5&quot;  
-## [29] &quot;CDCA8&quot;   &quot;TUBA1C&quot; 
-## [1] &quot;&quot;
-##  [1] &quot;GINS2&quot;    &quot;UNG&quot;      &quot;SLBP&quot;     &quot;NACA&quot;     &quot;PCNA&quot;     &quot;CCNE2&quot;   
-##  [7] &quot;MCM3&quot;     &quot;YBX1&quot;     &quot;DCTPP1&quot;   &quot;CLSPN&quot;    &quot;FTL&quot;      &quot;MCM5&quot;    
-## [13] &quot;PABPC1&quot;   &quot;FEN1&quot;     &quot;CHAF1A&quot;   &quot;SNHG10&quot;   &quot;NPM1&quot;     &quot;HMGN1&quot;   
-## [19] &quot;CDC6&quot;     &quot;C19orf48&quot; &quot;MCM4&quot;     &quot;FTH1&quot;     &quot;RFC4&quot;     &quot;MCM6&quot;    
-## [25] &quot;ARGLU1&quot;   &quot;FAM111B&quot;  &quot;CCNE1&quot;    &quot;GNB2L1&quot;   &quot;MSH6&quot;     &quot;E2F1&quot;    
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC2&quot;
-##  [1] &quot;PTTG1&quot;     &quot;MYC&quot;       &quot;CDC20&quot;     &quot;CCNB2&quot;     &quot;EIF1&quot;     
-##  [6] &quot;SOX4&quot;      &quot;CCNB1&quot;     &quot;UBE2D3&quot;    &quot;HNRNPA1&quot;   &quot;LEF1&quot;     
-## [11] &quot;CDKN3&quot;     &quot;ARPP21&quot;    &quot;RBMX&quot;      &quot;LINC00938&quot; &quot;MZT1&quot;     
-## [16] &quot;EIF4G2&quot;    &quot;SRSF5&quot;     &quot;SNHG10&quot;    &quot;FYB&quot;       &quot;C1orf63&quot;  
-## [21] &quot;HSPE1&quot;     &quot;SNRPA&quot;     &quot;ZFP36L2&quot;   &quot;MPLKIP&quot;    &quot;RHOH&quot;     
-## [26] &quot;MRPL51&quot;    &quot;UBE2S&quot;     &quot;FKBP1A&quot;    &quot;NACA&quot;      &quot;LINC01003&quot;
-## [1] &quot;&quot;
-##  [1] &quot;HIST1H4C&quot;  &quot;HIST1H1D&quot;  &quot;RRM2&quot;      &quot;HIST1H1B&quot;  &quot;HIST1H1E&quot; 
-##  [6] &quot;HIST1H1C&quot;  &quot;HIST2H2AC&quot; &quot;CDK1&quot;      &quot;TYMS&quot;      &quot;CLSPN&quot;    
-## [11] &quot;FBXO5&quot;     &quot;PCNA&quot;      &quot;DUT&quot;       &quot;EIF5&quot;      &quot;UBC&quot;      
-## [16] &quot;KIAA0101&quot;  &quot;CDCA5&quot;     &quot;ASF1B&quot;     &quot;MCM7&quot;      &quot;FAM111A&quot;  
-## [21] &quot;ESCO2&quot;     &quot;CARHSP1&quot;   &quot;TK1&quot;       &quot;CENPM&quot;     &quot;HIST1H2AM&quot;
-## [26] &quot;CENPU&quot;     &quot;CCNA2&quot;     &quot;HIST1H2AJ&quot; &quot;ATAD2&quot;     &quot;PSMC3IP&quot;  
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC3&quot;
-##  [1] &quot;NPM1&quot;     &quot;HSP90AB1&quot; &quot;ENO1&quot;     &quot;HSPD1&quot;    &quot;RAN&quot;      &quot;TFDP2&quot;   
-##  [7] &quot;HSP90AA1&quot; &quot;MZB1&quot;     &quot;NME1&quot;     &quot;RANBP1&quot;   &quot;PTGES3&quot;   &quot;LDHA&quot;    
-## [13] &quot;NCL&quot;      &quot;C1QBP&quot;    &quot;VDAC1&quot;    &quot;EIF5A&quot;    &quot;HMGA1&quot;    &quot;CACYBP&quot;  
-## [19] &quot;LDHB&quot;     &quot;EIF4A1&quot;   &quot;MAP1A&quot;    &quot;CD1E&quot;     &quot;SERBP1&quot;   &quot;IGLL1&quot;   
-## [25] &quot;PA2G4&quot;    &quot;H2AFZ&quot;    &quot;APRT&quot;     &quot;TPI1&quot;     &quot;SIVA1&quot;    &quot;RSL1D1&quot;  
-## [1] &quot;&quot;
-##  [1] &quot;TMSB10&quot;   &quot;TMSB4X&quot;   &quot;SH3BGRL3&quot; &quot;SH3BP5&quot;   &quot;CD52&quot;     &quot;SOX4&quot;    
-##  [7] &quot;PI16&quot;     &quot;MYO1G&quot;    &quot;KRT1&quot;     &quot;EMP3&quot;     &quot;LIMD2&quot;    &quot;TPM4&quot;    
-## [13] &quot;GIMAP7&quot;   &quot;TPO&quot;      &quot;VIM&quot;      &quot;COTL1&quot;    &quot;CDKN2D&quot;   &quot;RCBTB2&quot;  
-## [19] &quot;LAT&quot;      &quot;MYL6&quot;     &quot;ARHGDIB&quot;  &quot;RETN&quot;     &quot;CNN2&quot;     &quot;DDAH2&quot;   
-## [25] &quot;ADD3&quot;     &quot;ANXA1&quot;    &quot;ARPC2&quot;    &quot;PPDPF&quot;    &quot;SELL&quot;     &quot;C9orf16&quot; 
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC4&quot;
-##  [1] &quot;PGK1&quot;      &quot;DDX5&quot;      &quot;HSP90AA1&quot;  &quot;HNRNPA2B1&quot; &quot;ARHGDIB&quot;  
-##  [6] &quot;PRDX1&quot;     &quot;LDHA&quot;      &quot;DNAJA1&quot;    &quot;HSP90AB1&quot;  &quot;ACTB&quot;     
-## [11] &quot;CCT5&quot;      &quot;EIF4A1&quot;    &quot;HNRNPK&quot;    &quot;PTGES3&quot;    &quot;ITM2A&quot;    
-## [16] &quot;ITM2B&quot;     &quot;HSPA9&quot;     &quot;ATP5B&quot;     &quot;EIF4A3&quot;    &quot;ENO1&quot;     
-## [21] &quot;CCT8&quot;      &quot;NOP58&quot;     &quot;TMBIM6&quot;    &quot;CXCR4&quot;     &quot;PDIA3&quot;    
-## [26] &quot;CCT2&quot;      &quot;HNRNPF&quot;    &quot;PKM&quot;       &quot;TERF2IP&quot;   &quot;CCT4&quot;     
-## [1] &quot;&quot;
-##  [1] &quot;OST4&quot;     &quot;MZT2B&quot;    &quot;GUK1&quot;     &quot;UBA52&quot;    &quot;ATP5E&quot;    &quot;MRP63&quot;   
-##  [7] &quot;SIVA1&quot;    &quot;EEF1B2&quot;   &quot;SERF2&quot;    &quot;HMGA1&quot;    &quot;TPT1&quot;     &quot;FTL&quot;     
-## [13] &quot;BOLA3&quot;    &quot;NDUFB2&quot;   &quot;TOMM7&quot;    &quot;TMA7&quot;     &quot;UQCRQ&quot;    &quot;POLR2I&quot;  
-## [19] &quot;MZT2A&quot;    &quot;C19orf53&quot; &quot;PIF1&quot;     &quot;POLR2J&quot;   &quot;C17orf89&quot; &quot;COMMD6&quot;  
-## [25] &quot;YBX1&quot;     &quot;MYEOV2&quot;   &quot;KRT10&quot;    &quot;ARL6IP4&quot;  &quot;NHP2&quot;     &quot;FTH1&quot;    
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC5&quot;
-##  [1] &quot;IL32&quot;     &quot;CORO1B&quot;   &quot;IGLL1&quot;    &quot;CTSG&quot;     &quot;TNFRSF4&quot;  &quot;C9orf78&quot; 
-##  [7] &quot;GPX4&quot;     &quot;TALDO1&quot;   &quot;MYO7B&quot;    &quot;BST2&quot;     &quot;SIX6&quot;     &quot;FBLN2&quot;   
-## [13] &quot;HES4&quot;     &quot;HSPH1&quot;    &quot;CD7&quot;      &quot;EFEMP1&quot;   &quot;XRCC6&quot;    &quot;POLR2E&quot;  
-## [19] &quot;SH3TC1&quot;   &quot;MIF&quot;      &quot;VAMP5&quot;    &quot;ALOX5AP&quot;  &quot;FAM63B&quot;   &quot;ETS2&quot;    
-## [25] &quot;ALG3&quot;     &quot;CD99&quot;     &quot;CD28&quot;     &quot;CHCHD10&quot;  &quot;PPAPDC1B&quot; &quot;RBM48&quot;   
-## [1] &quot;&quot;
-##  [1] &quot;ITM2A&quot;      &quot;BEX4&quot;       &quot;PSMB1&quot;      &quot;SMC4&quot;       &quot;GAPDH&quot;     
-##  [6] &quot;BEX1&quot;       &quot;ADD3&quot;       &quot;LMAN1&quot;      &quot;ARPP21&quot;     &quot;KIF5B&quot;     
-## [11] &quot;PDCD2&quot;      &quot;TFDP2&quot;      &quot;UBB&quot;        &quot;GSTM3&quot;      &quot;MALAT1&quot;    
-## [16] &quot;MSH6&quot;       &quot;H1FX&quot;       &quot;RAG1&quot;       &quot;SLC25A3&quot;    &quot;SSBP2&quot;     
-## [21] &quot;ACTG1&quot;      &quot;NPM1&quot;       &quot;SLC4A7&quot;     &quot;MIR181A1HG&quot; &quot;NDUFS6&quot;    
-## [26] &quot;PGK1&quot;       &quot;SH2D1A&quot;     &quot;GNB2L1&quot;     &quot;LEF1&quot;       &quot;CCT5&quot;      
-## [1] &quot;&quot;
-## [1] &quot;&quot;</code></pre>
-<pre class="r"><code>VizPCA(seuratObj_TFH_global, 1:2)</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
 <div id="mixture-jurkat-293t-data-processing-and-visualization" class="section level2">
 <h2>Mixture (Jurkat + 293T) data Processing and Visualization</h2>
 </div>
@@ -547,7 +388,51 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
 <p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+<div id="cluster-1" class="section level4">
+<h4>cluster 1</h4>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##     symbol                                     name
+## 1     CD3D                            CD3d molecule
+## 2     CD1E                            CD1e molecule
+## 3   TMSB4X                thymosin beta 4, X-linked
+## 4    IGLL1 immunoglobulin lambda like polypeptide 1
+## 5     CD3E                            CD3e molecule
+## 6  ARHGDIB      Rho GDP dissociation inhibitor beta
+## 7     AIF1          allograft inflammatory factor 1
+## 8     MGMT  O-6-methylguanine-DNA methyltransferase
+## 9   SH2D1A                 SH2 domain containing 1A
+## 10  CHI3L2                       chitinase 3 like 2
+## 11   IL2RG     interleukin 2 receptor subunit gamma
+## 12    CTSG                              cathepsin G
+## 13   IFI16    interferon gamma inducible protein 16
+## 14  ARPP21         cAMP regulated phosphoprotein 21
+## 15     SPN                              sialophorin</code></pre>
+</div>
+<div id="cluster-2" class="section level4">
+<h4>cluster 2</h4>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol                                                name
+## 1      XIST X inactive specific transcript (non-protein coding)
+## 2       CA2                                carbonic anhydrase 2
+## 3    CDKN2A                cyclin dependent kinase inhibitor 2A
+## 4       GAL                      galanin and GMAP prepropeptide
+## 5      CBR1                                carbonyl reductase 1
+## 6     UCHL1                   ubiquitin C-terminal hydrolase L1
+## 7       CKB                                   creatine kinase B
+## 8     RAB13                   RAB13, member RAS oncogene family
+## 9      PLS3                                           plastin 3
+## 10 CDC42EP1                            CDC42 effector protein 1
+## 11   HOXA10                                        homeobox A10
+## 12    KRT18                                          keratin 18
+## 13    HOXA9                                         homeobox A9
+## 14    CAMK1       calcium/calmodulin dependent protein kinase I
+## 15     MLF1                           myeloid leukemia factor 1
+## 16   TSPAN6                                       tetraspanin 6</code></pre>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
 <p>We now compare this with the SVM based classification results.</p>
+</div>
 </div>
 <div id="reduced-gene-set-svm-study" class="section level3">
 <h3>Reduced Gene set SVM study</h3>
@@ -593,7 +478,7 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
 <pre class="r"><code>prob_mat &lt;- as.matrix(attr(prob, &quot;probabilities&quot;))
 #labels3 &lt;- as.factor(apply(prob_mat, 1, function(x) return(which.max(x))))
 #labels2_class &lt;- unique(class_labs)[labels2]
@@ -618,7 +503,7 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels3), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
 </div>
 <div id="reduced-gene-set-classtpx-study" class="section level3">
 <h3>Reduced Gene set classtpx study</h3>
@@ -641,7 +526,7 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
 <pre class="r"><code>labels2 &lt;- as.factor(apply(topic_clus$omega, 1, function(x)
   {
   if(max(x) &gt; 0.7){
@@ -663,7 +548,7 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      axis.ticks = element_blank(),
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_discrete(&#39;&#39;)
 plot1</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
 </div>
 </div>
 <div id="clustering-results" class="section level2">
@@ -694,17 +579,17 @@ plot1</code></pre>
 <div id="structure-plot-representation" class="section level3">
 <h3>Structure Plot representation</h3>
 <pre class="r"><code>PlotCountClust(topic_clus_list[[2]], fac)</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
 <pre class="r"><code>PlotCountClust(topic_clus_list[[3]], fac)</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-39-2.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-43-2.png" width="672" /></p>
 <pre class="r"><code>PlotCountClust(topic_clus_list[[4]], fac)</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-39-3.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-43-3.png" width="672" /></p>
 <pre class="r"><code>PlotCountClust(topic_clus_list[[5]], fac)</code></pre>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-39-4.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-43-4.png" width="672" /></p>
 </div>
 <div id="t-sne-projection-countclust-coloring" class="section level3">
 <h3>t-SNE projection + CountClust coloring</h3>
-<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+<p><img src="jurkat_293T_99-1_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
 </div>
 </div>
 

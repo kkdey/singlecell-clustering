@@ -351,6 +351,11 @@ $(document).ready(function () {
 <ul>
 <li><a href="classification_gom_MCC.html">supervised CountClust study on the sorted immune cells + MCC cells pooled across 4 time points</a></li>
 </ul>
+<p>We also compared the unsupervised and supervised/partially supervised CountClust approaches by comparing the Jurkat cells and 293T cells from the 10X Genomics Zheng et al 2017 data. We first train the model on the pure Jurkat and 293T cell lines and then applied it on two mixed cell lines - one with (50-50) mix and one with (99-1) mix of Jurkat cells and 293T cells.</p>
+<ul>
+<li><p><a href="jurkat_293T_50-50.html">supervised Countclust study on 50-50 mix of Jurkat cells and 293T cells</a></p></li>
+<li><p><a href="jurkat_293T_99-1.html">supervised Countclust study on 99-1 mix of Jurkat cells and 293T cells</a></p></li>
+</ul>
 <p>We also used Multivariate adaptive shrinkage (MASH) technique to detect the driving genes for each sorted cell type. We then project the expression patterns of those genes on the tSNE plot.</p>
 <ul>
 <li><a href="mash_input_prepare.html">MASH analysis - driving genes for the sorted immune cells</a></li>
@@ -358,6 +363,10 @@ $(document).ready(function () {
 <p>We also observed if the sorted immune cells can be used to explain the grades of memberships in the bulk RNA-seq data - for example - the blood and blood tissues data in the GTEx analysis.</p>
 <ul>
 <li><a href="gtex_blood_sorted_immune.html">supervised Countclust study GTEx blood + sorted immune cells</a></li>
+</ul>
+<p>We found that GTEx blood samples seemed to form a cluster of its own different from the immune cell types considered. This may be because these samples have a lot of RBCs present which makes the detection of immune cell types hard. We check if the RBC profile can be detected in the GTEx blood samples.</p>
+<ul>
+<li><a href="gtex_blood_with_RBC.html">supervised and partially supervised CountClust study with GTEx blood + RBC MCC study + sorted immune cells</a></li>
 </ul>
 <p>We look at more robust version of classtpx that uses trimmed mean at different degrees of trimming instead of mean of the expression patterns of cells for a particular class or cell type. We tried with median, but median did not seem to give good performance.</p>
 <ul>

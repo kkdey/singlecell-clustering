@@ -425,6 +425,28 @@ plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour =
                                      legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_manual(values = c(RColorBrewer::brewer.pal(8, &quot;Accent&quot;), RColorBrewer::brewer.pal(8,&quot;Set3&quot;)[c(3, 1, 4, 7, 6, 5, 8)]))
 plot1</code></pre>
 <p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<pre class="r"><code>tsne_clus_15 &lt;- get(load(&quot;../output/Rtsne_classtpx_15.rda&quot;))</code></pre>
+<pre class="r"><code>labels2 &lt;- as.numeric(as.factor(apply(topic_clus$omega, 1, function(x) return(which.max(x)))))
+labels2_class &lt;- factor(sapply(labels2, function(x) {
+  if(x &lt;= 9){
+    return(unique(class_labs)[x])
+  }else{
+    return(paste0(&quot;cluster-&quot;, x))
+  }}))
+
+data_ggplot &lt;- data.frame(labels2_class = labels2_class[-(1:4500)],
+                          tSNE_1 = tsne_clus_15$Y[-(1:4500),1],
+                          tSNE_2 = tsne_clus_15$Y[-(1:4500),2])
+
+plot1 &lt;- ggplot(data_ggplot) + theme(panel.background = element_rect(colour = &quot;black&quot;, size = 1), 
+                                     panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     axis.text.y = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     legend.text = element_text(size = 15)) + geom_point(aes(x = tSNE_1, y = tSNE_2, color = labels2_class), size = 0.5) + labs(x = &#39;tSNE 1&#39;, y = &#39;tSNE 2&#39;, title = &#39;&#39;) + scale_color_manual(values = c(RColorBrewer::brewer.pal(8, &quot;Accent&quot;), RColorBrewer::brewer.pal(8,&quot;Set3&quot;)[c(3, 1, 4, 7, 6, 5, 8)]))
+plot1</code></pre>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
 </div>
 <div id="driving-genes" class="section level2">
 <h2>Driving genes</h2>
@@ -748,64 +770,64 @@ plot1</code></pre>
 <div id="cluster-1-imp-genes" class="section level3">
 <h3>cluster 1 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
 </div>
 <div id="cluster-2-imp-genes" class="section level3">
 <h3>cluster 2 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
 </div>
 <div id="cluster-3-imp-genes" class="section level3">
 <h3>cluster 3 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
 </div>
 <div id="cluster-4-imp-genes" class="section level3">
 <h3>cluster 4 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
 </div>
 <div id="cluster-5-imp-genes" class="section level3">
 <h3>cluster 5 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
 </div>
 <div id="cluster-6-imp-genes" class="section level3">
 <h3>cluster 6 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
 </div>
 <div id="cluster-7-imp-genes" class="section level3">
 <h3>cluster 7 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
 </div>
 <div id="cluster-8-imp-genes" class="section level3">
 <h3>cluster 8 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-42-1.png" width="672" /></p>
 </div>
 <div id="cluster-9-imp-genes" class="section level3">
 <h3>cluster 9 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
 </div>
 <div id="cluster-10-imp-genes" class="section level3">
 <h3>cluster 10 imp genes</h3>
 <pre><code>## Finished
 ## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-42-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
 </div>
 <div id="cluster-11-imp-genes" class="section level3">
 <h3>cluster 11 imp genes</h3>
 <pre><code>## Finished</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-45-1.png" width="672" /></p>
 </div>
 <div id="cluster-12-imp-genes" class="section level3">
 <h3>cluster 12 imp genes</h3>
 <pre><code>## Finished
 ## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
-<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
+<p><img src="classification_gom_MCC_files/figure-html/unnamed-chunk-46-1.png" width="672" /></p>
 </div>
 </div>
 
