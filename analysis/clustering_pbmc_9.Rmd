@@ -1,0 +1,45 @@
+---
+title: "Unsupervised CountClust on the PBMC K=9 cell types"
+author: "Kushal K Dey"
+date: "10/1/2017"
+output: html_document
+---
+
+We perform unsupervised clustering for $K=9$ cell types from the PBMC data.
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(plyr)
+library(classtpx)
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+```
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+data <- seuratObj_TFH_global@raw.data
+```
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+known_samples <- 1:4500
+class_labs <- fac1
+```
+
+```{r}
+counts <- t(data[, 1:4500])
+dim(counts)
+```
+
+```{r}
+ll <- list("data" = counts, "labs" = class_labs)
+save(ll, file = "../output/maptpx_pbmc_k_9.rda")
+```
+
+

@@ -1,0 +1,459 @@
+---
+title: "Supervised Clustering (MCC+Zheng et al +GTEx)"
+author: "Kushal K Dey"
+date: "10/1/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(plyr)
+library(classtpx)
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+library(data.table)
+```
+
+## Zheng et al data
+
+In this script, we combine the cell types detected from the Zheng et al 2017
+and the clusters obatined by running Unsupervised CountClust on the MCC
+data can be used to learn the composition structure of the GTEx blood. 
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global_1 <- get(load("../output/seurat_aggregated_after_tsne.Robj"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+topic_clus <- get(load("../output/maptpx_aggregated_MCC.rda"))
+```
+
+```{r}
+labs3 <- apply(topic_clus[[6]]$omega, 1, function(x) return(which.max(x)))
+```
+
+```{r}
+mcc_data <- seuratObj_TFH_global_1@raw.data
+```
+
+## 10X Genomics data processing
+
+```{r}
+seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
+```
+
+```{r}
+sorted_data <- seuratObj_TFH_global@raw.data[, 1:4500]
+```
+
+
+## GTEx data
+
+```{r message = FALSE, warning=FALSE}
+gtex_expr <- fread("../data/cis_gene_expression.txt")
+```
+
+```{r}
+mat1 <- as.matrix(gtex_expr[, -(1:2)])
+```
+
+```{r}
+mat <- apply(mat1, 2, function(x) return(rbinom(dim(gtex_expr)[1], x, 1e-05)))
+```
+
+```{r}
+samples_id <- read.table("../data/samples_id.txt")
+tissue_names <- samples_id[,3]
+```
+
+```{r}
+idx1 <- which(tissue_names == "Whole Blood")
+mat2 <- mat[, idx1]
+```
+
+
+```{r}
+gene_names <- as.character(read.table("../data/gene_names_GTEX_V6.txt")[,1])
+gene_names_1 <- as.character(sapply(gene_names, function(x) return(strsplit(x, "[.]")[[1]][1])))
+```
+
+```{r}
+out <- mygene::queryMany(gene_names_1,  scopes="ensembl.gene", fields=c("symbol", "ensembl.gene"), species="human");
+```
+
+```{r}
+idx2 <- match(out$query, gene_names_1)
+gene_names_2 <- out$symbol[idx2]
+```
+
+```{r}
+data_build <- t(mat2)
+colnames(data_build) <- gene_names_2
+```
+
+## Pooling the data 
+
+```{r}
+common_genes <- intersect(colnames(data_build), intersect(rownames(mcc_data),rownames(sorted_data)))
+data_build_2 <- data_build[, match(common_genes, colnames(data_build))]
+sorted_data_2 <- sorted_data[match(common_genes, rownames(sorted_data)),]
+mcc_data_2 <- mcc_data[match(common_genes, rownames(mcc_data)),]
+```
+
+```{r}
+pooled_data <- rbind(t(sorted_data_2), t(mcc_data_2), data_build_2)
+```
+
+
+```{r}
+save(pooled_data, file = "../output/gtex_blood_mcc_zheng_pooled.rda")
+```
+
+
+```{r}
+pooled_data <- t(get(load("../output/gtex_blood_mcc_zheng_pooled.rda")))
+dim(pooled_data)
+```
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(sorted_data_2), function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+fac2 <- paste0("MCC-", labs3)
+fac3 <- c(fac1, fac2)
+known_samples <- 1:(dim(sorted_data_2)[2] + dim(mcc_data_2)[2])
+class_labs <- fac3
+class_labs_2 <- factor(as.vector(mapvalues(class_labs, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+```
+
+## Supervised CountClust
+
+### added cluster 0
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(pooled_data, K=15, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_mcc_thresh.rda")
+```
+
+```{r}
+topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_mcc_thresh.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(1,2, 3, 4,5,6, 7)]),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+```{r echo=FALSE, eval=TRUE, fig.width = 5, fig.height = 8}
+labs <- c(as.character(fac3), rep("Blood", dim(data_build_2)[1]))
+PlotCountClust(topic_clus, labs)
+```
+
+### added cluster 0 relabel
+
+Now merging the B cell cluster (MCC4) with the B cell type class and MCC1 with the NK cells, and removing MCC2, we run the analysis again.
+
+```{r}
+fac2 <- paste0("MCC-", labs3)
+fac2[fac2 == "MCC-4"] = "CD19_B"
+fac2[fac2 == "MCC-1"] = "CD56_NK"
+fac2[fac2 == "MCC-5"] = "RBC"
+fac2[fac2 == "MCC-3"] = "Neutrophil"
+fac2[fac2 == "MCC-6"] = "Platelets"
+fac3 <- c(fac1, fac2)
+known_samples <- 1:(dim(sorted_data_2)[2] + dim(mcc_data_2)[2])
+class_labs <- fac3
+idx2 <- which(class_labs == "MCC-2")
+class_labs <- class_labs[-idx2]
+class_labs_2 <- factor(as.vector(mapvalues(class_labs, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+pooled_data_2 <- pooled_data[-idx2, ] 
+known_samples <- 1:length(class_labs_2)
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(pooled_data_2, K=12, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_mcc_thresh_2.rda")
+```
+
+```{r}
+topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_mcc_thresh_2.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(1,6,5,2, 4)]),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+```{r echo=FALSE, eval=TRUE, fig.width = 5, fig.height = 8}
+labs <- c(as.character(class_labs), rep("Blood", dim(data_build_2)[1]))
+PlotCountClust(topic_clus, labs)
+```
+
+### added cluster - 1
+
+```{r echo=FALSE, eval=FALSE}
+topic_clus <- classtpx::class_topics(pooled_data_2, K=13, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
+save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_mcc_thresh_2_13.rda")
+```
+
+```{r}
+topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_mcc_thresh_2_13.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = rev(unique(fac) ) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(1,6,5,2, 4)]),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+```{r echo=FALSE, eval=TRUE, fig.width = 5, fig.height = 8}
+labs <- c(as.character(class_labs), rep("Blood", dim(data_build_2)[1]))
+PlotCountClust(topic_clus, labs)
+```
+
+
+## Cluster Driving genes
+
+### cluster 1
+
+```{r echo=FALSE, eval=TRUE}
+indices <- ExtractTopFeatures(topic_clus$theta, top_features = 100, method = "poisson", options = "max")
+imp_genes <- apply(indices$indices, 1, function(x) return(rownames(topic_clus$theta)[x]))
+
+out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,1]), file ="../utilities/zheng_mcc_gtex_class_13_k_1.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+### cluster 2
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,2]), file ="../utilities/zheng_mcc_gtex_class_13_k_2.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+### cluster 3
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,3],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,3]), file ="../utilities/zheng_mcc_gtex_class_13_k_3.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 4
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,4],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,4]), file ="../utilities/zheng_mcc_gtex_class_13_k_4.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 5
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,5],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,5]), file ="../utilities/zheng_mcc_gtex_class_13_k_5.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 6
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,6],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,6]), file ="../utilities/zheng_mcc_gtex_class_13_k_6.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 7
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,7],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,7]), file ="../utilities/zheng_mcc_gtex_class_13_k_7.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+### cluster 8
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,8],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,8]), file ="../utilities/zheng_mcc_gtex_class_13_k_8.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+
+```
+
+
+### cluster 9
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,9],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,9]), file ="../utilities/zheng_mcc_gtex_class_13_k_9.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 10
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,10],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,10]), file ="../utilities/zheng_mcc_gtex_class_13_k_10.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 11
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,11],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,11]), file ="../utilities/zheng_mcc_gtex_class_13_k_11.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 12
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,12],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[,12]), file ="../utilities/zheng_mcc_gtex_class_13_k_12.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 13
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,13],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+write.table(as.matrix(imp_genes[,13]), file ="../utilities/zheng_mcc_gtex_class_13_k_13.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+

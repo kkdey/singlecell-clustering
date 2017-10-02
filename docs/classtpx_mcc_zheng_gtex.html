@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kushal K Dey" />
+
+
+<title>Supervised Clustering (MCC+Zheng et al +GTEx)</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">singlecell-clustering</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Supervised Clustering (MCC+Zheng et al +GTEx)</h1>
+<h4 class="author"><em>Kushal K Dey</em></h4>
+<h4 class="date"><em>10/1/2017</em></h4>
+
+</div>
+
+
+<div id="zheng-et-al-data" class="section level2">
+<h2>Zheng et al data</h2>
+<p>In this script, we combine the cell types detected from the Zheng et al 2017 and the clusters obatined by running Unsupervised CountClust on the MCC data can be used to learn the composition structure of the GTEx blood.</p>
+<pre class="r"><code>labs3 &lt;- apply(topic_clus[[6]]$omega, 1, function(x) return(which.max(x)))</code></pre>
+<pre class="r"><code>mcc_data &lt;- seuratObj_TFH_global_1@raw.data</code></pre>
+</div>
+<div id="x-genomics-data-processing" class="section level2">
+<h2>10X Genomics data processing</h2>
+<pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/seurat_pooled_sorted_unsorted_PBMC.rda&quot;))</code></pre>
+<pre class="r"><code>sorted_data &lt;- seuratObj_TFH_global@raw.data[, 1:4500]</code></pre>
+</div>
+<div id="gtex-data" class="section level2">
+<h2>GTEx data</h2>
+<pre class="r"><code>gtex_expr &lt;- fread(&quot;../data/cis_gene_expression.txt&quot;)</code></pre>
+<pre><code>## 
+Read 0.0% of 16069 rows
+Read 62.2% of 16069 rows
+Read 16069 rows and 8557 (of 8557) columns from 0.532 GB file in 00:00:17</code></pre>
+<pre class="r"><code>mat1 &lt;- as.matrix(gtex_expr[, -(1:2)])</code></pre>
+<pre class="r"><code>mat &lt;- apply(mat1, 2, function(x) return(rbinom(dim(gtex_expr)[1], x, 1e-05)))</code></pre>
+<pre class="r"><code>samples_id &lt;- read.table(&quot;../data/samples_id.txt&quot;)
+tissue_names &lt;- samples_id[,3]</code></pre>
+<pre class="r"><code>idx1 &lt;- which(tissue_names == &quot;Whole Blood&quot;)
+mat2 &lt;- mat[, idx1]</code></pre>
+<pre class="r"><code>gene_names &lt;- as.character(read.table(&quot;../data/gene_names_GTEX_V6.txt&quot;)[,1])
+gene_names_1 &lt;- as.character(sapply(gene_names, function(x) return(strsplit(x, &quot;[.]&quot;)[[1]][1])))</code></pre>
+<pre class="r"><code>out &lt;- mygene::queryMany(gene_names_1,  scopes=&quot;ensembl.gene&quot;, fields=c(&quot;symbol&quot;, &quot;ensembl.gene&quot;), species=&quot;human&quot;);</code></pre>
+<pre><code>## Querying chunk 1</code></pre>
+<pre><code>## Querying chunk 2</code></pre>
+<pre><code>## Querying chunk 3</code></pre>
+<pre><code>## Querying chunk 4</code></pre>
+<pre><code>## Querying chunk 5</code></pre>
+<pre><code>## Querying chunk 6</code></pre>
+<pre><code>## Querying chunk 7</code></pre>
+<pre><code>## Querying chunk 8</code></pre>
+<pre><code>## Querying chunk 9</code></pre>
+<pre><code>## Querying chunk 10</code></pre>
+<pre><code>## Querying chunk 11</code></pre>
+<pre><code>## Querying chunk 12</code></pre>
+<pre><code>## Querying chunk 13</code></pre>
+<pre><code>## Querying chunk 14</code></pre>
+<pre><code>## Querying chunk 15</code></pre>
+<pre><code>## Querying chunk 16</code></pre>
+<pre><code>## Querying chunk 17</code></pre>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre class="r"><code>idx2 &lt;- match(out$query, gene_names_1)
+gene_names_2 &lt;- out$symbol[idx2]</code></pre>
+<pre class="r"><code>data_build &lt;- t(mat2)
+colnames(data_build) &lt;- gene_names_2</code></pre>
+</div>
+<div id="pooling-the-data" class="section level2">
+<h2>Pooling the data</h2>
+<pre class="r"><code>common_genes &lt;- intersect(colnames(data_build), intersect(rownames(mcc_data),rownames(sorted_data)))
+data_build_2 &lt;- data_build[, match(common_genes, colnames(data_build))]
+sorted_data_2 &lt;- sorted_data[match(common_genes, rownames(sorted_data)),]
+mcc_data_2 &lt;- mcc_data[match(common_genes, rownames(mcc_data)),]</code></pre>
+<pre class="r"><code>pooled_data &lt;- rbind(t(sorted_data_2), t(mcc_data_2), data_build_2)</code></pre>
+<pre class="r"><code>save(pooled_data, file = &quot;../output/gtex_blood_mcc_zheng_pooled.rda&quot;)</code></pre>
+<pre class="r"><code>pooled_data &lt;- t(get(load(&quot;../output/gtex_blood_mcc_zheng_pooled.rda&quot;)))
+dim(pooled_data)</code></pre>
+<pre><code>## [1] 10889 17767</code></pre>
+</div>
+<div id="supervised-countclust" class="section level2">
+<h2>Supervised CountClust</h2>
+<div id="added-cluster-0" class="section level3">
+<h3>added cluster 0</h3>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_mcc_thresh.rda&quot;))</code></pre>
+<p><img src="classtpx_mcc_zheng_gtex_files/figure-html/unnamed-chunk-25-1.png" width="480" /></p>
+</div>
+<div id="added-cluster-0-relabel" class="section level3">
+<h3>added cluster 0 relabel</h3>
+<p>Now merging the B cell cluster (MCC4) with the B cell type class and MCC1 with the NK cells, and removing MCC2, we run the analysis again.</p>
+<pre class="r"><code>fac2 &lt;- paste0(&quot;MCC-&quot;, labs3)
+fac2[fac2 == &quot;MCC-4&quot;] = &quot;CD19_B&quot;
+fac2[fac2 == &quot;MCC-1&quot;] = &quot;CD56_NK&quot;
+fac2[fac2 == &quot;MCC-5&quot;] = &quot;RBC&quot;
+fac2[fac2 == &quot;MCC-3&quot;] = &quot;Neutrophil&quot;
+fac2[fac2 == &quot;MCC-6&quot;] = &quot;Platelets&quot;
+fac3 &lt;- c(fac1, fac2)
+known_samples &lt;- 1:(dim(sorted_data_2)[2] + dim(mcc_data_2)[2])
+class_labs &lt;- fac3
+idx2 &lt;- which(class_labs == &quot;MCC-2&quot;)
+class_labs &lt;- class_labs[-idx2]
+class_labs_2 &lt;- factor(as.vector(mapvalues(class_labs, from = unique(class_labs), to = 1:length(unique(class_labs)))))
+pooled_data_2 &lt;- pooled_data[-idx2, ] 
+known_samples &lt;- 1:length(class_labs_2)</code></pre>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_mcc_thresh_2.rda&quot;))</code></pre>
+<p><img src="classtpx_mcc_zheng_gtex_files/figure-html/unnamed-chunk-30-1.png" width="480" /></p>
+</div>
+<div id="added-cluster---1" class="section level3">
+<h3>added cluster - 1</h3>
+<pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_mcc_thresh_2_13.rda&quot;))</code></pre>
+<p><img src="classtpx_mcc_zheng_gtex_files/figure-html/unnamed-chunk-34-1.png" width="480" /></p>
+</div>
+</div>
+<div id="cluster-driving-genes" class="section level2">
+<h2>Cluster Driving genes</h2>
+<div id="cluster-1" class="section level3">
+<h3>cluster 1</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol
+## 1     UBA52
+## 2      NACA
+## 3     PFDN5
+## 4      BTF3
+## 5     S100B
+## 6     ATP5L
+## 7    COMMD6
+## 8    SNRPD2
+## 9      CCR7
+## 10     EDF1
+## 11 ATP6V1G1
+## 12    ATP5O
+## 13   NDUFA4
+## 14    COX6C
+## 15  CCDC85B
+## 16     PASK
+## 17     NPM3
+## 18 ATP6V0E2
+## 19  CLEC11A
+## 20     RGL4
+## 21     DHPS
+## 22   SUCLG2
+## 23    C1QBP
+## 24      CD7
+## 25   UQCR10
+## 26    KRT10
+## 27     TBCA
+## 28     PPA1
+## 29     NHP2
+## 30    WDR61
+## 31    ATP5J
+## 32  ANAPC13
+## 33     POMC
+## 34 TRAPPC6A
+##                                                                  name
+## 1           ubiquitin A-52 residue ribosomal protein fusion product 1
+## 2                nascent polypeptide-associated complex alpha subunit
+## 3                                                 prefoldin subunit 5
+## 4                                        basic transcription factor 3
+## 5                                      S100 calcium binding protein B
+## 6   ATP synthase, H+ transporting, mitochondrial Fo complex subunit G
+## 7                                            COMM domain containing 6
+## 8                      small nuclear ribonucleoprotein D2 polypeptide
+## 9                                      C-C motif chemokine receptor 7
+## 10                       endothelial differentiation related factor 1
+## 11                               ATPase H+ transporting V1 subunit G1
+## 12 ATP synthase, H+ transporting, mitochondrial F1 complex, O subunit
+## 13                           NDUFA4, mitochondrial complex associated
+## 14                                    cytochrome c oxidase subunit 6C
+## 15                                  coiled-coil domain containing 85B
+## 16                      PAS domain containing serine/threonine kinase
+## 17                                      nucleophosmin/nucleoplasmin 3
+## 18                               ATPase H+ transporting V0 subunit e2
+## 19                                C-type lectin domain containing 11A
+## 20              ral guanine nucleotide dissociation stimulator like 4
+## 21                                             deoxyhypusine synthase
+## 22                      succinate-CoA ligase GDP-forming beta subunit
+## 23                                     complement C1q binding protein
+## 24                                                       CD7 molecule
+## 25            ubiquinol-cytochrome c reductase, complex III subunit X
+## 26                                                         keratin 10
+## 27                                         tubulin folding cofactor A
+## 28                                      pyrophosphatase (inorganic) 1
+## 29                                             NHP2 ribonucleoprotein
+## 30                                                WD repeat domain 61
+## 31 ATP synthase, H+ transporting, mitochondrial Fo complex subunit F6
+## 32                              anaphase promoting complex subunit 13
+## 33                                                proopiomelanocortin
+## 34                            trafficking protein particle complex 6A</code></pre>
+</div>
+<div id="cluster-2" class="section level3">
+<h3>cluster 2</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol
+## 1    S100A6
+## 2      LST1
+## 3     ATP5E
+## 4      CSTA
+## 5    LGALS1
+## 6      VCAN
+## 7      MAFB
+## 8     UQCRB
+## 9      FGL2
+## 10 TNFSF13B
+## 11     ZEB2
+## 12    DUSP6
+## 13   MAP3K8
+## 14    NEAT1
+## 15     IL1B
+## 16     NPC2
+## 17     CTSS
+## 18   SLC7A7
+## 19     NAAA
+## 20     EGR1
+## 21    KLF10
+## 22      VIM
+## 23     LY96
+## 24    COTL1
+## 25  S100A11
+## 26 MAPKAPK3
+## 27     KLF4
+## 28    CD302
+## 29   CLEC4A
+## 30    ATP5I
+## 31     C1QA
+## 32    HMOX1
+## 33   DPYSL2
+## 34     IER3
+## 35     CHP1
+## 36    CSF1R
+## 37   SEC11A
+## 38   NFKBIA
+## 39    VAMP5
+## 40   IFITM3
+## 41   SEC61G
+## 42    PSMA4
+## 43      TNF
+## 44    TNNT1
+##                                                                        name
+## 1                                           S100 calcium binding protein A6
+## 2                                           leukocyte specific transcript 1
+## 3  ATP synthase, H+ transporting, mitochondrial F1 complex, epsilon subunit
+## 4                                                                cystatin A
+## 5                                                                galectin 1
+## 6                                                                  versican
+## 7                                           MAF bZIP transcription factor B
+## 8                          ubiquinol-cytochrome c reductase binding protein
+## 9                                                         fibrinogen like 2
+## 10                                               TNF superfamily member 13b
+## 11                                     zinc finger E-box binding homeobox 2
+## 12                                           dual specificity phosphatase 6
+## 13                         mitogen-activated protein kinase kinase kinase 8
+## 14           nuclear paraspeckle assembly transcript 1 (non-protein coding)
+## 15                                                       interleukin 1 beta
+## 16                              NPC intracellular cholesterol transporter 2
+## 17                                                              cathepsin S
+## 18                                         solute carrier family 7 member 7
+## 19                                          N-acylethanolamine acid amidase
+## 20                                                  early growth response 1
+## 21                                                   Kruppel like factor 10
+## 22                                                                 vimentin
+## 23                                                    lymphocyte antigen 96
+## 24                                 coactosin like F-actin binding protein 1
+## 25                                         S100 calcium binding protein A11
+## 26              mitogen-activated protein kinase-activated protein kinase 3
+## 27                                                    Kruppel like factor 4
+## 28                                                           CD302 molecule
+## 29                                   C-type lectin domain family 4 member A
+## 30        ATP synthase, H+ transporting, mitochondrial Fo complex subunit E
+## 31                                                   complement C1q A chain
+## 32                                                         heme oxygenase 1
+## 33                                               dihydropyrimidinase like 2
+## 34                                               immediate early response 3
+## 35                                       calcineurin like EF-hand protein 1
+## 36                                     colony stimulating factor 1 receptor
+## 37                        SEC11 homolog A, signal peptidase complex subunit
+## 38                                                     NFKB inhibitor alpha
+## 39                                    vesicle associated membrane protein 5
+## 40                               interferon induced transmembrane protein 3
+## 41                                           Sec61 translocon gamma subunit
+## 42                                               proteasome subunit alpha 4
+## 43                                                    tumor necrosis factor
+## 44                                          troponin T1, slow skeletal type</code></pre>
+</div>
+<div id="cluster-3" class="section level3">
+<h3>cluster 3</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##      symbol                                                name
+## 1       HBB                             hemoglobin subunit beta
+## 2      HBA2                          hemoglobin subunit alpha 2
+## 3      HBA1                          hemoglobin subunit alpha 1
+## 4       HBD                            hemoglobin subunit delta
+## 5      SNCA                                     synuclein alpha
+## 6      HBG2                          hemoglobin subunit gamma 2
+## 7       UBB                                         ubiquitin B
+## 8      BPGM                          bisphosphoglycerate mutase
+## 9  SELENBP1                          selenium binding protein 1
+## 10   DCAF12                  DDB1 and CUL4 associated factor 12
+## 11     FECH                                      ferrochelatase
+## 12     KRT1                                           keratin 1
+## 13    EPB42               erythrocyte membrane protein band 4.2
+## 14 SLC25A37                  solute carrier family 25 member 37
+## 15    SMIM1 small integral membrane protein 1 (Vel blood group)
+## 16     NFIX                                  nuclear factor I X
+## 17   TSPAN5                                       tetraspanin 5
+## 18     HBG1                          hemoglobin subunit gamma 1
+## 19   STRADB                   STE20-related kinase adaptor beta
+## 20   BNIP3L                     BCL2 interacting protein 3 like
+## 21     YOD1                                 YOD1 deubiquitinase
+## 22    MKRN1                       makorin ring finger protein 1
+## 23  RAP1GAP                      RAP1 GTPase activating protein
+## 24  TMPRSS9                    transmembrane protease, serine 9
+## 25    GLRX5                                      glutaredoxin 5
+## 26     MRC2                           mannose receptor C type 2
+## 27    NUDT4                                   nudix hydrolase 4
+## 28    SFRP2                 secreted frizzled related protein 2
+## 29     HBE1                        hemoglobin subunit epsilon 1
+## 30   SLC6A9                    solute carrier family 6 member 9
+## 31     MND1                         meiotic nuclear divisions 1
+## 32  SLC4A11                   solute carrier family 4 member 11
+## 33    LMOD1                                         leiomodin 1
+## 34   SLC2A4                    solute carrier family 2 member 4</code></pre>
+</div>
+<div id="cluster-4" class="section level3">
+<h3>cluster 4</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##       symbol                                                          name
+## 1        B2M                                          beta-2-microglobulin
+## 2       FTH1                                        ferritin heavy chain 1
+## 3      GNG11                                    G protein subunit gamma 11
+## 4       NRGN                                                   neurogranin
+## 5       GPX1                                      glutathione peroxidase 1
+## 6        CLU                                                     clusterin
+## 7      H3F3A                                   H3 histone family member 3A
+## 8      ACRBP                                       acrosin binding protein
+## 9      SPARC                     secreted protein acidic and cysteine rich
+## 10      MYL6                                          myosin light chain 6
+## 11    NAP1L1                          nucleosome assembly protein 1 like 1
+## 12      MYL9                                          myosin light chain 9
+## 13    NT5C3A                               5&#39;-nucleotidase, cytosolic IIIA
+## 14    PDLIM1                                          PDZ and LIM domain 1
+## 15    ITGA2B                                     integrin subunit alpha 2b
+## 16     RGS10                           regulator of G protein signaling 10
+## 17 HIST1H2AC                         histone cluster 1 H2A family member c
+## 18      ACTB                                                    actin beta
+## 19       CD9                                                  CD9 molecule
+## 20 HIST1H2BJ                         histone cluster 1 H2B family member j
+## 21   TSC22D1                                  TSC22 domain family member 1
+## 22   PRKAR2B protein kinase cAMP-dependent type II regulatory subunit beta
+## 23       MMD             monocyte to macrophage differentiation associated
+## 24      GMPR                             guanosine monophosphate reductase
+## 25     PTGS1                         prostaglandin-endoperoxide synthase 1
+## 26       HGD                                 homogentisate 1,2-dioxygenase
+## 27      LCN2                                                   lipocalin 2
+## 28     CLDN5                                                     claudin 5
+## 29      CTTN                                                     cortactin
+## 30    TAGLN2                                                  transgelin 2
+## 31       VCL                                                      vinculin
+## 32      RBX1                                                    ring-box 1
+## 33      MYL4                                          myosin light chain 4
+## 34     HMGB1                                     high mobility group box 1
+## 35       CA2                                          carbonic anhydrase 2
+## 36      GPX4                                      glutathione peroxidase 4
+## 37    DYNLL1                                 dynein light chain LC8-type 1
+## 38      DAB2                                DAB2, clathrin adaptor protein
+## 39      NEXN                               nexilin F-actin binding protein
+## 40     RAB32                             RAB32, member RAS oncogene family
+## 41      DMTN                                 dematin actin binding protein
+## 42      OAZ1                            ornithine decarboxylase antizyme 1
+## 43      CD36                                                 CD36 molecule</code></pre>
+</div>
+<div id="cluster-5" class="section level3">
+<h3>cluster 5</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##       symbol
+## 1    GADD45B
+## 2      SAP18
+## 3       CCT2
+## 4   HIST1H1E
+## 5     ATPIF1
+## 6     PTGER4
+## 7     CITED4
+## 8       PRR5
+## 9     MRPL16
+## 10     SSBP1
+## 11     MRPS5
+## 12      URI1
+## 13      KRAS
+## 14      CCNH
+## 15      UFC1
+## 16   HSD17B8
+## 17      SBDS
+## 18    NUCKS1
+## 19   TERF2IP
+## 20   SUPT16H
+## 21     BAZ1B
+## 22     MED19
+## 23    ZNF101
+## 24  PPP1R15A
+## 25      CBX5
+## 26      PHYH
+## 27     EIF5B
+## 28    AFG3L2
+## 29    IMMP1L
+## 30    DNMT3A
+## 31 FAM120AOS
+##                                                                               name
+## 1                                      growth arrest and DNA damage inducible beta
+## 2                                                      Sin3A associated protein 18
+## 3                                             chaperonin containing TCP1 subunit 2
+## 4                                             histone cluster 1 H1 family member e
+## 5                                                       ATPase inhibitory factor 1
+## 6                                                       prostaglandin E receptor 4
+## 7  Cbp/p300 interacting transactivator with Glu/Asp rich carboxy-terminal domain 4
+## 8                                                                   proline rich 5
+## 9                                              mitochondrial ribosomal protein L16
+## 10                                           single stranded DNA binding protein 1
+## 11                                              mitochondrial ribosomal protein S5
+## 12                                                  URI1, prefoldin like chaperone
+## 13                                                     KRAS proto-oncogene, GTPase
+## 14                                                                        cyclin H
+## 15                                    ubiquitin-fold modifier conjugating enzyme 1
+## 16                                          hydroxysteroid 17-beta dehydrogenase 8
+## 17                                                SBDS, ribosome maturation factor
+## 18                   nuclear casein kinase and cyclin dependent kinase substrate 1
+## 19                                                       TERF2 interacting protein
+## 20                         SPT16 homolog, facilitates chromatin remodeling subunit
+## 21                                   bromodomain adjacent to zinc finger domain 1B
+## 22                                                     mediator complex subunit 19
+## 23                                                         zinc finger protein 101
+## 24                                    protein phosphatase 1 regulatory subunit 15A
+## 25                                                                     chromobox 5
+## 26                                                     phytanoyl-CoA 2-hydroxylase
+## 27                                     eukaryotic translation initiation factor 5B
+## 28                                        AFG3 like matrix AAA peptidase subunit 2
+## 29                                inner mitochondrial membrane peptidase subunit 1
+## 30                                                   DNA methyltransferase 3 alpha
+## 31                            family with sequence similarity 120A opposite strand</code></pre>
+</div>
+<div id="cluster-6" class="section level3">
+<h3>cluster 6</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##     symbol
+## 1     GNLY
+## 2     CST7
+## 3    KLRD1
+## 4     GZMM
+## 5     HCST
+## 6    KLRF1
+## 7    PTGDS
+## 8     HOPX
+## 9      ID2
+## 10 RARRES3
+## 11   ANXA6
+## 12   CD160
+## 13   IL2RB
+## 14  IGFBP7
+## 15  PRSS23
+## 16   CLIC3
+## 17     DBI
+## 18  COX7A2
+## 19    ABI3
+## 20  NDUFB2
+## 21   SYNE2
+## 22    OPTN
+## 23   PSMB9
+## 24   PTPN4
+## 25    RHOC
+## 26    CTSW
+## 27   CEP78
+## 28   STAT4
+## 29  NDUFB7
+## 30  SEC61B
+## 31  TSEN54
+## 32   ARPC2
+## 33   TFDP2
+## 34   CALM1
+## 35  CHST12
+## 36   SYNE1
+## 37  CLEC2B
+## 38    MIAT
+##                                                                name
+## 1                                                        granulysin
+## 2                                                        cystatin F
+## 3                               killer cell lectin like receptor D1
+## 4                                                        granzyme M
+## 5                              hematopoietic cell signal transducer
+## 6                               killer cell lectin like receptor F1
+## 7                                         prostaglandin D2 synthase
+## 8                                                      HOP homeobox
+## 9                                        inhibitor of DNA binding 2
+## 10                               retinoic acid receptor responder 3
+## 11                                                       annexin A6
+## 12                                                   CD160 molecule
+## 13                              interleukin 2 receptor subunit beta
+## 14                     insulin like growth factor binding protein 7
+## 15                                              protease, serine 23
+## 16                                 chloride intracellular channel 3
+## 17             diazepam binding inhibitor, acyl-CoA binding protein
+## 18                                 cytochrome c oxidase subunit 7A2
+## 19                                              ABI family member 3
+## 20                        NADH:ubiquinone oxidoreductase subunit B2
+## 21            spectrin repeat containing nuclear envelope protein 2
+## 22                                                       optineurin
+## 23                                        proteasome subunit beta 9
+## 24                protein tyrosine phosphatase, non-receptor type 4
+## 25                                      ras homolog family member C
+## 26                                                      cathepsin W
+## 27                                           centrosomal protein 78
+## 28               signal transducer and activator of transcription 4
+## 29                        NADH:ubiquinone oxidoreductase subunit B7
+## 30                                    Sec61 translocon beta subunit
+## 31                            tRNA splicing endonuclease subunit 54
+## 32                      actin related protein 2/3 complex subunit 2
+## 33                                        transcription factor Dp-2
+## 34                                                     calmodulin 1
+## 35                                 carbohydrate sulfotransferase 12
+## 36            spectrin repeat containing nuclear envelope protein 1
+## 37                           C-type lectin domain family 2 member B
+## 38 myocardial infarction associated transcript (non-protein coding)</code></pre>
+</div>
+<div id="cluster-7" class="section level3">
+<h3>cluster 7</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##     symbol                                                          name
+## 1     IL32                                                interleukin 32
+## 2     YBX1                                       Y-box binding protein 1
+## 3    PSME1                                proteasome activator subunit 1
+## 4   SPOCK2 SPARC/osteonectin, cwcv and kazal like domains proteoglycan 2
+## 5     SOD1                                        superoxide dismutase 1
+## 6      JUN         Jun proto-oncogene, AP-1 transcription factor subunit
+## 7    CRIP2                                       cysteine rich protein 2
+## 8     CFL1                                                     cofilin 1
+## 9    ACTG1                                                 actin gamma 1
+## 10 TMEM173                                     transmembrane protein 173
+## 11   H3F3B                                   H3 histone family member 3B
+## 12   DUSP1                                dual specificity phosphatase 1
+## 13  PRPF31                                 pre-mRNA processing factor 31
+## 14   FDFT1                    farnesyl-diphosphate farnesyltransferase 1
+## 15     ID3                       inhibitor of DNA binding 3, HLH protein
+## 16    RGS1                            regulator of G protein signaling 1
+## 17 NDUFA10                    NADH:ubiquinone oxidoreductase subunit A10
+## 18   CCR10                               C-C motif chemokine receptor 10
+## 19   LCMT1                          leucine carboxyl methyltransferase 1
+## 20   THEM4                             thioesterase superfamily member 4
+## 21    NOB1                          NIN1/PSMD8 binding protein 1 homolog
+## 22     AES                              amino-terminal enhancer of split
+## 23 CTNNBL1                                           catenin beta like 1
+## 24 B4GALT3                              beta-1,4-galactosyltransferase 3
+## 25  SDHAF1             succinate dehydrogenase complex assembly factor 1
+## 26   PRDX1                                               peroxiredoxin 1
+## 27   PARK7                             Parkinsonism associated deglycase
+## 28    CISH                     cytokine inducible SH2 containing protein
+## 29  DALRD3                    DALR anticodon binding domain containing 3
+## 30    PCNA                            proliferating cell nuclear antigen
+## 31 SIGMAR1                     sigma non-opioid intracellular receptor 1
+## 32    GALM                                          galactose mutarotase
+## 33   WDR18                                           WD repeat domain 18
+## 34   GSTK1                             glutathione S-transferase kappa 1
+## 35   SRP68                                signal recognition particle 68
+## 36  HAPLN3                    hyaluronan and proteoglycan link protein 3</code></pre>
+</div>
+<div id="cluster-8" class="section level3">
+<h3>cluster 8</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##     symbol                                                     name
+## 1   EEF1A1       eukaryotic translation elongation factor 1 alpha 1
+## 2    EEF1D         eukaryotic translation elongation factor 1 delta
+## 3  HNRNPA1               heterogeneous nuclear ribonucleoprotein A1
+## 4     NPM1                                          nucleophosmin 1
+## 5     LDHB                                  lactate dehydrogenase B
+## 6     LEF1                       lymphoid enhancer binding factor 1
+## 7    NOSIP                nitric oxide synthase interacting protein
+## 8      MAL                      mal, T-cell differentiation protein
+## 9     CD27                                            CD27 molecule
+## 10    CCT3                     chaperonin containing TCP1 subunit 3
+## 11 ARHGDIB                      Rho GDP dissociation inhibitor beta
+## 12   APEX1            apurinic/apyrimidinic endodeoxyribonuclease 1
+## 13  PABPC1                    poly(A) binding protein cytoplasmic 1
+## 14   ERP29                         endoplasmic reticulum protein 29
+## 15   SRSF5               serine and arginine rich splicing factor 5
+## 16     PHB                                               prohibitin
+## 17    DDX5                                      DEAD-box helicase 5
+## 18  CORO1A                                               coronin 1A
+## 19   PEBP1               phosphatidylethanolamine binding protein 1
+## 20   PRDX2                                          peroxiredoxin 2
+## 21   HSPD1             heat shock protein family D (Hsp60) member 1
+## 22    FHIT                                  fragile histidine triad
+## 23   HMGN2         high mobility group nucleosomal binding domain 2
+## 24   EPHX2                                      epoxide hydrolase 2
+## 25  FLT3LG                     fms related tyrosine kinase 3 ligand
+## 26   SNRPN            small nuclear ribonucleoprotein polypeptide N
+## 27   NUBP2                             nucleotide binding protein 2
+## 28  DDX39A                                    DExD-box helicase 39A
+## 29  EXOSC8                                      exosome component 8
+## 30   MOAP1                                 modulator of apoptosis 1
+## 31 HNRNPDL           heterogeneous nuclear ribonucleoprotein D like
+## 32   APBB1 amyloid beta precursor protein binding family B member 1
+## 33  CHI3L2                                       chitinase 3 like 2
+## 34    ISCU                      iron-sulfur cluster assembly enzyme
+## 35    ECI2                              enoyl-CoA delta isomerase 2
+## 36   NSUN5           NOP2/Sun RNA methyltransferase family member 5
+## 37   VDAC2                        voltage dependent anion channel 2
+## 38   PSMB5                                proteasome subunit beta 5
+## 39  MRPS35                      mitochondrial ribosomal protein S35
+## 40   ARL16                   ADP ribosylation factor like GTPase 16</code></pre>
+</div>
+<div id="cluster-9" class="section level3">
+<h3>cluster 9</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol
+## 1       LTB
+## 2     HINT1
+## 3      PFN1
+## 4    CHCHD2
+## 5      APRT
+## 6    COX6B1
+## 7      UBL5
+## 8     FXYD5
+## 9    NDUFB9
+## 10 TNFRSF25
+## 11    ATP5H
+## 12     BCL2
+## 13    SURF2
+## 14  NDUFA12
+## 15 TNFRSF18
+## 16   RANBP1
+## 17    SUGT1
+## 18   MRPL34
+## 19     COA6
+## 20   DNASE2
+## 21  CCDC107
+## 22    GTF3A
+## 23   MRPL20
+## 24   MRPS34
+## 25   POLR2I
+## 26   MRPL54
+## 27    FXYD7
+## 28   DNAJC2
+## 29    MED10
+## 30    ACAT2
+## 31   CCDC65
+## 32    PDCD5
+##                                                                 name
+## 1                                                   lymphotoxin beta
+## 2                       histidine triad nucleotide binding protein 1
+## 3                                                         profilin 1
+## 4            coiled-coil-helix-coiled-coil-helix domain containing 2
+## 5                                  adenine phosphoribosyltransferase
+## 6                                   cytochrome c oxidase subunit 6B1
+## 7                                                   ubiquitin like 5
+## 8                   FXYD domain containing ion transport regulator 5
+## 9                          NADH:ubiquinone oxidoreductase subunit B9
+## 10                                TNF receptor superfamily member 25
+## 11 ATP synthase, H+ transporting, mitochondrial Fo complex subunit D
+## 12                                         BCL2, apoptosis regulator
+## 13                                                         surfeit 2
+## 14                        NADH:ubiquinone oxidoreductase subunit A12
+## 15                                TNF receptor superfamily member 18
+## 16                                             RAN binding protein 1
+## 17      SGT1 homolog, MIS12 kinetochore complex assembly cochaperone
+## 18                               mitochondrial ribosomal protein L34
+## 19                            cytochrome c oxidase assembly factor 6
+## 20                                    deoxyribonuclease 2, lysosomal
+## 21                                 coiled-coil domain containing 107
+## 22                                 general transcription factor IIIA
+## 23                               mitochondrial ribosomal protein L20
+## 24                               mitochondrial ribosomal protein S34
+## 25                                       RNA polymerase II subunit I
+## 26                               mitochondrial ribosomal protein L54
+## 27                  FXYD domain containing ion transport regulator 7
+## 28                  DnaJ heat shock protein family (Hsp40) member C2
+## 29                                       mediator complex subunit 10
+## 30                                    acetyl-CoA acetyltransferase 2
+## 31                                  coiled-coil domain containing 65
+## 32                                           programmed cell death 5</code></pre>
+</div>
+<div id="cluster-10" class="section level3">
+<h3>cluster 10</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol
+## 1     GSDMD
+## 2     HMOX2
+## 3      CLPP
+## 4      EEF2
+## 5    IL27RA
+## 6       RAN
+## 7  ITGB1BP1
+## 8     THOC3
+## 9    ACTR1B
+## 10   NDUFA8
+## 11     PEPD
+## 12    HSPA8
+## 13     NIFK
+## 14   MRPL40
+## 15     GLO1
+## 16    PCID2
+## 17    PHF11
+## 18     SSR2
+## 19    DMAP1
+## 20    APOL3
+## 21 LGALS3BP
+## 22     HAX1
+## 23      DUT
+## 24   ATRAID
+## 25   PRPF19
+## 26   NDUFV2
+## 27     CNBP
+## 28    EBAG9
+## 29    EIF3G
+## 30     EPRS
+## 31    MRPS2
+## 32    TPGS2
+## 33    VPS72
+## 34      MPI
+##                                                               name
+## 1                                                      gasdermin D
+## 2                                                 heme oxygenase 2
+## 3  caseinolytic mitochondrial matrix peptidase proteolytic subunit
+## 4                       eukaryotic translation elongation factor 2
+## 5                            interleukin 27 receptor subunit alpha
+## 6                                  RAN, member RAS oncogene family
+## 7                        integrin subunit beta 1 binding protein 1
+## 8                                                    THO complex 3
+## 9                           ARP1 actin related protein 1 homolog B
+## 10                       NADH:ubiquinone oxidoreductase subunit A8
+## 11                                                     peptidase D
+## 12                    heat shock protein family A (Hsp70) member 8
+## 13      nucleolar protein interacting with the FHA domain of MKI67
+## 14                             mitochondrial ribosomal protein L40
+## 15                                                    glyoxalase I
+## 16                                         PCI domain containing 2
+## 17                                           PHD finger protein 11
+## 18                              signal sequence receptor subunit 2
+## 19                    DNA methyltransferase 1 associated protein 1
+## 20                                               apolipoprotein L3
+## 21                                      galectin 3 binding protein
+## 22                                    HCLS1 associated protein X-1
+## 23                                     deoxyuridine triphosphatase
+## 24          all-trans retinoic acid induced differentiation factor
+## 25                                   pre-mRNA processing factor 19
+## 26                  NADH:ubiquinone oxidoreductase core subunit V2
+## 27              CCHC-type zinc finger nucleic acid binding protein
+## 28           estrogen receptor binding site associated, antigen, 9
+## 29            eukaryotic translation initiation factor 3 subunit G
+## 30                                 glutamyl-prolyl-tRNA synthetase
+## 31                              mitochondrial ribosomal protein S2
+## 32                       tubulin polyglutamylase complex subunit 2
+## 33                             vacuolar protein sorting 72 homolog
+## 34                                     mannose phosphate isomerase</code></pre>
+</div>
+<div id="cluster-11" class="section level3">
+<h3>cluster 11</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##       symbol
+## 1      CD79A
+## 2       CD74
+## 3       TPT1
+## 4        FAU
+## 5       BTG1
+## 6     EEF1B2
+## 7      CD79B
+## 8      TOMM7
+## 9      MEF2C
+## 10     COX7C
+## 11      CD37
+## 12      PPIA
+## 13     P2RX5
+## 14      CD83
+## 15    MARCH1
+## 16 TNFRSF13C
+## 17     HMGN1
+## 18     SMDT1
+## 19      STX7
+## 20   TSPAN13
+## 21     CXCR4
+## 22  ARHGAP24
+## 23     SUMO2
+## 24     CXXC5
+## 25      HHEX
+## 26      CD40
+## 27      PKIG
+## 28   PHACTR1
+## 29    CCDC50
+## 30      LSM7
+## 31      AFF3
+## 32      TCF4
+## 33     RRAS2
+## 34   CHCHD10
+##                                                                  name
+## 1                                                      CD79a molecule
+## 2                                                       CD74 molecule
+## 3                         tumor protein, translationally-controlled 1
+## 4                FAU, ubiquitin like and ribosomal protein S30 fusion
+## 5                                     BTG anti-proliferation factor 1
+## 6                   eukaryotic translation elongation factor 1 beta 2
+## 7                                                      CD79b molecule
+## 8                       translocase of outer mitochondrial membrane 7
+## 9                                          myocyte enhancer factor 2C
+## 10                                    cytochrome c oxidase subunit 7C
+## 11                                                      CD37 molecule
+## 12                                         peptidylprolyl isomerase A
+## 13                                          purinergic receptor P2X 5
+## 14                                                      CD83 molecule
+## 15                          membrane associated ring-CH-type finger 1
+## 16                                TNF receptor superfamily member 13C
+## 17                    high mobility group nucleosome binding domain 1
+## 18            single-pass membrane protein with aspartate rich tail 1
+## 19                                                         syntaxin 7
+## 20                                                     tetraspanin 13
+## 21                                   C-X-C motif chemokine receptor 4
+## 22                                   Rho GTPase activating protein 24
+## 23                                    small ubiquitin-like modifier 2
+## 24                                              CXXC finger protein 5
+## 25                               hematopoietically expressed homeobox
+## 26                                                      CD40 molecule
+## 27                      cAMP-dependent protein kinase inhibitor gamma
+## 28                                  phosphatase and actin regulator 1
+## 29                                   coiled-coil domain containing 50
+## 30 LSM7 homolog, U6 small nuclear RNA and mRNA degradation associated
+## 31                                           AF4/FMR2 family member 3
+## 32                                             transcription factor 4
+## 33                                                      RAS related 2
+## 34           coiled-coil-helix-coiled-coil-helix domain containing 10</code></pre>
+</div>
+<div id="cluster-12" class="section level3">
+<h3>cluster 12</h3>
+<pre><code>## Finished
+## Pass returnall=TRUE to return lists of duplicate or missing query terms.</code></pre>
+<pre><code>##     symbol
+## 1   S100A8
+## 2     CST3
+## 3      LYZ
+## 4   TYROBP
+## 5      FTL
+## 6     FCN1
+## 7   S100A4
+## 8   FCER1G
+## 9   COX4I1
+## 10    AIF1
+## 11   CEBPD
+## 12    CD14
+## 13   GSTP1
+## 14    CYBA
+## 15  ATP5G2
+## 16 S100A10
+## 17   EIF3K
+## 18  LGALS3
+## 19    EMP3
+## 20   VAMP8
+## 21  PYCARD
+## 22   PSMA7
+## 23    CTSH
+## 24  UQCR11
+## 25    TYMP
+## 26   ATP5D
+## 27     CFD
+## 28 PRELID1
+## 29  HIGD2A
+## 30   BLVRB
+## 31 NDUFA11
+## 32   PLAUR
+## 33     CD4
+## 34   COX5B
+## 35  COX6A1
+## 36    TSPO
+## 37   ASGR1
+## 38   AP2S1
+## 39    RBP7
+## 40   COX8A
+## 41    PPIF
+## 42   PILRA
+## 43    FOSB
+##                                                                              name
+## 1                                                 S100 calcium binding protein A8
+## 2                                                                      cystatin C
+## 3                                                                        lysozyme
+## 4                                    TYRO protein tyrosine kinase binding protein
+## 5                                                            ferritin light chain
+## 6                                                                       ficolin 1
+## 7                                                 S100 calcium binding protein A4
+## 8                                                  Fc fragment of IgE receptor Ig
+## 9                                                cytochrome c oxidase subunit 4I1
+## 10                                                allograft inflammatory factor 1
+## 11                                           CCAAT/enhancer binding protein delta
+## 12                                                                  CD14 molecule
+## 13                                                 glutathione S-transferase pi 1
+## 14                                                   cytochrome b-245 alpha chain
+## 15 ATP synthase, H+ transporting, mitochondrial Fo complex subunit C2 (subunit 9)
+## 16                                               S100 calcium binding protein A10
+## 17                           eukaryotic translation initiation factor 3 subunit K
+## 18                                                                     galectin 3
+## 19                                                  epithelial membrane protein 3
+## 20                                          vesicle associated membrane protein 8
+## 21                                                 PYD and CARD domain containing
+## 22                                                     proteasome subunit alpha 7
+## 23                                                                    cathepsin H
+## 24                       ubiquinol-cytochrome c reductase, complex III subunit XI
+## 25                                                        thymidine phosphorylase
+## 26         ATP synthase, H+ transporting, mitochondrial F1 complex, delta subunit
+## 27                                                            complement factor D
+## 28                                                      PRELI domain containing 1
+## 29                                 HIG1 hypoxia inducible domain family member 2A
+## 30                                                         biliverdin reductase B
+## 31                                     NADH:ubiquinone oxidoreductase subunit A11
+## 32                                      plasminogen activator, urokinase receptor
+## 33                                                                   CD4 molecule
+## 34                                                cytochrome c oxidase subunit 5B
+## 35                                               cytochrome c oxidase subunit 6A1
+## 36                                                           translocator protein
+## 37                                                  asialoglycoprotein receptor 1
+## 38                              adaptor related protein complex 2 sigma 1 subunit
+## 39                                                      retinol binding protein 7
+## 40                                                cytochrome c oxidase subunit 8A
+## 41                                                     peptidylprolyl isomerase F
+## 42                                 paired immunoglobin like type 2 receptor alpha
+## 43                         FosB proto-oncogene, AP-1 transcription factor subunit</code></pre>
+</div>
+<div id="cluster-13" class="section level3">
+<h3>cluster 13</h3>
+<pre><code>## Finished</code></pre>
+<pre><code>##      symbol                                                  name
+## 1     CSF3R                  colony stimulating factor 3 receptor
+## 2    S100A9                       S100 calcium binding protein A9
+## 3  SERPINA1                              serpin family A member 1
+## 4     ACSL1        acyl-CoA synthetase long chain family member 1
+## 5      FPR1                             formyl peptide receptor 1
+## 6   SLC11A1                     solute carrier family 11 member 1
+## 7      VNN2                                               vanin 2
+## 8      GLUL                              glutamate-ammonia ligase
+## 9      BCL6                                 B-cell CLL/lymphoma 6
+## 10  S100A12                      S100 calcium binding protein A12
+## 11      FGR        FGR proto-oncogene, Src family tyrosine kinase
+## 12   FCGR3B                      Fc fragment of IgG receptor IIIb
+## 13     MNDA          myeloid cell nuclear differentiation antigen
+## 14    MMP25                            matrix metallopeptidase 25
+## 15     NCF2                         neutrophil cytosolic factor 2
+## 16     SPI1                                  Spi-1 proto-oncogene
+## 17     ALPL               alkaline phosphatase, liver/bone/kidney
+## 18     AQP9                                           aquaporin 9
+## 19    ITGAX                              integrin subunit alpha X
+## 20    CXCR1                      C-X-C motif chemokine receptor 1
+## 21   FCGR2A                       Fc fragment of IgG receptor IIa
+## 22    IL1R2                         interleukin 1 receptor type 2
+## 23   NBEAL2                                   neurobeachin like 2
+## 24      HCK        HCK proto-oncogene, Src family tyrosine kinase
+## 25     MMP9                             matrix metallopeptidase 9
+## 26     PYGL                              glycogen phosphorylase L
+## 27     TLR2                                  toll like receptor 2
+## 28    FOSL2         FOS like 2, AP-1 transcription factor subunit
+## 29      HK3                                          hexokinase 3
+## 30   PFKFB3 6-phosphofructo-2-kinase/fructose-2,6-biphosphatase 3
+## 31    ADAM8                        ADAM metallopeptidase domain 8
+## 32    ITGAM                              integrin subunit alpha M
+## 33     NCF4                         neutrophil cytosolic factor 4
+## 34    BASP1     brain abundant membrane attached signal protein 1
+## 35    FKBP5                               FK506 binding protein 5
+## 36   LILRA5             leukocyte immunoglobulin like receptor A5
+## 37  FAM129A          family with sequence similarity 129 member A
+## 38   TRIM25                        tripartite motif containing 25
+## 39    DEFA3                                      defensin alpha 3
+## 40    CD163                                        CD163 molecule
+## 41     NADK                                            NAD kinase
+## 42      LYN        LYN proto-oncogene, Src family tyrosine kinase
+## 43     LCP1                        lymphocyte cytosolic protein 1</code></pre>
+</div>
+</div>
+
+<hr>
+<p>
+    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

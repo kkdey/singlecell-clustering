@@ -316,119 +316,11 @@ div.tocify {
 <pre><code>## 
 Read 0.0% of 16069 rows
 Read 62.2% of 16069 rows
-Read 16069 rows and 8557 (of 8557) columns from 0.532 GB file in 00:00:13</code></pre>
+Read 16069 rows and 8557 (of 8557) columns from 0.532 GB file in 00:00:22</code></pre>
 <pre class="r"><code>mat1 &lt;- as.matrix(gtex_expr[, -(1:2)])</code></pre>
 <pre class="r"><code>mat &lt;- apply(mat1, 2, function(x) return(rbinom(dim(gtex_expr)[1], x, 1e-05)))</code></pre>
 <pre class="r"><code>samples_id &lt;- read.table(&quot;../data/samples_id.txt&quot;)
-tissue_names &lt;- samples_id[,3]
-table(tissue_names)</code></pre>
-<pre><code>## tissue_names
-##                    Adipose - Subcutaneous 
-##                                       350 
-##              Adipose - Visceral (Omentum) 
-##                                       227 
-##                             Adrenal Gland 
-##                                       145 
-##                            Artery - Aorta 
-##                                       224 
-##                         Artery - Coronary 
-##                                       133 
-##                           Artery - Tibial 
-##                                       332 
-##                                   Bladder 
-##                                        11 
-##                          Brain - Amygdala 
-##                                        72 
-##  Brain - Anterior cingulate cortex (BA24) 
-##                                        84 
-##           Brain - Caudate (basal ganglia) 
-##                                       117 
-##             Brain - Cerebellar Hemisphere 
-##                                       105 
-##                        Brain - Cerebellum 
-##                                       125 
-##                            Brain - Cortex 
-##                                       114 
-##              Brain - Frontal Cortex (BA9) 
-##                                       108 
-##                       Brain - Hippocampus 
-##                                        94 
-##                      Brain - Hypothalamus 
-##                                        96 
-## Brain - Nucleus accumbens (basal ganglia) 
-##                                       113 
-##           Brain - Putamen (basal ganglia) 
-##                                        97 
-##        Brain - Spinal cord (cervical c-1) 
-##                                        71 
-##                  Brain - Substantia nigra 
-##                                        63 
-##                   Breast - Mammary Tissue 
-##                                       214 
-##       Cells - EBV-transformed lymphocytes 
-##                                       118 
-##           Cells - Transformed fibroblasts 
-##                                       284 
-##                       Cervix - Ectocervix 
-##                                         6 
-##                       Cervix - Endocervix 
-##                                         5 
-##                           Colon - Sigmoid 
-##                                       149 
-##                        Colon - Transverse 
-##                                       196 
-##     Esophagus - Gastroesophageal Junction 
-##                                       153 
-##                        Esophagus - Mucosa 
-##                                       286 
-##                    Esophagus - Muscularis 
-##                                       247 
-##                            Fallopian Tube 
-##                                         6 
-##                  Heart - Atrial Appendage 
-##                                       194 
-##                    Heart - Left Ventricle 
-##                                       218 
-##                           Kidney - Cortex 
-##                                        32 
-##                                     Liver 
-##                                       119 
-##                                      Lung 
-##                                       320 
-##                      Minor Salivary Gland 
-##                                        57 
-##                         Muscle - Skeletal 
-##                                       430 
-##                            Nerve - Tibial 
-##                                       304 
-##                                     Ovary 
-##                                        97 
-##                                  Pancreas 
-##                                       171 
-##                                 Pituitary 
-##                                       103 
-##                                  Prostate 
-##                                       106 
-##       Skin - Not Sun Exposed (Suprapubic) 
-##                                       250 
-##            Skin - Sun Exposed (Lower leg) 
-##                                       357 
-##          Small Intestine - Terminal Ileum 
-##                                        88 
-##                                    Spleen 
-##                                       104 
-##                                   Stomach 
-##                                       193 
-##                                    Testis 
-##                                       172 
-##                                   Thyroid 
-##                                       323 
-##                                    Uterus 
-##                                        83 
-##                                    Vagina 
-##                                        96 
-##                               Whole Blood 
-##                                       393</code></pre>
+tissue_names &lt;- samples_id[,3]</code></pre>
 <pre class="r"><code>idx1 &lt;- which(tissue_names == &quot;Whole Blood&quot;)
 mat2 &lt;- mat[, idx1]</code></pre>
 <pre class="r"><code>gene_names &lt;- as.character(read.table(&quot;../data/gene_names_GTEX_V6.txt&quot;)[,1])
@@ -481,33 +373,15 @@ rbc_data_2 &lt;- rbc_data[match(common_genes, rownames(rbc_data)),]</code></pre>
 <pre class="r"><code>pooled_data &lt;- rbind(t(sorted_data_2), t(rbc_data_2), data_build_2)</code></pre>
 <pre class="r"><code>seuratObj_TFH_global &lt;- get(load(&quot;../output/seurat_gtex_rbc_sorted_immune.rda&quot;))</code></pre>
 <pre class="r"><code>pooled_data &lt;- t(seuratObj_TFH_global@raw.data)</code></pre>
-<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(pooled_data, K=10, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 0.001, ord=FALSE)</code></pre>
-<pre><code>## 
-## Estimating on a 6220 document collection.
-## start the fit 
-## log posterior increase: 856.17, done.</code></pre>
-<pre class="r"><code>save(topic_clus, file = &quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh.rda&quot;)</code></pre>
 </div>
 <div id="cluster-representation" class="section level2">
 <h2>Cluster representation</h2>
 <pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_no_thresh.rda&quot;))</code></pre>
-<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
-<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(pooled_data, K=11, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 100, ord=FALSE)</code></pre>
-<pre><code>## 
-## Estimating on a 6220 document collection.
-## start the fit 
-## log posterior increase: 34115.7, 1107.1, 213.5, done.</code></pre>
-<pre class="r"><code>save(topic_clus, file = &quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_11.rda&quot;)</code></pre>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-26-1.png" width="480" /></p>
 <pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_11.rda&quot;))</code></pre>
-<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
-<pre class="r"><code>topic_clus &lt;- classtpx::class_topics(pooled_data, K=12, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 100, ord=FALSE)</code></pre>
-<pre><code>## 
-## Estimating on a 6220 document collection.
-## start the fit 
-## log posterior increase: 35680.8, 950.7, 323.4, 96.1, done.</code></pre>
-<pre class="r"><code>save(topic_clus, file = &quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_12.rda&quot;)</code></pre>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-29-1.png" width="480" /></p>
 <pre class="r"><code>topic_clus &lt;- get(load(&quot;../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_12.rda&quot;))</code></pre>
-<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-32-1.png" width="480" /></p>
 </div>
 <div id="driving-genes" class="section level2">
 <h2>Driving genes</h2>
@@ -781,14 +655,14 @@ testX &lt;- raw_data[-known_samples,]
 y &lt;- factor(class_labs_2)
 dat &lt;- cbind.data.frame(y, trainX);</code></pre>
 <pre class="r"><code>prob  &lt;- get(load(file = &quot;svm_gtex_rbc_sorted_immune.rda&quot;))</code></pre>
-<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-53-1.png" width="672" /></p>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-53-1.png" width="480" /></p>
 <pre class="r"><code>topic_clus &lt;- classtpx::class_topics(raw_data, K=10, known_samples = known_samples, class_labs = class_labs_2, method = &quot;theta.fix&quot;, shrink = FALSE, tol = 0.001, ord=FALSE)</code></pre>
 <pre><code>## 
 ## Estimating on a 6220 document collection.
 ## start the fit 
 ## log posterior increase: 587.303, done.</code></pre>
-<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-55-1.png" width="672" /></p>
-<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-56-1.png" width="672" /></p>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-55-1.png" width="480" /></p>
+<p><img src="gtex_blood_with_RBC_files/figure-html/unnamed-chunk-56-1.png" width="480" /></p>
 </div>
 
 <hr>

@@ -182,6 +182,8 @@ The results from applying countClust on just the unsorted PBMC data are
 
 - [unsorted PBMC cells CountClust study](pbmc_68k.html)
 
+- [unsorted PBMC 9 cell types study](zheng_analysis.html)
+
 The results from applying CountClust on the sorted cells + unsorted PBMC cells is the 
 following
 
@@ -234,6 +236,7 @@ in the bulk RNA-seq data - for example - the blood and blood tissues data in the
 
 - [supervised Countclust study GTEx blood + sorted immune cells](gtex_blood_sorted_immune.html)
 
+
 We found that GTEx blood samples seemed to form a cluster of its own 
 different from the immune cell types considered. This may be because 
 these samples have a lot of RBCs present which makes the detection of
@@ -242,6 +245,7 @@ the GTEx blood samples.
 
 - [supervised and partially supervised CountClust study with GTEx blood + RBC MCC study + sorted immune cells](gtex_blood_with_RBC.html)
 
+- [supervised and partially supervised CountClust study with GTEx blood + clusters in MCC study + sorted immune cells](classtpx_mcc_zheng_gtex.html)
 
 We look at more robust version of classtpx that uses trimmed mean at different degrees of trimming instead of mean of the expression patterns of cells for a particular class or cell type. We tried with median, but median did not seem to give good performance.
 

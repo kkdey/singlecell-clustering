@@ -1,0 +1,358 @@
+---
+title: "Unsupervised CountClust on zheng et al PBMC data"
+author: "Kushal K Dey"
+date: "10/1/2017"
+output: html_document
+---
+
+```{r echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(plyr)
+library(classtpx)
+library(CountClust)
+library(maptpx)
+library(ggplot2)
+library(MAST)
+library(GSEABase)
+library(Seurat)
+```
+
+## Zheng et al 2017 Data Processing
+
+```{r echo=FALSE, eval=TRUE}
+seuratObj_TFH_global <- get(load("../output/seurat_pooled_sorted_unsorted_PBMC.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+data <- seuratObj_TFH_global@raw.data
+```
+
+```{r echo=FALSE, eval=TRUE}
+fac1 <- sapply(colnames(data)[1:4500], function(x) return(paste0(head(strsplit(x, "[_]")[[1]], -1), collapse="_")))
+known_samples <- 1:4500
+class_labs <- fac1
+```
+
+```{r echo=FALSE, eval=TRUE}
+counts <- t(data[,1:4500])
+```
+
+## Unsupervised CountClust
+
+```{r}
+topic_clus_list <- get(load("../output/maptpx_pbmc_k_9_output.rda"))
+```
+
+```{r echo=FALSE, eval=TRUE}
+PlotCountClust <- function(topic_clus, fac){
+  omega <- topic_clus$omega
+  theta <- topic_clus$theta
+  
+  annotation <- data.frame(
+    sample_id = paste0("X", 1:length(fac)),
+    tissue_label = factor(fac,
+                          levels = levels(fac) ) );
+
+  rownames(omega) <- annotation$sample_id;
+  
+  StructureGGplot(omega = omega,
+                  annotation = annotation,
+                  palette = c(RColorBrewer::brewer.pal(8, "Accent"), RColorBrewer::brewer.pal(8,"Set3")[c(1,6,5,2, 4)]),
+                  yaxis_label = "Types",
+                  order_sample = TRUE,
+                  axis_tick = list(axis_ticks_length = .1,
+                                   axis_ticks_lwd_y = .1,
+                                   axis_ticks_lwd_x = .1,
+                                   axis_label_size = 7,
+                                   axis_label_face = "bold"))
+}
+```
+
+```{r fig.width=5, fig.height=8}
+class_labs_3 <- factor(class_labs, levels = c("CD14_Monocytes",
+                                              "CD19_B", "CD56_NK",
+                                              "CD8_Cytotoxic",
+                                              "CD8_Naive_Cytotoxic",
+                                              "CD4_Naive",
+                                              "CD4_Helper",
+                                              "CD4_Memory",
+                                              "CD4_Regulatory"))
+PlotCountClust(topic_clus_list[[4]], class_labs_3)
+PlotCountClust(topic_clus_list[[5]], class_labs_3)
+PlotCountClust(topic_clus_list[[6]], class_labs_3)
+PlotCountClust(topic_clus_list[[7]], class_labs_3)
+PlotCountClust(topic_clus_list[[8]], class_labs_3)
+PlotCountClust(topic_clus_list[[9]], class_labs_3)
+```
+
+
+## K=6 driving genes
+
+### cluster 1
+
+```{r echo=FALSE, eval=TRUE}
+indices <- ExtractTopFeatures(topic_clus_list[[6]]$theta, top_features = 100, method = "poisson", options = "max")
+imp_genes <- apply(indices$indices, 1, function(x) return(rownames(topic_clus_list[[6]]$theta)[x]))
+
+out <- mygene::queryMany(imp_genes[1:50,1],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[1:25,1]), file ="../utilities/zheng_6_k_1.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 2
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,2],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[1:25,2]), file ="../utilities/zheng_6_k_2.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 3
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50, 3],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[1:25,3]), file ="../utilities/zheng_6_k_3.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+### cluster 4
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,4],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[1:25,4]), file ="../utilities/zheng_6_k_4.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+
+### cluster 5
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,5],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[1:25,5]), file ="../utilities/zheng_6_k_5.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+### cluster 6
+
+```{r echo=FALSE, eval=TRUE}
+out <- mygene::queryMany(imp_genes[1:50,6],  scopes="symbol", fields=c("symbol", "name", "summary"), species="human");
+tab <- cbind.data.frame(out$symbol[!is.na(out$summary)], out$name[!is.na(out$summary)])
+colnames(tab) <- c("symbol", "name")
+rownames(tab) <- NULL
+tab
+
+write.table(as.matrix(imp_genes[1:25,6]), file ="../utilities/zheng_6_k_6.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+```
+
+## Pathway analysis
+
+### cluster 1
+
+```{r echo=FALSE, eval=TRUE}
+l <- 1
+pathway2 <- read.delim(paste0("../utilities/zheng_6_k_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+### cluster 2
+
+```{r echo=FALSE, eval=TRUE}
+l <- 2
+pathway2 <- read.delim(paste0("../utilities/zheng_6_k_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+### cluster 3
+
+```{r echo=FALSE, eval=TRUE}
+l <- 3
+pathway2 <- read.delim(paste0("../utilities/zheng_6_k_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+### cluster 4
+
+```{r echo=FALSE, eval=TRUE}
+l <- 4
+pathway2 <- read.delim(paste0("../utilities/zheng_6_k_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+### cluster 5
+
+```{r echo=FALSE, eval=TRUE}
+l <- 5
+pathway2 <- read.delim(paste0("../utilities/zheng_6_k_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+
+
+### cluster 6
+
+```{r echo=FALSE, eval=TRUE}
+l <- 6
+pathway2 <- read.delim(paste0("../utilities/zheng_6_k_", l, ".tab"))
+head(pathway2$pathway, 10)
+
+if(length(which(pathway2$q.value < 0.005)) > 2){
+  pathway2 <- pathway2[which(pathway2$q.value < 0.005),]
+}
+maxpath <- 75
+pathway <- pathway2[1:min(maxpath, dim(pathway2)[1]), ]
+ensembl_genes <- pathway$members_input_overlap
+pathway_list_genes <- sapply(ensembl_genes, function(x) return(strsplit(as.character(x), "; ")))
+all_genes <- Reduce(union, pathway_list_genes)
+pathway_mat <- matrix(0, length(pathway_list_genes), length(all_genes))
+for(l in 1:dim(pathway_mat)[1]){
+  pathway_mat[l, match(pathway_list_genes[[l]], all_genes)] <- 1
+}
+
+pathway_bimat <- (pathway_mat)%*%t(pathway_mat)
+pathway_bimat_prop <- diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1]) %*% pathway_bimat %*% diag(1/sqrt(diag(pathway_bimat)), dim(pathway_bimat)[1])
+
+col=c(rev(rgb(seq(1,0,length=1000),1,seq(1,0,length=1000))),
+      rgb(1,seq(1,0,length=1000),seq(1,0,length=1000)))
+heatmap(pathway_bimat_prop, labRow = pathway$pathway, labCol = pathway$pathway, cexRow = 0.3, cexCol = 0.3, col = col, zlim = c(-1,1),
+        scale = "none", margins = c(5, 5))
+
+```
+

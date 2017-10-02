@@ -39,7 +39,6 @@ mat <- apply(mat1, 2, function(x) return(rbinom(dim(gtex_expr)[1], x, 1e-05)))
 ```{r}
 samples_id <- read.table("../data/samples_id.txt")
 tissue_names <- samples_id[,3]
-table(tissue_names)
 ```
 
 ```{r}
@@ -135,7 +134,7 @@ class_labs <- fac3
 class_labs_2 <- factor(as.vector(mapvalues(class_labs, from = unique(class_labs), to = 1:length(unique(class_labs)))))
 ```
 
-```{r}
+```{r echo=FALSE, eval=FALSE}
 topic_clus <- classtpx::class_topics(pooled_data, K=10, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
 save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh.rda")
 ```
@@ -171,27 +170,28 @@ PlotCountClust <- function(topic_clus, fac){
 }
 ```
 
-```{r echo=FALSE, eval=TRUE}
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 5}
 labs <- c(as.character(fac3), rep("Blood", dim(data_build_2)[1]))
 PlotCountClust(topic_clus, labs)
 ```
 
 
-```{r}
+```{r echo=FALSE, eval=FALSE}
 topic_clus <- classtpx::class_topics(pooled_data, K=11, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 100, ord=FALSE)
 save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_11.rda")
 ```
+
 ```{r}
 topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_11.rda"))
 ```
 
-```{r echo=FALSE, eval=TRUE}
+```{r echo=FALSE, eval=TRUE, fig.width = 5, fig.height = 8}
 labs <- c(as.character(fac3), rep("Blood", dim(data_build_2)[1]))
 PlotCountClust(topic_clus, labs)
 ```
 
 
-```{r}
+```{r echo=FALSE, eval=FALSE}
 topic_clus <- classtpx::class_topics(pooled_data, K=12, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 100, ord=FALSE)
 save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_12.rda")
 ```
@@ -201,7 +201,7 @@ save(topic_clus, file = "../output/classtpx_gtex_blood_sorted_immune_with_rbc_th
 topic_clus <- get(load("../output/classtpx_gtex_blood_sorted_immune_with_rbc_thresh_12.rda"))
 ```
 
-```{r echo=FALSE, eval=TRUE}
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 5}
 labs <- c(as.character(fac3), rep("Blood", dim(data_build_2)[1]))
 PlotCountClust(topic_clus, labs)
 ```
@@ -412,7 +412,7 @@ PlotCountClust2 <- function(omega, fac){
 }
 ```
 
-```{r echo=FALSE, eval=TRUE}
+```{r echo=FALSE, eval=TRUE, fig.width = 5, fig.height = 8}
 labs2 <-  rep("Blood", dim(data_build_2)[1])
 prob_mat <- as.matrix(attr(prob, "probabilities"))
 rownames(prob_mat) <- 1:dim(prob_mat)[1]
@@ -423,12 +423,12 @@ PlotCountClust2(prob_mat, labs2)
 topic_clus <- classtpx::class_topics(raw_data, K=10, known_samples = known_samples, class_labs = class_labs_2, method = "theta.fix", shrink = FALSE, tol = 0.001, ord=FALSE)
 ```
 
-```{r echo=FALSE, eval=TRUE}
+```{r echo=FALSE, eval=TRUE, fig.width = 5, fig.height = 8}
 labs <- c(as.character(fac3), rep("Blood", dim(data_build_2)[1]))
 PlotCountClust(topic_clus, labs)
 ```
 
-```{r echo=FALSE, eval=TRUE}
+```{r echo=FALSE, eval=TRUE, fig.height = 8, fig.width = 5}
 labs2 <-  rep("Blood", dim(data_build_2)[1])
 PlotCountClust2(topic_clus$omega[-known_samples,], labs2)
 ```
